@@ -301,6 +301,49 @@ body.noscroll{overflow:hidden}
 .qk b{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:38px;color:var(--ink)}
 .qm{display:flex;gap:14px;font-size:14.5px;margin-top:4px}
 .lnk{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:600;font-size:14px;padding:6px 0;min-height:44px;cursor:pointer;text-decoration:underline}
+/* Pasti v2: ricerca e aggiunta come Nutrium */
+.ptrend{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-left:6px solid var(--mute);background:var(--soft);color:var(--ink);font:inherit;border-radius:14px;padding:10px 12px;margin-bottom:12px;cursor:pointer}
+.ptrend.ok{background:var(--okbg);border-left-color:var(--ok)} .ptrend.warn{background:var(--upbg);border-left-color:var(--warn)} .ptrend.bad{background:var(--downbg);border-left-color:var(--bad)}
+.ptrend .ptm{flex:1;min-width:0}
+.ptrend b{display:block;font-size:14px}
+.ptrend small{display:block;font-size:13px;opacity:.85;margin-top:2px}
+.mgo{color:var(--mute);font-size:22px;align-self:center}
+.mill{width:150px;height:150px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:76px}
+.tplus{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--soft);color:var(--accent);font-size:26px;line-height:1;cursor:pointer}
+.tsave{flex:none;min-height:44px;border:0;border-radius:999px;background:var(--soft);color:var(--accent);font:inherit;font-weight:700;font-size:16px;padding:0 16px;cursor:pointer}
+.shead h2{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:28px}
+.sbox{display:flex;align-items:center;gap:6px;background:var(--soft);border-radius:18px;padding:4px 4px 4px 14px;margin-bottom:10px}
+.sbox input{flex:1;background:transparent;border:0;padding:10px 0;min-height:44px}
+.sbox input:focus-visible{outline:none}
+.sbox:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.sgo{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--card);font-size:18px;cursor:pointer}
+.schips{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pill2{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.slab2{font-size:17px;font-weight:700;color:var(--accent);margin:16px 2px 4px}
+.srow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.sopen{flex:1;min-width:0;text-align:left;border:0;background:transparent;color:var(--ink);font:inherit;padding:10px 2px;min-height:56px;cursor:pointer}
+.sopen b{display:block;font-size:15.5px;font-weight:600}
+.sopen small{display:block;font-size:13.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ver{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--soft);color:var(--mute);font-size:11px;font-style:normal;font-weight:800;vertical-align:1px}
+.splus{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--soft);color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:60;max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;border-radius:14px;padding:10px 14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.qname{font-size:19px;font-weight:600;color:var(--accent);margin:0 2px 12px}
+.qname span{color:var(--mute);font-weight:500;font-size:15px}
+.qrow{display:grid;grid-template-columns:96px 1fr;gap:10px}
+.qn,.qu{min-height:52px;border-radius:999px;border:2px solid var(--line);background:var(--card);font-size:17px;padding:10px 16px;color:var(--ink);font-family:inherit}
+.qu{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mute) 50%),linear-gradient(135deg,var(--mute) 50%,transparent 50%);background-position:calc(100% - 22px) 22px,calc(100% - 16px) 22px;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:40px}
+.qvals{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:6px;text-align:center;margin:22px 0 6px}
+.qv small{display:block;font-size:12.5px;color:var(--mute);min-height:16px}
+.qv b{display:block;font-size:18px;font-weight:600;margin:2px 0}
+.qv span{font-size:14px;font-weight:700}
+.qkc span{color:var(--accent)} .qp span{color:var(--mp)} .qc span{color:var(--c-cutsoft)} .qg span{color:var(--mg)}
+.qleft{text-align:center}
+.qsrc{font-size:14px;color:var(--mute);margin:14px 2px 6px}
+.qsrc b{color:var(--ink)}
+.bigbtn{display:block;width:100%;min-height:54px;border-radius:999px;margin-top:14px;font-size:17px}
+.kbig{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:30px}
+.ka.si{color:var(--ok)} .ka.circa{color:var(--warn)} .ka.no{color:var(--bad)}
+.pu{color:var(--mute);font-weight:600;margin-left:-4px}
 </style>
 </head>
 <body>
@@ -386,17 +429,10 @@ body.noscroll{overflow:hidden}
   </section>
 
   <section class="card" id="kcalCard">
-    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Kcal mangiate</span></h2>
-    <form id="fk" autocomplete="off">
-      <div class="fields">
-        <div><label for="kd">Giorno</label><input id="kd" type="date"></div>
-        <div><label for="kk">Kcal mangiate</label><input id="kk" type="text" inputmode="numeric" placeholder="1900"></div>
-      </div>
-      <p class="kq" id="kGoal"></p>
-      <div class="actions" style="margin-top:0"><button class="btn" type="submit">Salva</button></div>
-    </form>
+    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Pasti di ieri</span></h2>
+    <div id="kBody"></div>
     <div class="kdays" id="kDays"></div>
-    <div class="msg" id="kmsg" role="status"></div>
+    <div class="actions" style="margin-top:8px"><button class="btn" id="kGo" type="button">Segna i pasti di ieri</button></div>
   </section>
 
   <section class="card">
@@ -466,7 +502,8 @@ body.noscroll{overflow:hidden}
       <button type="button" data-ps="piano" aria-pressed="false">Piano alimentare</button>
     </div>
     <div id="pDiary">
-      <div class="phead"><b id="pDayLabel">Oggi</b><span class="streak" id="pStreak"></span><button type="button" class="padd" id="pAdd" aria-label="Aggiungi un cibo">+</button></div>
+      <button type="button" class="ptrend" id="pTrend" hidden></button>
+      <div class="phead"><b id="pDayLabel">Oggi</b><span class="streak" id="pStreak"></span></div>
       <div class="pweek" id="pWeek"></div>
       <section class="card pgauge" id="pGauge"></section>
       <section class="card" id="pMacros"></section>
@@ -496,9 +533,10 @@ body.noscroll{overflow:hidden}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.11</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.12</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 (function(){
@@ -718,6 +756,7 @@ function render(){
   var pills=document.getElementById("pills");pills.innerHTML="";
   function pill(t){var s=document.createElement("span");s.className="pill";s.textContent=t;pills.appendChild(s)}
   if(tr.lv!=="none")pill(tl.split(" · ")[0]);
+  var tdy=dayTot(today);if(tdy.n)pill("🍽️ oggi "+Math.round(tdy.k)+" / "+T.kcal+" kcal");
   if(last){
     pill("ultima: "+fmt(last.kg,1)+" kg ("+itD(last.date)+")");
     var p=planAt(toT(last.date));
@@ -737,6 +776,7 @@ function render(){
   setText("vTitle",v.t);setText("vText",v.x);
   if(cz&&cz.k==="plan"&&ADJ_OK[ph.id])why+=tr.lv==="bad"?" Lunedì nel report ti propongo la correzione: decidi tu se applicarla.":" Se continua così, il report del lunedì ti proporrà una correzione.";
   setText("vPlan",why);
+  lastTrend={lv:tr.lv,tl:tl,why:why};
 
   renderTodo(list,last);
   renderTrig(list,a);
@@ -768,7 +808,7 @@ function renderTodo(list,last){
   if(kdue&&kcalCard.parentNode!==todo)todo.insertBefore(kcalCard,weighCard.parentNode===todo?weighCard.nextSibling:todo.firstChild);
   if(!kdue&&kcalCard.parentNode===todo)kcalHome.parentNode.insertBefore(kcalCard,kcalHome.nextSibling);
   kcalCard.classList.toggle("due",kdue);
-  setText("kTitle",kdue?"Quante kcal hai mangiato ieri?":"Kcal mangiate");
+  setText("kTitle",kdue?"Non hai segnato i pasti di ieri":"Pasti di ieri");
   renderKcal();
 
   var lb=meta.lastBackup,ago=lb?Math.max(0,daysBetween(lb,today)):null;
@@ -781,27 +821,26 @@ function renderTodo(list,last){
 
 /* ---------- kcal e aderenza ---------- */
 var DL=["D","L","M","M","G","V","S"];
+// Card "Pasti di ieri" del Diario: riassume quello che hai segnato nel tab Pasti e ti porta li'.
 function renderKcal(){
-  var kd=document.getElementById("kd"),d=kd.value,e=kcalLog[d];
-  var tk=d?target(d).kcal:null,g="",kk=document.getElementById("kk");
-  kk.placeholder=tk?String(tk):"";
-  // i giorni segnati in Pasti si modificano solo li'
-  if(e&&e.src==="pasti"){kk.disabled=true;kk.value=String(e.kcal)}else if(kk.disabled){kk.disabled=false;kk.value=""}
-  if(tk){
-    g='Obiettivo: <b>'+tk+' kcal</b> · rispettate tra '+(tk-KTOL)+' e '+(tk+KTOL)+'.';
-    if(e&&typeof e.kcal==="number"){var df=kdiff(e);g+=(e.src==="pasti"?' Dal diario Pasti: <b>':' Hai segnato <b>')+e.kcal+'</b> ('+sgn(df,0)+'): '+ADHL[adhOf(e)](df)+'.'}
-    else if(e)g+=' Segnato: '+ADH[e.adh]+' (senza kcal).';
-  }
-  document.getElementById("kGoal").innerHTML=g;
-  var h="",y=yesterdayIso();
+  var y=yesterdayIso(),e=kcalLog[y],T=target(y),t=dayTot(y),h;
+  if(e&&typeof e.kcal==="number"){
+    var df=kdiff(e),a=adhOf(e);
+    h='<p class="kq"><b class="kbig">'+e.kcal+'</b> kcal su '+T.kcal+' ('+sgn(df,0)+'): <b class="ka '+a+'">'+ADHL[a](df)+'</b></p>';
+    if(t.n)h+='<p class="note" style="margin:0">P '+Math.round(t.p)+' / '+T.p+' g · C '+Math.round(t.c)+' / '+T.c+' g · G '+Math.round(t.g)+' / '+T.g+' g</p>';
+    else h+='<p class="note" style="margin:0">Totale scritto a mano (prima del diario dei pasti).</p>';
+  }else if(e)h='<p class="kq">Segnato: '+ADH[e.adh]+' (senza kcal).</p>';
+  else h='<p class="kq">Non hai ancora segnato cosa hai mangiato ieri. Servono per capire se il piano è giusto per te.</p>';
+  document.getElementById("kBody").innerHTML=h;
+  setText("kGo",t.n?"Vedi i pasti di ieri":"Segna i pasti di ieri");
+  var dh="";
   for(var i=6;i>=0;i--){
-    var dd=iso(toT(y)-i*DAY),x=kcalLog[dd];
-    var xa=x?adhOf(x):"";
-    h+='<button type="button" class="kday" data-d="'+dd+'" aria-pressed="'+(dd===d?"true":"false")+'" aria-label="'+dIt(dd)+': '+(x?(typeof x.kcal==="number"?x.kcal+" kcal, ":"")+ADHL[xa](kdiff(x)):"non segnato")+'"><i class="'+xa+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
+    var dd=iso(toT(y)-i*DAY),x=kcalLog[dd],xa=x?adhOf(x):"";
+    dh+='<button type="button" class="kday" data-d="'+dd+'" aria-label="'+dIt(dd)+': '+(x?(typeof x.kcal==="number"?x.kcal+" kcal, ":"")+ADHL[xa](kdiff(x)):"non segnato")+'"><i class="'+xa+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
   }
-  document.getElementById("kDays").innerHTML=h;
+  document.getElementById("kDays").innerHTML=dh;
 }
-function loadKDay(){var e=kcalLog[document.getElementById("kd").value],kk=document.getElementById("kk");kk.disabled=false;kk.value=e&&typeof e.kcal==="number"?String(e.kcal):"";renderKcal()}
+function loadKDay(){renderKcal()}
 
 /* ---------- settimane (lunedi'-domenica) ---------- */
 function mondayOf(s){var t=toT(s);return iso(t-((new Date(t).getUTCDay()+6)%7)*DAY)}
@@ -1102,30 +1141,8 @@ Array.prototype.forEach.call(document.querySelectorAll(".step"),function(b){
   });
 });
 document.getElementById("wd").value=todayIso();
-document.getElementById("kd").addEventListener("change",function(){msg("kmsg","");loadKDay()});
-document.getElementById("kDays").addEventListener("click",function(ev){
-  var b=ev.target.closest(".kday");if(!b)return;
-  document.getElementById("kd").value=b.getAttribute("data-d");msg("kmsg","");loadKDay();
-});
-document.getElementById("fk").addEventListener("submit",function(ev){
-  ev.preventDefault();
-  var d=document.getElementById("kd").value,raw=document.getElementById("kk").value.trim();
-  if(!d||d>todayIso()){msg("kmsg","Scegli un giorno fino a oggi.");return}
-  if(kcalLog[d]&&kcalLog[d].src==="pasti"){msg("kmsg","Le kcal di questo giorno arrivano dal diario Pasti: modificale lì.");return}
-  if(!raw){
-    if(kcalLog[d]){delete kcalLog[d];saveK();msg("kmsg","Tolto il "+dIt(d)+".");render()}
-    else msg("kmsg","Scrivi le kcal che hai mangiato.");
-    return;
-  }
-  var k=num(raw);
-  if(k==null||k<500||k>8000){msg("kmsg","Controlla le kcal.");return}
-  var e={date:d,kcal:Math.round(k)};
-  e.adh=adhOf(e); // salvato anche l'esito, cosi' il formato resta {date,adh,kcal}
-  kcalLog[d]=e;saveK();
-  var df=kdiff(e);
-  msg("kmsg","Salvato: "+e.kcal+" kcal il "+dIt(d)+" ("+sgn(df,0)+" sull'obiettivo: "+ADHL[e.adh](df)+").");
-  render();
-});
+document.getElementById("kGo").addEventListener("click",function(){goPasti(yesterdayIso())});
+document.getElementById("kDays").addEventListener("click",function(ev){var b=ev.target.closest(".kday");if(b)goPasti(b.getAttribute("data-d"))});
 document.getElementById("fw").addEventListener("submit",function(ev){
   ev.preventDefault();
   var d=document.getElementById("wd").value,c=num(document.getElementById("wc").value);
@@ -1587,12 +1604,43 @@ function stIcon(st){
   if(st.s==="skip")return '<i class="mst skip" aria-label="saltato">↷</i>';
   return "";
 }
+// Plurale delle unita' (2 porzioni, 3 fette, 2 uova...).
+var PLUR={uovo:"uova",arancia:"arance","unità":"unità",kiwi:"kiwi"};
+function plural(n,w){
+  if(Math.abs(n-1)<0.001)return w;
+  if(PLUR[w])return PLUR[w];
+  if(/[^aeiou]co$/.test(w))return w.slice(0,-1)+"hi";
+  if(/io$/.test(w))return w.slice(0,-1);
+  return /a$/.test(w)?w.slice(0,-1)+"e":/[oe]$/.test(w)?w.slice(0,-1)+"i":w;
+}
 function portion(x){
-  if(x.un!=null&&x.u)return nfmt(x.un)+" "+esc(x.u.n)+" ("+Math.round(x.q)+" g)";
+  if(x.un!=null&&x.u)return nfmt(x.un)+" "+esc(plural(x.un,x.u.n))+" ("+Math.round(x.q)+" g)";
   if(x.q!=null)return Math.round(x.q)+" g";
   return "stima";
 }
-function perLine(f){return f.k+" kcal · P "+nfmt(f.p)+" · C "+nfmt(f.c)+" · G "+nfmt(f.g)+" per 100 g"}
+// Unita' di un cibo (oltre ai grammi): porzione/unita' e, per i prodotti online, la confezione.
+function unitsOf(f){return [f.u,f.u2].filter(function(u){return u&&u.g>0})}
+var SRC={base:"Cibi base (valori medi)",off:"Open Food Facts",mio:"Creato da te"};
+function defMode(f){return unitsOf(f).length?"u0":"g"}
+function gramsFor(f,mode,v){var us=unitsOf(f);if(mode==="u0"&&us[0])return v*us[0].g;if(mode==="u1"&&us[1])return v*us[1].g;return v}
+function unitOf(f,mode){var us=unitsOf(f);return mode==="u0"?us[0]||null:mode==="u1"?us[1]||null:null}
+function defLabel(f){var u=unitsOf(f)[0];return u?"1 "+esc(u.n):"100 g"}
+function defKcal(f){var u=unitsOf(f)[0];return Math.round(f.k*(u?u.g:100)/100)}
+// Voce del diario per una quantita' di un cibo.
+function itemFrom(f,mode,v){
+  var g=gramsFor(f,mode,v),u=unitOf(f,mode),per={k:f.k,p:f.p,c:f.c,g:f.g};
+  return {f:f.id,n:f.n,b:f.b||"",q:r1(g),u:u,un:u?v:null,per:per,k:r1(per.k*g/100),p:r1(per.p*g/100),c:r1(per.c*g/100),g:r1(per.g*g/100)};
+}
+function keepFood(f){if(f.src!=="base"){foods[f.id]={id:f.id,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,u2:f.u2||null,src:f.src};saveF()}}
+function showTab(k){
+  ["diario","pasti","piano","goals"].forEach(function(x){
+    document.getElementById("t-"+x).hidden=(x!==k);
+    document.getElementById("tb-"+x).setAttribute("aria-selected",x===k?"true":"false");
+  });
+  window.scrollTo(0,0);
+}
+function goPasti(d){pDay=d;psub="diario";showTab("pasti");renderPasti()}
+var lastTrend=null; // stato del peso calcolato in render(): lo mostra anche Pasti
 
 function renderPasti(){
   var today=todayIso();
@@ -1601,6 +1649,12 @@ function renderPasti(){
   document.getElementById("pDiary").hidden=psub!=="diario";
   document.getElementById("pPlan").hidden=psub!=="piano";
   if(psub==="piano"){renderPPlan();return}
+  // stato del peso (lo stesso del Diario)
+  var pt=document.getElementById("pTrend"),L0=lastTrend;
+  if(L0&&L0.tl){
+    pt.hidden=false;pt.className="ptrend "+(STC[L0.lv]||"");
+    pt.innerHTML='<span class="ptm"><b>'+esc(L0.tl)+'</b>'+(L0.why?'<small>'+esc(L0.why)+'</small>':'')+'</span><span aria-hidden="true">›</span>';
+  }else pt.hidden=true;
   setText("pDayLabel",dayLabel(pDay));
   var sk=streakDays();setText("pStreak","🔥 "+sk+(sk===1?" giorno":" giorni"));
   // settimana
@@ -1634,7 +1688,7 @@ function renderPasti(){
     var c=mealCfg(m.id),M=dayMeal(pDay,m.id)||{},it=M.items||[],st=mealState(pDay,m.id),t=mealTot(it);
     var names=it.length?it.map(function(x){return esc(x.n)}).join(", "):(st.s==="skip"?"Saltato":"Tocca per aggiungere");
     mh+='<button type="button" class="mcard" data-meal="'+m.id+'"><div class="mtop"><span class="memo" style="background:'+c.bg+'" aria-hidden="true">'+c.e+'</span>'+
-      '<span class="mtx"><b>'+c.n+'</b> '+stIcon(st)+'<p>'+names+'</p></span><span class="mtime">🕐 '+esc(M.time||c.t)+' ›</span></div>'+
+      '<span class="mtx"><b>'+c.n+'</b> '+stIcon(st)+'<p>'+names+'</p></span><span class="mgo" aria-hidden="true">›</span></div>'+
       (it.length?'<div class="mnum"><b>'+Math.round(t.k)+' kcal</b><span><i class="chip">P</i>'+Math.round(t.p)+' g</span><span><i class="chip">C</i>'+Math.round(t.c)+' g</span><span><i class="chip">G</i>'+Math.round(t.g)+' g</span></div>':'')+
       '</button>';
   });
@@ -1647,25 +1701,24 @@ function renderPPlan(){
   h+='<section class="card"><h2><i class="hd" style="background:var(--c-out)"></i>Come dividi la giornata</h2>';
   var sum=0;
   MEALS.forEach(function(m){
-    var c=mealCfg(m.id),tg=mealTarget(today,m.id);
+    var c=mealCfg(m.id);
     if(m.id!=="cena")sum+=c.pct;
     h+='<div class="prow"><span class="memo sm" style="background:'+c.bg+'" aria-hidden="true">'+c.e+'</span><span class="pm"><b>'+c.n+'</b><small>'+(m.id==="cena"?"quello che resta":Math.round(c.pct)+"% · "+Math.round(T.kcal*c.pct/100)+" kcal")+'</small></span>'+
-      (m.id==="cena"?'<span class="pr">~'+Math.max(0,100-sum)+'%</span>':'<label class="sr" for="pct-'+m.id+'">Percentuale '+c.n+'</label><input class="pin" id="pct-'+m.id+'" data-pct="'+m.id+'" inputmode="numeric" value="'+Math.round(c.pct)+'">')+
-      '<label class="sr" for="tm-'+m.id+'">Orario '+c.n+'</label><input class="tin" type="time" id="tm-'+m.id+'" data-tm="'+m.id+'" value="'+c.t+'"></div>';
+      (m.id==="cena"?'<span class="pr">~'+Math.max(0,100-sum)+'%</span>':'<label class="sr" for="pct-'+m.id+'">Percentuale '+c.n+'</label><input class="pin" id="pct-'+m.id+'" data-pct="'+m.id+'" inputmode="numeric" value="'+Math.round(c.pct)+'"><span class="pu">%</span>')+'</div>';
   });
   h+='<p class="note">La cena chiude la giornata: nel diario il suo obiettivo è quello che ti resta dopo colazione, pranzo e merenda.</p><div class="msg" id="ppMsg" role="status"></div>';
   h+='<div class="actions"><button class="btn ghost" type="button" id="ppReset">Ripristina 20 / 35 / 15</button></div></section>';
   document.getElementById("pPlan").innerHTML=h;
 }
 
-/* ---------- Pasti: schede (pasto, aggiungi, quantita', nuovo cibo, stima) ---------- */
+/* ---------- Pasti: schede (pasto, ricerca, aggiungere alimento, nuovo cibo, stima) ---------- */
 function openSheet(o){
   sh=o;var s=document.getElementById("sheet");s.hidden=false;document.body.classList.add("noscroll");
   renderSheet();s.scrollTop=0;
 }
 function closeSheet(){sh=null;document.getElementById("sheet").hidden=true;document.body.classList.remove("noscroll");render()}
-function shead(back,title,extra){
-  return '<div class="shead"><button type="button" class="xbtn" data-sh="'+back+'" aria-label="'+(back==="close"?"Chiudi":"Indietro")+'">'+(back==="close"?"✕":"‹")+'</button><h2 id="shTitle">'+title+'</h2>'+(extra||"")+'</div>';
+function shead(back,title,right){
+  return '<div class="shead"><button type="button" class="xbtn" data-sh="'+back+'" aria-label="'+(back==="close"||back==="meal"&&sh&&sh.v==="add"?"Chiudi":"Indietro")+'">'+(back==="close"||sh&&sh.v==="add"?"✕":"‹")+'</button><h2 id="shTitle">'+title+'</h2>'+(right||"")+'</div>';
 }
 function renderSheet(){
   if(!sh)return;
@@ -1686,22 +1739,23 @@ function vMeal(){
   var w=tg.kcal>0?Math.min(100,t.k/tg.kcal*100):(t.k>0?100:0);
   var h=shead("close",c.n+' <small class="shday">'+dayLabel(pDay)+'</small>',chip);
   h+='<div class="mprog"><span><b>'+Math.round(t.k)+'</b> / '+Math.round(tg.kcal)+' kcal</span><div class="bar"><i style="width:'+w+'%;background:var(--'+(st.s==="ok"?"ok":st.s==="off"?"accent":"blue")+')"></i></div></div>';
-  if(m==="cena")h+='<p class="note" style="margin:-6px 0 12px">La cena chiude la giornata: l\'obiettivo è quello che ti resta.</p>';
+  h+='<div class="mill" style="background:'+c.bg+'" aria-hidden="true">'+c.e+'</div>';
+  if(m==="cena")h+='<p class="note" style="text-align:center;margin:-4px 0 12px">La cena chiude la giornata: l\'obiettivo è quello che ti resta.</p>';
   h+='<section class="card">'+macroHTML(t,tg)+'</section>';
-  h+='<div class="mhead"><b>Il mio pasto</b><label class="sr" for="mTime">Orario</label><input type="time" class="tin" id="mTime" value="'+esc(M.time||c.t)+'"><button type="button" class="padd" data-sh="add" aria-label="Aggiungi un cibo">+</button></div>';
-  if(!it.length)h+='<p class="note">Ancora niente: tocca + per aggiungere un cibo.</p>';
+  h+='<div class="mhead"><b>Il mio pasto</b><button type="button" class="padd" data-sh="add" aria-label="Aggiungi un alimento">+</button></div>';
+  if(!it.length)h+='<p class="note">Ancora niente: tocca + per aggiungere un alimento.</p>';
   it.forEach(function(x,i){
     h+='<div class="irow"><button type="button" class="it" data-edit="'+i+'"><b>'+esc(x.n)+(x.b&&x.b!=="stima"?', <span class="br">'+esc(x.b)+'</span>':'')+'</b><small>'+portion(x)+' ✎</small></button><span class="ik">'+Math.round(x.k)+' kcal</span><button type="button" class="x" data-del="'+i+'" aria-label="Rimuovi '+esc(x.n)+'">×</button></div>';
   });
   h+='<div class="actions">'+(it.length?'':'<button type="button" class="btn ghost" data-skip="1">'+(M.skip?"Non l'ho saltato":"Salta pasto")+'</button>')+'<button type="button" class="btn" data-sh="close">Fatto</button></div>';
   return h;
 }
+// Ricerca di alimenti (come Nutrium): cronologia, risultati con + per aggiungere al volo, crea alimento in alto.
 function vAdd(){
-  var c=mealCfg(sh.m);
-  var h=shead("meal","Aggiungi a "+c.n.toLowerCase());
-  h+='<form id="sForm" class="sinput" autocomplete="off"><label class="sr" for="sQ">Cerca</label><input id="sQ" type="search" enterkeyhint="search" placeholder="Cerca per nome o marca" value="'+esc(sh.qs||"")+'"><button class="btn" type="submit">Cerca</button></form>';
+  var h=shead("meal","Ricerca di alimenti",'<button type="button" class="tplus" data-sh="food" aria-label="Crea alimento">+</button>');
+  h+='<form id="sForm" class="sbox" autocomplete="off" role="search"><label class="sr" for="sQ">Cerca alimenti</label><input id="sQ" type="search" enterkeyhint="search" placeholder="Cerca alimenti o marche…" value="'+esc(sh.qs||"")+'"><button class="sgo" type="submit" aria-label="Cerca anche online">🔍</button></form>';
+  h+='<div class="schips"><button type="button" class="pill2" data-sh="est">✏️ Stima a mano</button><span class="note" style="margin:0">per '+mealCfg(sh.m).n.toLowerCase()+'</span></div>';
   h+='<div id="sRes"></div>';
-  h+='<div class="actions"><button type="button" class="btn ghost" data-sh="food">＋ Crea alimento</button><button type="button" class="btn ghost" data-sh="est">✏️ Stima a mano</button></div>';
   return h;
 }
 function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
@@ -1710,27 +1764,28 @@ function localSearch(q){
   var mine=Object.keys(foods).map(function(k){return foods[k]}),base=Object.keys(FOODB).map(function(k){return FOODB[k]});
   return mine.concat(base).filter(function(f){var t=norm(f.n+" "+(f.b||""));return w.every(function(x){return t.indexOf(x)>=0})}).slice(0,30);
 }
-function foodRow(f,attr){
-  var tag=f.src==="base"?"base":f.src==="off"?"online":"tuo";
-  return '<button type="button" class="frow" '+attr+'><span class="fm"><b>'+esc(f.n)+'</b><small>'+(f.b?esc(f.b)+' · ':'')+perLine(f)+'</small></span><span class="ftag '+tag+'">'+tag+'</span></button>';
+function foodRow(f,open,quick){
+  return '<div class="srow"><button type="button" class="sopen" '+open+'><b>'+esc(f.n)+(f.src==="base"?' <i class="ver" title="Cibo base">✓</i>':'')+'</b>'+
+    '<small>'+(f.b?esc(f.b)+' · ':'')+defKcal(f)+' kcal, '+defLabel(f)+', '+SRC[f.src]+'</small></button>'+
+    '<button type="button" class="splus" '+quick+' aria-label="Aggiungi '+defLabel(f)+' di '+esc(f.n)+'">+</button></div>';
 }
 function renderResults(){
   var box=document.getElementById("sRes");if(!box||!sh)return;
   var q=(sh.qs||"").trim(),h="";
   if(!q){
     var rec=(meta.recent||[]).map(foodById).filter(Boolean);
-    h+='<div class="slab">Recenti</div>'+(rec.length?rec.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"')}).join(""):'<p class="note">Cerca un cibo per nome o marca: per esempio "yogurt greco" o "Mulino Bianco".</p>');
+    h+='<div class="slab2">Cronologia</div>'+(rec.length?rec.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"','data-quick="'+esc(f.id)+'"')}).join(""):'<p class="note">Cerca un alimento per nome o marca, per esempio "yogurt greco" o "Mulino Bianco". Premi 🔍 per cercare anche online.</p>');
   }else{
     var loc=localSearch(q);
-    h+='<div class="slab">I tuoi cibi e i cibi base</div>'+(loc.length?loc.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"')}).join(""):'<p class="note">Niente qui. Premi Cerca per cercare anche online.</p>');
+    h+='<div class="slab2">I tuoi cibi e i cibi base</div>'+(loc.length?loc.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"','data-quick="'+esc(f.id)+'"')}).join(""):'<p class="note">Niente qui. Premi 🔍 per cercare anche online.</p>');
     var on=sh.online;
     if(on&&on.q===q){
-      h+='<div class="slab">Online · Open Food Facts</div>';
+      h+='<div class="slab2">Online · Open Food Facts</div>';
       if(on.state==="loading")h+='<p class="note">Cerco…</p>';
       else if(on.state==="err")h+='<p class="note">Non riesco a cercare online: controlla la connessione e riprova.</p>';
-      else if(!on.list.length)h+='<p class="note">Nessun prodotto trovato. Puoi crearlo tu con "Crea alimento".</p>';
-      else h+=on.list.map(function(f,i){return foodRow(f,'data-off="'+i+'"')}).join("");
-    }
+      else if(!on.list.length)h+='<p class="note">Nessun prodotto trovato. Puoi crearlo tu con il + in alto.</p>';
+      else h+=on.list.map(function(f,i){return foodRow(f,'data-off="'+i+'"','data-qoff="'+i+'"')}).join("");
+    }else h+='<button type="button" class="lnk" data-online="1">🔍 Cerca "'+esc(q)+'" anche online</button>';
   }
   box.innerHTML=h;
 }
@@ -1741,45 +1796,66 @@ function offFood(p){
   if(k==null&&n["energy-kj_100g"]!=null){var kj=num(n["energy-kj_100g"]);k=kj==null?null:kj/4.184}
   var name=String(p.product_name_it||p.product_name||"").trim();
   if(k==null||!name||!p.code)return null;
-  var sq=num(p.serving_quantity);
-  return {id:"o:"+p.code,n:name,b:String(p.brands||"").split(",")[0].trim(),k:Math.round(k),p:r1(num(n.proteins_100g)||0),c:r1(num(n.carbohydrates_100g)||0),g:r1(num(n.fat_100g)||0),u:sq>0&&sq<2000?{n:"porzione",g:r1(sq)}:null,src:"off"};
+  var sq=num(p.serving_quantity),pq=num(p.product_quantity),u=null,u2=null;
+  if(sq>0&&sq<2000)u={n:"porzione",g:r1(sq)};
+  if(pq>0&&pq<3000&&(!u||Math.abs(pq-u.g)>0.5)){if(u)u2={n:"confezione",g:r1(pq)};else u={n:"confezione",g:r1(pq)}}
+  return {id:"o:"+p.code,n:name,b:String(p.brands||"").split(",")[0].trim(),k:Math.round(k),p:r1(num(n.proteins_100g)||0),c:r1(num(n.carbohydrates_100g)||0),g:r1(num(n.fat_100g)||0),u:u,u2:u2,src:"off"};
 }
 function offSearch(q){
-  var url=OFF_URL+"?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=24&fields=code,product_name,product_name_it,brands,nutriments,serving_quantity";
+  var url=OFF_URL+"?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=24&fields=code,product_name,product_name_it,brands,nutriments,serving_quantity,product_quantity";
   var ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=ctl?setTimeout(function(){ctl.abort()},12000):0;
   return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error("http");return r.json()})
     .then(function(j){return (j.products||[]).map(offFood).filter(Boolean)});
 }
+function runOnline(q){
+  sh.online={q:q,state:"loading",list:[]};renderResults();
+  var my=sh;
+  offSearch(q).then(function(list){if(sh===my&&sh.online&&sh.online.q===q){sh.online={q:q,state:"ok",list:list};renderResults()}},
+    function(){if(sh===my&&sh.online&&sh.online.q===q){sh.online={q:q,state:"err",list:[]};renderResults()}});
+}
+var toastT=0;
+function toast(t){var e=document.getElementById("toast");e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){e.hidden=true},2200)}
+function quickAdd(f){
+  if(!f)return;
+  keepFood(f);
+  var mode=defMode(f);putItem(itemFrom(f,mode,mode==="g"?100:1));addRecent(f.id);
+  toast("Aggiunto a "+mealCfg(sh.m).n.toLowerCase()+": "+f.n+" · "+defKcal(f)+" kcal");
+  render();
+}
+// Aggiungere alimento (come Nutrium): quantita' + unita' in un menu, kcal e macro con la percentuale, fonte, Salvare.
 function vQty(){
-  var f=sh.f,editing=sh.idx!=null,mode=sh.mode||(f.u?"u":"g");sh.mode=mode;
-  if(sh.qv==null)sh.qv=mode==="u"?"1":"100";
-  var h=shead(editing?"meal":"add",esc(f.n));
-  h+='<p class="note" style="margin-top:-4px">'+(f.b?esc(f.b)+' · ':'')+perLine(f)+'</p>';
-  if(sh.fix){
-    h+='<div class="fields four">'+["k","p","c","g"].map(function(k){return '<div><label for="fx-'+k+'">'+{k:"kcal",p:"P (g)",c:"C (g)",g:"G (g)"}[k]+'</label><input id="fx-'+k+'" data-fx="'+k+'" inputmode="decimal" value="'+nfmt(f[k])+'"></div>'}).join("")+'</div>';
-  }else if(f.src==="off")h+='<button type="button" class="lnk" data-fix="1">Valori sbagliati? Correggili</button>';
-  h+='<div class="fields"><div><label for="qN">Quantità</label><input id="qN" inputmode="decimal" value="'+(sh.qv!=null?esc(sh.qv):"")+'" placeholder="'+(mode==="u"?"1":"100")+'"></div>';
-  h+='<div><label>Unità</label><div class="seg useg">'+'<button type="button" data-mode="g" aria-pressed="'+(mode==="g")+'">grammi</button>'+(f.u?'<button type="button" data-mode="u" aria-pressed="'+(mode==="u")+'">'+esc(f.u.n)+' ('+nfmt(f.u.g)+' g)</button>':'')+'</div></div></div>';
-  h+='<div id="qPrev"></div><div class="msg" id="qMsg" role="status"></div>';
-  h+='<div class="actions"><button type="button" class="btn" data-qsave="1">'+(editing?"Salva":"Aggiungi")+'</button>'+(editing?'<button type="button" class="btn ghost" data-del="'+sh.idx+'">Rimuovi</button>':'')+'</div>';
+  var f=sh.f,editing=sh.idx!=null,us=unitsOf(f),mode=sh.mode||defMode(f);sh.mode=mode;
+  if(sh.qv==null)sh.qv=mode==="g"?"100":"1";
+  var h=shead(editing?"meal":"add",editing?"Modifica alimento":"Aggiungere alimento",'<button type="button" class="tsave" data-qsave="1">Salvare</button>');
+  h+='<p class="qname">'+esc(f.n)+(f.b?' <span>· '+esc(f.b)+'</span>':'')+'</p>';
+  h+='<div class="qrow"><label class="sr" for="qN">Quantità</label><input id="qN" class="qn" inputmode="decimal" value="'+esc(sh.qv)+'">';
+  h+='<label class="sr" for="qU">Unità</label><select id="qU" class="qu"><option value="g"'+(mode==="g"?" selected":"")+'>Grammi</option>'+
+    us.map(function(u,i){return '<option value="u'+i+'"'+(mode==="u"+i?" selected":"")+'>1 '+esc(u.n)+' ('+nfmt(u.g)+' g)</option>'}).join("")+'</select></div>';
+  h+='<div id="qPrev"></div>';
+  h+='<p class="qsrc">Fonte: <b>'+SRC[f.src]+'</b>'+(f.src==="off"&&!sh.fix?' · <button type="button" class="lnk" data-fix="1">Valori sbagliati? Correggili</button>':'')+'</p>';
+  if(sh.fix)h+='<p class="note" style="margin-bottom:4px">Valori per 100 g:</p><div class="fields four">'+["k","p","c","g"].map(function(k){return '<div><label for="fx-'+k+'">'+{k:"kcal",p:"P (g)",c:"C (g)",g:"G (g)"}[k]+'</label><input id="fx-'+k+'" data-fx="'+k+'" inputmode="decimal" value="'+nfmt(f[k])+'"></div>'}).join("")+'</div>';
+  h+='<div class="msg" id="qMsg" role="status"></div>';
+  h+='<button type="button" class="btn bigbtn" data-qsave="1">Salvare</button>'+(editing?'<button type="button" class="btn ghost bigbtn" data-del="'+sh.idx+'">Rimuovi dal pasto</button>':'');
   return h;
 }
 function qGrams(){
-  var f=sh.f,v=num(document.getElementById("qN")?document.getElementById("qN").value:sh.qv);
-  if(v==null)v=sh.mode==="u"?1:100;
-  return sh.mode==="u"&&f.u?{g:v*f.u.g,un:v}:{g:v,un:null};
+  var f=sh.f,el=document.getElementById("qN"),v=num(el?el.value:sh.qv);
+  if(v==null)v=sh.mode==="g"?100:1;
+  var u=unitOf(f,sh.mode);
+  return u?{g:v*u.g,un:v}:{g:v,un:null};
 }
 function curFood(){
   var f=sh.f;if(!sh.fix)return f;
-  var o={id:f.id,n:f.n,b:f.b,u:f.u,src:f.src};
+  var o={id:f.id,n:f.n,b:f.b,u:f.u,u2:f.u2,src:f.src};
   ["k","p","c","g"].forEach(function(k){var el=document.getElementById("fx-"+k),v=el?num(el.value):null;o[k]=v==null?f[k]:v});
   return o;
 }
 function renderQPrev(){
   var box=document.getElementById("qPrev");if(!box)return;
   var f=curFood(),q=qGrams(),k=f.k*q.g/100,left=target(pDay).kcal-dayTot(pDay).k-k+(sh.idx!=null?dayMeal(pDay,sh.m).items[sh.idx].k:0);
-  box.innerHTML='<section class="card qcard"><div class="qk"><b>'+Math.round(k)+'</b> kcal</div><div class="qm"><span><i class="chip">P</i>'+nfmt(f.p*q.g/100)+' g</span><span><i class="chip">C</i>'+nfmt(f.c*q.g/100)+' g</span><span><i class="chip">G</i>'+nfmt(f.g*q.g/100)+' g</span></div>'+
-    '<p class="note">'+(left>=0?'Dopo questo ti restano <b>'+Math.round(left)+' kcal</b> per la giornata.':'Con questo superi l\'obiettivo del giorno di <b>'+Math.round(-left)+' kcal</b>.')+'</p></section>';
+  function col(lab,cls,val,pc){return '<div class="qv '+cls+'">'+(pc!=null?'<small>'+pc+'%</small>':'<small>&nbsp;</small>')+'<b>'+val+'</b><span>'+lab+'</span></div>'}
+  box.innerHTML='<div class="qvals">'+col("Calorie","qkc",Math.round(k)+" kcal",null)+col("Proteine","qp",nfmt(f.p*q.g/100)+" g",Math.round(f.p))+col("Carb.","qc",nfmt(f.c*q.g/100)+" g",Math.round(f.c))+col("Grassi","qg",nfmt(f.g*q.g/100)+" g",Math.round(f.g))+'</div>'+
+    '<p class="note qleft">'+(left>=0?'Dopo questo ti restano <b>'+Math.round(left)+' kcal</b> per la giornata.':'Con questo superi l\'obiettivo del giorno di <b>'+Math.round(-left)+' kcal</b>.')+'</p>';
 }
 function addRecent(id){if(!id)return;var r=(meta.recent||[]).filter(function(x){return x!==id});r.unshift(id);meta.recent=r.slice(0,25);saveMeta()}
 function putItem(item){
@@ -1791,9 +1867,8 @@ function saveQty(){
   var f=curFood(),q=qGrams();
   if(!(q.g>0&&q.g<=5000)){msg("qMsg","Controlla la quantità.");return}
   if(["k","p","c","g"].some(function(k){return !(f[k]>=0)})||f.k>950){msg("qMsg","Controlla i valori per 100 g.");return}
-  if(f.src!=="base"){foods[f.id]={id:f.id,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,src:f.src}; saveF()}
-  var per={k:f.k,p:f.p,c:f.c,g:f.g};
-  putItem({f:f.id,n:f.n,b:f.b||"",q:r1(q.g),u:q.un!=null?f.u:null,un:q.un,per:per,k:r1(per.k*q.g/100),p:r1(per.p*q.g/100),c:r1(per.c*q.g/100),g:r1(per.g*q.g/100)});
+  keepFood(f);
+  putItem(itemFrom(f,sh.mode,q.un!=null?q.un:q.g));
   addRecent(f.id);
   sh={v:"meal",m:sh.m};render();
 }
@@ -1803,7 +1878,7 @@ function vFood(){
   h+='<div class="fields"><div><label for="nfN">Nome</label><input id="nfN" maxlength="80" value="'+esc(sh.qs||"")+'"></div><div><label for="nfB">Marca (facoltativa)</label><input id="nfB" maxlength="40"></div></div>';
   h+='<div class="fields four" style="margin-top:8px">'+[["k","kcal"],["p","P (g)"],["c","C (g)"],["g","G (g)"]].map(function(x){return '<div><label for="nf-'+x[0]+'">'+x[1]+'</label><input id="nf-'+x[0]+'" inputmode="decimal"></div>'}).join("")+'</div>';
   h+='<div class="fields" style="margin-top:8px"><div><label for="nfU">Unità (facoltativa)</label><input id="nfU" maxlength="20" placeholder="vasetto"></div><div><label for="nfUG">Grammi per unità</label><input id="nfUG" inputmode="decimal" placeholder="150"></div></div>';
-  h+='<div class="msg" id="nfMsg" role="status"></div><div class="actions"><button type="button" class="btn" data-nfsave="1">Salva e continua</button></div>';
+  h+='<div class="msg" id="nfMsg" role="status"></div><button type="button" class="btn bigbtn" data-nfsave="1">Salva e continua</button>';
   return h;
 }
 function saveFood(){
@@ -1813,7 +1888,7 @@ function saveFood(){
   if(bad){msg("nfMsg","Controlla kcal e macro per 100 g.");return}
   var un=g("nfU"),ug=num(g("nfUG")),id="m:"+Date.now().toString(36);
   if(un&&!(ug>0&&ug<2000)){msg("nfMsg","Controlla i grammi per unità.");return}
-  foods[id]={id:id,n:n,b:g("nfB"),k:v.k,p:v.p,c:v.c,g:v.g,u:un?{n:un,g:ug}:null,src:"mio"};saveF();
+  foods[id]={id:id,n:n,b:g("nfB"),k:v.k,p:v.p,c:v.c,g:v.g,u:un?{n:un,g:ug}:null,u2:null,src:"mio"};saveF();
   sh={v:"qty",m:sh.m,f:foods[id]};renderSheet();
 }
 function vEst(){
@@ -1822,7 +1897,7 @@ function vEst(){
   h+='<p class="note" style="margin-top:-4px">Per i pasti fuori o quando non sai i grammi: scrivi una stima. I macro sono facoltativi.</p>';
   h+='<div class="fields"><div><label for="esN">Cosa</label><input id="esN" maxlength="60" value="'+esc(x?x.n:"Pasto fuori")+'"></div><div><label for="esK">Kcal</label><input id="esK" inputmode="numeric" value="'+(x?Math.round(x.k):"")+'"></div></div>';
   h+='<div class="fields four" style="margin-top:8px">'+[["p","P (g)"],["c","C (g)"],["g","G (g)"]].map(function(k){return '<div><label for="es-'+k[0]+'">'+k[1]+'</label><input id="es-'+k[0]+'" inputmode="decimal" value="'+(x&&x[k[0]]?nfmt(x[k[0]]):"")+'"></div>'}).join("")+'</div>';
-  h+='<div class="msg" id="esMsg" role="status"></div><div class="actions"><button type="button" class="btn" data-essave="1">'+(x?"Salva":"Aggiungi")+'</button>'+(x?'<button type="button" class="btn ghost" data-del="'+sh.idx+'">Rimuovi</button>':'')+'</div>';
+  h+='<div class="msg" id="esMsg" role="status"></div><button type="button" class="btn bigbtn" data-essave="1">Salvare</button>'+(x?'<button type="button" class="btn ghost bigbtn" data-del="'+sh.idx+'">Rimuovi dal pasto</button>':'');
   return h;
 }
 function saveEst(){
@@ -1836,7 +1911,7 @@ function saveEst(){
 // Controlli per il ripristino da backup.
 function okN(x,max){return typeof x==="number"&&isFinite(x)&&x>=0&&x<=max}
 function okUnit(u){return u==null||(typeof u.n==="string"&&u.n.length<=30&&okN(u.g,5000)&&u.g>0)}
-function validFood(f,k){return !!f&&/^(m|o):[\w.-]{1,40}$/.test(k)&&(f.src==="mio"||f.src==="off")&&typeof f.n==="string"&&f.n.length>0&&f.n.length<=120&&(f.b==null||typeof f.b==="string")&&okN(f.k,950)&&okN(f.p,100)&&okN(f.c,100)&&okN(f.g,100)&&okUnit(f.u)}
+function validFood(f,k){return !!f&&/^(m|o):[\w.-]{1,40}$/.test(k)&&(f.src==="mio"||f.src==="off")&&typeof f.n==="string"&&f.n.length>0&&f.n.length<=120&&(f.b==null||typeof f.b==="string")&&okN(f.k,950)&&okN(f.p,100)&&okN(f.c,100)&&okN(f.g,100)&&okUnit(f.u)&&okUnit(f.u2)}
 function cleanDay(d,day){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!day||typeof day!=="object")return null;
   var out={},any=false;
@@ -1846,7 +1921,7 @@ function cleanDay(d,day){
       return x&&typeof x.n==="string"&&x.n.length<=120&&["k","p","c","g"].every(function(k){return okN(x[k],20000)})&&(x.q==null||okN(x.q,5000))&&
         (x.per==null||["k","p","c","g"].every(function(k){return okN(x.per[k],950)}))&&okUnit(x.u)&&(x.un==null||okN(x.un,1000))&&(x.f==null||typeof x.f==="string")&&(x.b==null||typeof x.b==="string");
     }).map(function(x){return {f:x.f||null,n:x.n,b:x.b||"",q:x.q==null?null:x.q,u:x.u||null,un:x.un==null?null:x.un,per:x.per||null,k:x.k,p:x.p,c:x.c,g:x.g}});
-    var o={items:items};if(M.skip===true)o.skip=true;if(typeof M.time==="string"&&/^\d{2}:\d{2}$/.test(M.time))o.time=M.time;
+    var o={items:items};if(M.skip===true)o.skip=true;
     out[m.id]=o;any=true;
   });
   return any?out:null;
@@ -1855,16 +1930,15 @@ function delItem(i){
   var M=dayMeal(pDay,sh.m);if(!M||!M.items)return;
   M.items.splice(i,1);saveP();syncDayKcal(pDay);sh={v:"meal",m:sh.m};render();
 }
-function mealByTime(){var h=new Date().getHours()+new Date().getMinutes()/60;return h<10.5?"colazione":h<15?"pranzo":h<18.5?"merenda":"cena"}
 
 // eventi del tab Pasti
 document.getElementById("t-pasti").addEventListener("click",function(ev){
   var b;
+  if(ev.target.closest("#pTrend")){showTab("diario");document.getElementById("verdictCard").scrollIntoView({block:"start"});return}
   if((b=ev.target.closest(".psub button"))){psub=b.getAttribute("data-ps");renderPasti();return}
   if((b=ev.target.closest("[data-wk]"))){var nd=iso(toT(pDay)+(+b.getAttribute("data-wk"))*DAY),t=todayIso();pDay=nd>t?t:nd;renderPasti();return}
   if((b=ev.target.closest(".pwd"))){if(!b.disabled){pDay=b.getAttribute("data-day");renderPasti()}return}
   if((b=ev.target.closest(".mcard"))){openSheet({v:"meal",m:b.getAttribute("data-meal")});return}
-  if(ev.target.closest("#pAdd")){openSheet({v:"add",m:pDay===todayIso()?mealByTime():"cena",focus:true});return}
   if(ev.target.closest("#ppReset")){meta.meals={};saveMeta();renderPasti();return}
 });
 document.getElementById("t-pasti").addEventListener("change",function(ev){
@@ -1872,9 +1946,8 @@ document.getElementById("t-pasti").addEventListener("change",function(ev){
   if((m=el.getAttribute("data-pct"))){
     var v=num(el.value),others=0;MEALS.forEach(function(x){if(x.id!=="cena"&&x.id!==m)others+=mealCfg(x.id).pct});
     if(v==null||v<0||v+others>90){msg("ppMsg","Colazione, pranzo e merenda insieme al massimo 90%: alla cena deve restare qualcosa.");el.value=Math.round(mealCfg(m).pct);return}
-    meta.meals=meta.meals||{};meta.meals[m]=meta.meals[m]||{};meta.meals[m].pct=v;saveMeta();render();
+    meta.meals=meta.meals||{};meta.meals[m]={pct:v};saveMeta();render();
   }
-  if((m=el.getAttribute("data-tm"))&&el.value){meta.meals=meta.meals||{};meta.meals[m]=meta.meals[m]||{};meta.meals[m].t=el.value;saveMeta();render()}
 });
 var sheetEl=document.getElementById("sheet");
 sheetEl.addEventListener("click",function(ev){
@@ -1884,29 +1957,27 @@ sheetEl.addEventListener("click",function(ev){
     var to=b.getAttribute("data-sh");
     if(to==="close"){closeSheet();return}
     if(to==="meal")sh={v:"meal",m:sh.m};
-    else if(to==="add")sh={v:"add",m:sh.m,qs:sh.v==="add"?sh.qs:(sh.qs||""),online:sh.online,focus:true};
+    else if(to==="add")sh={v:"add",m:sh.m,qs:sh.v==="add"?sh.qs:(sh.qs||""),online:sh.online,focus:sh.v==="meal"};
     else sh={v:to,m:sh.m,qs:sh.qs,online:sh.online};
     renderSheet();sheetEl.scrollTop=0;return;
   }
-  if((b=ev.target.closest("[data-food]"))){sh={v:"qty",m:sh.m,f:foodById(b.getAttribute("data-food")),qs:sh.qs,online:sh.online};renderSheet();return}
-  if((b=ev.target.closest("[data-off]"))){sh={v:"qty",m:sh.m,f:sh.online.list[+b.getAttribute("data-off")],qs:sh.qs,online:sh.online};renderSheet();return}
-  if((b=ev.target.closest("[data-mode]"))){
-    var nm=b.getAttribute("data-mode");if(nm===sh.mode)return;
-    if(sh.fix)sh.f=curFood(); // tieni i valori corretti
-    var cur=qGrams();sh.mode=nm; // stessa quantita' nella nuova unita'
-    sh.qv=nm==="u"&&sh.f.u?nfmt(cur.g/sh.f.u.g):String(Math.round(cur.g));
-    renderSheet();return;
-  }
-  if(ev.target.closest("[data-fix]")){var qn2=document.getElementById("qN");sh.qv=qn2?qn2.value:null;sh.fix=true;renderSheet();return}
+  if((b=ev.target.closest("[data-quick]"))){quickAdd(foodById(b.getAttribute("data-quick")));return}
+  if((b=ev.target.closest("[data-qoff]"))){quickAdd(sh.online&&sh.online.list[+b.getAttribute("data-qoff")]);return}
+  if((b=ev.target.closest("[data-food]"))){sh={v:"qty",m:sh.m,f:foodById(b.getAttribute("data-food")),qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
+  if((b=ev.target.closest("[data-off]"))){sh={v:"qty",m:sh.m,f:sh.online.list[+b.getAttribute("data-off")],qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
+  if(ev.target.closest("[data-online]")){var q0=(sh.qs||"").trim();if(q0)runOnline(q0);return}
+  if(ev.target.closest("[data-fix]")){var qn2=document.getElementById("qN");sh.qv=qn2?qn2.value:sh.qv;sh.fix=true;renderSheet();return}
   if(ev.target.closest("[data-qsave]")){saveQty();return}
   if(ev.target.closest("[data-nfsave]")){saveFood();return}
   if(ev.target.closest("[data-essave]")){saveEst();return}
   if((b=ev.target.closest("[data-del]"))){delItem(+b.getAttribute("data-del"));return}
   if((b=ev.target.closest("[data-edit]"))){
-    var x=dayMeal(pDay,sh.m).items[+b.getAttribute("data-edit")],i=+b.getAttribute("data-edit");
+    var i=+b.getAttribute("data-edit"),x=dayMeal(pDay,sh.m).items[i];
     if(!x.per){sh={v:"est",m:sh.m,idx:i};renderSheet();return}
-    var base=foodById(x.f)||{};
-    sh={v:"qty",m:sh.m,idx:i,f:{id:x.f,n:x.n,b:x.b,k:x.per.k,p:x.per.p,c:x.per.c,g:x.per.g,u:x.u||base.u||null,src:base.src||"mio"},mode:x.un!=null?"u":"g",qv:x.un!=null?nfmt(x.un):String(Math.round(x.q))};
+    var base=foodById(x.f)||{},f={id:x.f,n:x.n,b:x.b,k:x.per.k,p:x.per.p,c:x.per.c,g:x.per.g,u:base.u||x.u||null,u2:base.u2||null,src:base.src||"mio"};
+    var us=unitsOf(f),mi=-1;if(x.u)us.forEach(function(u,j){if(mi<0&&u.n===x.u.n&&Math.abs(u.g-x.u.g)<0.01)mi=j});
+    if(x.u&&mi<0){f.u=x.u;f.u2=null;mi=0}
+    sh={v:"qty",m:sh.m,idx:i,f:f,mode:x.un!=null&&mi>=0?"u"+mi:"g",qv:x.un!=null&&mi>=0?nfmt(x.un):String(Math.round(x.q))};
     renderSheet();return;
   }
   if(ev.target.closest("[data-skip]")){var d=pDay;meals[d]=meals[d]||{};var M=meals[d][sh.m]=meals[d][sh.m]||{items:[]};M.skip=!M.skip;saveP();render();return}
@@ -1917,17 +1988,18 @@ sheetEl.addEventListener("input",function(ev){
   if(ev.target.id==="qN"||ev.target.hasAttribute("data-fx"))renderQPrev();
 });
 sheetEl.addEventListener("change",function(ev){
-  if(sh&&ev.target.id==="mTime"&&ev.target.value){var d=pDay;meals[d]=meals[d]||{};var M=meals[d][sh.m]=meals[d][sh.m]||{items:[]};M.time=ev.target.value;saveP();renderPasti()}
+  if(!sh||ev.target.id!=="qU")return;
+  if(sh.fix)sh.f=curFood(); // tieni i valori corretti
+  var cur=qGrams(),nm=ev.target.value,u=unitOf(sh.f,nm);sh.mode=nm; // stessa quantita' nella nuova unita'
+  sh.qv=u?nfmt(cur.g/u.g):String(Math.round(cur.g));
+  renderSheet();
 });
 sheetEl.addEventListener("submit",function(ev){
   if(ev.target.id!=="sForm")return;
   ev.preventDefault();
   var q=document.getElementById("sQ").value.trim();sh.qs=q;
   if(!q){renderResults();return}
-  sh.online={q:q,state:"loading",list:[]};renderResults();
-  var my=sh;
-  offSearch(q).then(function(list){if(sh===my&&sh.online&&sh.online.q===q){sh.online={q:q,state:"ok",list:list};renderResults()}},
-    function(){if(sh===my&&sh.online&&sh.online.q===q){sh.online={q:q,state:"err",list:[]};renderResults()}});
+  runOnline(q);
   document.getElementById("sQ").blur();
 });
 document.addEventListener("keydown",function(ev){if(sh&&ev.key==="Escape")closeSheet()});
@@ -1935,12 +2007,7 @@ document.addEventListener("keydown",function(ev){if(sh&&ev.key==="Escape")closeS
 /* ---------- tab ---------- */
 Array.prototype.forEach.call(document.querySelectorAll(".tabs button"),function(b){
   b.addEventListener("click",function(){
-    var k=b.getAttribute("data-tab");
-    ["diario","pasti","piano","goals"].forEach(function(x){
-      document.getElementById("t-"+x).hidden=(x!==k);
-      document.getElementById("tb-"+x).setAttribute("aria-selected",x===k?"true":"false");
-    });
-    window.scrollTo(0,0);
+    showTab(b.getAttribute("data-tab"));
   });
 });
 
@@ -1949,10 +2016,9 @@ var autoD=todayIso();
 function syncDates(){
   var n=todayIso();
   if(n===autoD)return;
-  var d=document.getElementById("d"),wd=document.getElementById("wd"),kd=document.getElementById("kd");
+  var d=document.getElementById("d"),wd=document.getElementById("wd");
   if(d.value===autoD)d.value=n;
   if(wd.value===autoD)wd.value=n;
-  if(kd.value===iso(toT(autoD)-DAY)){kd.value=iso(toT(n)-DAY);loadKDay()}
   autoD=n;render();
 }
 document.addEventListener("visibilitychange",function(){if(!document.hidden)syncDates()});
@@ -1961,7 +2027,6 @@ window.addEventListener("focus",syncDates);
 /* ---------- boot ---------- */
 if(BETA){document.getElementById("betaBar").hidden=false;document.title="Diario peso BETA";var ft=document.querySelector("main > p:last-of-type");ft.textContent+=" · BETA"}
 entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];
-document.getElementById("kd").value=yesterdayIso();loadKDay();
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 try{if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(function(){})}catch(e){}
