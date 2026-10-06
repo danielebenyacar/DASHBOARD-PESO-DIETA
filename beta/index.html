@@ -320,6 +320,7 @@ body.noscroll{overflow:hidden}
 .schips{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .pill2{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
 .slab2{font-size:17px;font-weight:700;color:var(--accent);margin:16px 2px 4px}
+.dbnote{font-size:12.5px;margin-top:14px}
 .srow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
 .sopen{flex:1;min-width:0;text-align:left;border:0;background:transparent;color:var(--ink);font:inherit;padding:10px 2px;min-height:56px;cursor:pointer}
 .sopen b{display:block;font-size:15.5px;font-weight:600}
@@ -533,7 +534,7 @@ body.noscroll{overflow:hidden}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.13</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.14</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1621,11 +1622,14 @@ function portion(x){
 // Unita' di un cibo (oltre ai grammi): porzione/unita' e, per i prodotti online, la confezione.
 function unitsOf(f){return [f.u,f.u2].filter(function(u){return u&&u.g>0})}
 var SRC={base:"Cibi base (valori medi)",off:"Open Food Facts",mio:"Creato da te"};
-function defMode(f){return unitsOf(f).length?"u0":"g"}
+// Quantita' proposta: la porzione/unita'; la confezione solo se e' da una volta (fino a 400 g e 600 kcal: yogurt, lattina, snack,
+// piatto pronto), se no 100 g (niente barattolo intero di Nutella col +). Le altre unita' restano nel menu.
+function defUnit(f){var u=unitsOf(f)[0];return u&&!(u.n==="confezione"&&(u.g>400||f.k*u.g/100>600))?u:null}
+function defMode(f){return defUnit(f)?"u0":"g"}
 function gramsFor(f,mode,v){var us=unitsOf(f);if(mode==="u0"&&us[0])return v*us[0].g;if(mode==="u1"&&us[1])return v*us[1].g;return v}
 function unitOf(f,mode){var us=unitsOf(f);return mode==="u0"?us[0]||null:mode==="u1"?us[1]||null:null}
-function defLabel(f){var u=unitsOf(f)[0];return u?"1 "+esc(u.n):"100 g"}
-function defKcal(f){var u=unitsOf(f)[0];return Math.round(f.k*(u?u.g:100)/100)}
+function defLabel(f){var u=defUnit(f);return u?"1 "+esc(u.n):"100 g"}
+function defKcal(f){var u=defUnit(f);return Math.round(f.k*(u?u.g:100)/100)}
 // Voce del diario per una quantita' di un cibo.
 function itemFrom(f,mode,v){
   var g=gramsFor(f,mode,v),u=unitOf(f,mode),per={k:f.k,p:f.p,c:f.c,g:f.g};
@@ -1730,7 +1734,7 @@ function renderSheet(){
   else if(sh.v==="est")h=vEst();
   box.innerHTML=h;
   document.getElementById("sheet").setAttribute("aria-labelledby","shTitle");
-  if(sh.v==="add"){renderResults();var q=document.getElementById("sQ");if(sh.focus){q.focus();sh.focus=false}}
+  if(sh.v==="add"){loadDB();renderResults();var q=document.getElementById("sQ");if(sh.focus){q.focus();sh.focus=false}}
   if(sh.v==="qty")renderQPrev();
 }
 function vMeal(){
@@ -1753,7 +1757,7 @@ function vMeal(){
 // Ricerca di alimenti (come Nutrium): cronologia, risultati con + per aggiungere al volo, crea alimento in alto.
 function vAdd(){
   var h=shead("meal","Ricerca di alimenti",'<button type="button" class="tplus" data-sh="food" aria-label="Crea alimento">+</button>');
-  h+='<form id="sForm" class="sbox" autocomplete="off" role="search"><label class="sr" for="sQ">Cerca alimenti</label><input id="sQ" type="search" enterkeyhint="search" placeholder="Cerca alimenti o marche…" value="'+esc(sh.qs||"")+'"><button class="sgo" type="submit" aria-label="Cerca anche online">🔍</button></form>';
+  h+='<form id="sForm" class="sbox" autocomplete="off" role="search"><label class="sr" for="sQ">Cerca alimenti</label><input id="sQ" type="search" enterkeyhint="search" placeholder="Cerca alimenti o marche…" value="'+esc(sh.qs||"")+'"><button class="sgo" type="submit" aria-label="Cerca">🔍</button></form>';
   h+='<div class="schips"><button type="button" class="pill2" data-sh="est">✏️ Stima a mano</button><span class="note" style="margin:0">per '+mealCfg(sh.m).n.toLowerCase()+'</span></div>';
   h+='<div id="sRes"></div>';
   return h;
@@ -1774,24 +1778,77 @@ function renderResults(){
   var q=(sh.qs||"").trim(),h="";
   if(!q){
     var rec=(meta.recent||[]).map(foodById).filter(Boolean);
-    h+='<div class="slab2">Cronologia</div>'+(rec.length?rec.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"','data-quick="'+esc(f.id)+'"')}).join(""):'<p class="note">Cerca un alimento per nome o marca, per esempio "yogurt greco" o "Mulino Bianco". Premi 🔍 per cercare anche online.</p>');
+    h+='<div class="slab2">Cronologia</div>'+(rec.length?rec.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"','data-quick="'+esc(f.id)+'"')}).join(""):'<p class="note">Cerca un alimento per nome o marca, per esempio "yogurt greco" o "Mulino Bianco".</p>');
+    if(db.st==="ok")h+='<p class="note dbnote">Prodotti: '+fmtInt(db.rows.length)+' venduti in Italia, da Open Food Facts (licenza ODbL), dati del '+fmtDate(db.date)+'. Funziona anche senza rete.</p>';
   }else{
-    var loc=localSearch(q);
-    h+='<div class="slab2">I tuoi cibi e i cibi base</div>'+(loc.length?loc.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"','data-quick="'+esc(f.id)+'"')}).join(""):'<p class="note">Niente qui. Premi 🔍 per cercare anche online.</p>');
+    var loc=localSearch(q),skip={};loc.forEach(function(f){skip[f.id]=1});
+    if(loc.length)h+='<div class="slab2">I tuoi cibi e i cibi base</div>'+loc.map(function(f){return foodRow(f,'data-food="'+esc(f.id)+'"','data-quick="'+esc(f.id)+'"')}).join("");
+    sh.dbl=[];
+    if(db.st==="ok"){
+      sh.dbl=dbSearch(q,skip);sh.dbl.forEach(function(f){skip[f.id]=1});
+      if(sh.dbl.length)h+='<div class="slab2">Prodotti</div>'+sh.dbl.map(function(f,i){return foodRow(f,'data-db="'+i+'"','data-qdb="'+i+'"')}).join("");
+    }else if(db.st==="loading")h+='<div class="slab2">Prodotti</div><p class="note">Carico i prodotti… La prima volta ci vuole qualche secondo, poi funziona anche senza rete.</p>';
+    else if(db.st==="err")h+='<p class="note">Non riesco a caricare i prodotti: per ora cerca online.</p>';
+    if(!loc.length&&!sh.dbl.length&&db.st!=="loading")h+='<p class="note">Niente con questo nome. Prova a cercarlo online o crealo tu con il + in alto.</p>';
     var on=sh.online;
     if(on&&on.q===q){
       h+='<div class="slab2">Online · Open Food Facts</div>';
+      var ol=on.list.map(function(f,i){return {f:f,i:i}}).filter(function(x){return !skip[x.f.id]});
       if(on.state==="loading")h+='<p class="note">Cerco…</p>';
       else if(on.state==="err")h+='<p class="note">Non riesco a cercare online: '+(navigator.onLine===false?'sei senza rete.':'Open Food Facts non risponde (è un servizio gratuito, a volte è lento o pieno di richieste).')+' Intanto puoi crearlo tu con il + in alto.</p><button type="button" class="lnk" data-online="1">↻ Riprova</button>';
-      else if(!on.list.length)h+='<p class="note">Nessun prodotto trovato. Puoi crearlo tu con il + in alto.</p>';
-      else h+=on.list.map(function(f,i){return foodRow(f,'data-off="'+i+'"','data-qoff="'+i+'"')}).join("");
-    }else h+='<button type="button" class="lnk" data-online="1">🔍 Cerca "'+esc(q)+'" anche online</button>';
+      else if(!ol.length)h+='<p class="note">'+(on.list.length?'Niente di nuovo online: i prodotti trovati sono già qui sopra.':'Nessun prodotto trovato. Puoi crearlo tu con il + in alto.')+'</p>';
+      else h+=ol.map(function(x){return foodRow(x.f,'data-off="'+x.i+'"','data-qoff="'+x.i+'"')}).join("");
+    }else h+='<button type="button" class="lnk" data-online="1">🔍 '+(db.st==="ok"?'Non lo trovi? ':'')+'Cerca "'+esc(q)+'" anche online</button>';
   }
   box.innerHTML=h;
 }
-// Open Food Facts: ricerca per nome e marca. Solo il testo cercato esce dal telefono.
-// Due motori in parallelo: il nuovo (veloce) e il vecchio (lento ma sul catalogo italiano). Vince il primo che trova qualcosa.
-var OFF_NEW="https://search.openfoodfacts.org/search",OFF_OLD="https://it.openfoodfacts.org/cgi/search.pl";
+// Database dei prodotti venduti in Italia (Open Food Facts, licenza ODbL), creato con tools/prodotti.py.
+// Si scarica una volta sola quando apri la ricerca (il service worker lo tiene in cache): poi la ricerca e' istantanea, anche senza rete.
+var DB_URL="./prodotti-it-2026-10-06.txt",db={st:"",rows:null,keys:null,date:""};
+function dbKey(s){return " "+norm(s).replace(/[^a-z0-9]+/g," ").trim()+" "}
+function loadDB(){
+  if(db.st==="loading"||db.st==="ok")return;
+  db.st="loading";
+  fetch(DB_URL).then(function(r){if(!r.ok)throw new Error("http "+r.status);return r.text()}).then(function(t){
+    var ls=t.split("\n"),h=ls[0].split("\t"),rows=[],keys=[];
+    if(h[0]!=="#prodotti-it")throw new Error("formato");
+    for(var i=1;i<ls.length;i++){var l=ls[i];if(!l)continue;var a=l.split("\t",3);rows.push(l);keys.push(dbKey(a[1]+" "+a[2]))}
+    db.rows=rows;db.keys=keys;db.date=h[1]||"";db.st="ok";
+  }).catch(function(){db.st="err"}).then(function(){if(sh&&sh.v==="add")renderResults()});
+}
+function offUnits(sq,pq){
+  var u=null,u2=null;
+  if(sq>0&&sq<2000)u={n:"porzione",g:r1(sq)};
+  if(pq>0&&pq<3000&&(!u||Math.abs(pq-u.g)>0.5)){if(u)u2={n:"confezione",g:r1(pq)};else u={n:"confezione",g:r1(pq)}}
+  return [u,u2];
+}
+function dbFood(i){
+  var a=db.rows[i].split("\t"),us=offUnits(num(a[7]),num(a[8]));
+  return {id:"o:"+a[0],n:a[1],b:a[2],k:+a[3],p:+a[4],c:+a[5],g:+a[6],u:us[0],u2:us[1],src:"off"};
+}
+// Ogni parola cercata deve essere l'inizio di una parola del nome o della marca ("barill" trova Barilla).
+// Il file e' gia' in ordine di popolarita': prima chi comincia con la parola cercata, poi le parole intere, poi i piu' scansionati.
+function dbSearch(q,skip){
+  var w=norm(q).replace(/[^a-z0-9]+/g," ").trim().split(" ").filter(Boolean);
+  if(!w.length||db.st!=="ok")return [];
+  var ks=db.keys,hit=[],i,j,t,ok;
+  for(i=0;i<ks.length&&hit.length<400;i++){
+    t=ks[i];ok=true;
+    for(j=0;j<w.length;j++)if(t.indexOf(" "+w[j])<0){ok=false;break}
+    if(ok)hit.push(i);
+  }
+  function score(i){var t=ks[i],s=t.indexOf(" "+w[0])===0?0:2;for(var j=0;j<w.length;j++)if(t.indexOf(" "+w[j]+" ")<0){s+=1;break}return s}
+  var sc={};hit.forEach(function(i){sc[i]=score(i)});
+  hit.sort(function(a,b){return sc[a]-sc[b]||a-b});
+  var out=[];
+  for(i=0;i<hit.length&&out.length<40;i++){var f=dbFood(hit[i]);if(!skip[f.id])out.push(f)}
+  return out;
+}
+function fmtInt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,".")}
+function fmtDate(d){return /^\d{4}-\d\d-\d\d$/.test(d)?dIt(d)+" "+d.slice(0,4):d}
+// Ricerca online su Open Food Facts, per i prodotti che non sono nel database. Solo il testo cercato esce dal telefono.
+// (search.openfoodfacts.org non accetta richieste da altri siti, quindi si usa la ricerca classica.)
+var OFF_URL="https://it.openfoodfacts.org/cgi/search.pl";
 var OFF_F="code,product_name,product_name_it,brands,nutriments,serving_quantity,product_quantity";
 function offTxt(v){
   if(v==null)return "";
@@ -1805,26 +1862,15 @@ function offFood(p){
   if(k==null&&n["energy-kj_100g"]!=null){var kj=num(n["energy-kj_100g"]);k=kj==null?null:kj/4.184}
   var name=offTxt(p.product_name_it)||offTxt(p.product_name),code=offTxt(p.code);
   if(k==null||!name||!code)return null;
-  var sq=num(p.serving_quantity),pq=num(p.product_quantity),u=null,u2=null;
-  if(sq>0&&sq<2000)u={n:"porzione",g:r1(sq)};
-  if(pq>0&&pq<3000&&(!u||Math.abs(pq-u.g)>0.5)){if(u)u2={n:"confezione",g:r1(pq)};else u={n:"confezione",g:r1(pq)}}
-  return {id:"o:"+code,n:name,b:offTxt(p.brands).split(",")[0].trim(),k:Math.round(k),p:r1(num(n.proteins_100g)||0),c:r1(num(n.carbohydrates_100g)||0),g:r1(num(n.fat_100g)||0),u:u,u2:u2,src:"off"};
+  var us=offUnits(num(p.serving_quantity),num(p.product_quantity));
+  return {id:"o:"+code,n:name,b:offTxt(p.brands).split(",")[0].trim(),k:Math.round(k),p:r1(num(n.proteins_100g)||0),c:r1(num(n.carbohydrates_100g)||0),g:r1(num(n.fat_100g)||0),u:us[0],u2:us[1],src:"off"};
 }
 function offList(arr){var seen={},out=[];(arr||[]).forEach(function(p){var f=offFood(p);if(f&&!seen[f.id]){seen[f.id]=1;out.push(f)}});return out}
-function offGet(url,ms){
-  var ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=ctl?setTimeout(function(){ctl.abort()},ms):0;
-  return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error("http "+r.status);return r.json()},function(e){clearTimeout(tm);throw e});
-}
 function offSearch(q){
-  var e=encodeURIComponent(q);
-  var a=offGet(OFF_NEW+"?q="+e+"&langs=it&page_size=24&fields="+OFF_F,10000).then(function(j){return offList(j&&j.hits)});
-  var b=offGet(OFF_OLD+"?search_terms="+e+"&search_simple=1&action=process&json=1&page_size=24&fields="+OFF_F,25000).then(function(j){return offList(j&&j.products)});
-  return new Promise(function(ok,ko){
-    var left=2,empty=null;
-    function done(list){if(list.length){ok(list);return}empty=list;if(!--left)ok(empty)}
-    function fail(){if(!--left){if(empty)ok(empty);else ko(new Error("off"))}}
-    a.then(done,fail);b.then(done,fail);
-  });
+  var url=OFF_URL+"?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=24&fields="+OFF_F;
+  var ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=ctl?setTimeout(function(){ctl.abort()},25000):0;
+  return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error("http "+r.status);return r.json()},function(e){clearTimeout(tm);throw e})
+    .then(function(j){return offList(j&&j.products)});
 }
 function runOnline(q){
   sh.online={q:q,state:"loading",list:[]};renderResults();
@@ -1981,6 +2027,8 @@ sheetEl.addEventListener("click",function(ev){
     renderSheet();sheetEl.scrollTop=0;return;
   }
   if((b=ev.target.closest("[data-quick]"))){quickAdd(foodById(b.getAttribute("data-quick")));return}
+  if((b=ev.target.closest("[data-qdb]"))){quickAdd(sh.dbl&&sh.dbl[+b.getAttribute("data-qdb")]);return}
+  if((b=ev.target.closest("[data-db]"))){sh={v:"qty",m:sh.m,f:sh.dbl[+b.getAttribute("data-db")],qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
   if((b=ev.target.closest("[data-qoff]"))){quickAdd(sh.online&&sh.online.list[+b.getAttribute("data-qoff")]);return}
   if((b=ev.target.closest("[data-food]"))){sh={v:"qty",m:sh.m,f:foodById(b.getAttribute("data-food")),qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
   if((b=ev.target.closest("[data-off]"))){sh={v:"qty",m:sh.m,f:sh.online.list[+b.getAttribute("data-off")],qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
@@ -2018,7 +2066,7 @@ sheetEl.addEventListener("submit",function(ev){
   ev.preventDefault();
   var q=document.getElementById("sQ").value.trim();sh.qs=q;
   if(!q){renderResults();return}
-  runOnline(q);
+  if(db.st!=="ok")runOnline(q);else renderResults();
   document.getElementById("sQ").blur();
 });
 document.addEventListener("keydown",function(ev){if(sh&&ev.key==="Escape")closeSheet()});

@@ -1,5 +1,7 @@
 // Incrementa CACHE a ogni modifica di index.html o degli asset, cosi' l'app si aggiorna.
-const CACHE = "diario-peso-beta-v1.13";
+const CACHE = "diario-peso-beta-v1.14";
+// Il database dei prodotti (prodotti-it-*.txt) e' grande e cambia di rado: sta in una cache sua, che non si svuota a ogni versione.
+const DBCACHE = "diario-peso-beta-prodotti";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
@@ -9,7 +11,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("diario-peso-beta-") && k !== CACHE && k !== DBCACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -20,6 +22,21 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+  // Database dei prodotti: prima la cache (il nome del file cambia a ogni aggiornamento), e tiene solo l'ultimo file.
+  if (/\/prodotti-[^/]*\.txt$/.test(url.pathname)) {
+    e.respondWith(
+      caches.open(DBCACHE).then((c) =>
+        c.match(req).then((hit) => hit || fetch(req).then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            c.keys().then((ks) => Promise.all(ks.filter((k) => k.url !== req.url).map((k) => c.delete(k)))).then(() => c.put(req, copy));
+          }
+          return res;
+        }))
+      )
+    );
+    return;
+  }
   e.respondWith(
     fetch(req)
       .then((res) => {
