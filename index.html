@@ -71,6 +71,10 @@ h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font
 .verdict.down{background:var(--downbg);border-left-color:var(--bad)}
 .verdict .v{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:34px;line-height:1.05}
 .verdict.ok .v{color:var(--ok)} .verdict.up .v{color:var(--warn)} .verdict.down .v{color:var(--bad)}
+.verdict.warn{background:var(--upbg);border-left-color:var(--warn)}
+.verdict.bad{background:var(--downbg);border-left-color:var(--bad)}
+.verdict.warn .v{color:var(--warn)} .verdict.bad .v{color:var(--bad)}
+.vst{font-size:13.5px;font-weight:700;margin:0 0 4px}
 .verdict p{margin:6px 0 0;color:var(--ink);opacity:.82;font-size:14.5px}
 .seg{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:12px;margin-bottom:10px;width:max-content}
 .seg button{border:0;background:transparent;color:var(--mute);font:inherit;font-size:13.5px;font-weight:500;padding:6px 13px;border-radius:9px;cursor:pointer}
@@ -163,6 +167,9 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .wkv.ok{background:var(--okbg);border-left-color:var(--ok)}
 .wkv.up{background:var(--upbg);border-left-color:var(--warn)}
 .wkv.down{background:var(--downbg);border-left-color:var(--bad)}
+.wkv.warn{background:var(--upbg);border-left-color:var(--warn)}
+.wkv.bad{background:var(--downbg);border-left-color:var(--bad)}
+.wkv.warn b{color:var(--warn)} .wkv.bad b{color:var(--bad)}
 .wkv b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:24px;line-height:1.1}
 .wkv.ok b{color:var(--ok)} .wkv.up b{color:var(--warn)} .wkv.down b{color:var(--bad)}
 .wkv p{margin:3px 0 0;font-size:14px;opacity:.85}
@@ -200,7 +207,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
       <div class="wgrid" id="wkGrid"></div>
       <p class="wkn" id="wkNotes"></p>
       <div class="wkl">Cosa fare questa settimana</div>
-      <div class="wkv" id="wkVerdict"><b id="wkVT"></b><p id="wkVX"></p></div>
+      <div class="wkv" id="wkVerdict"><div class="vst" id="wkVS" hidden></div><b id="wkVT"></b><p id="wkVX"></p></div>
       <div class="actions"><button class="btn" id="wkOk" type="button">Ok, visto</button></div>
     </section>
     <section class="card warnCard" id="bkWarn" hidden>
@@ -223,6 +230,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
   </section>
 
   <section class="card verdict" id="verdictCard">
+    <div class="vst" id="vStatus" hidden></div>
     <div class="v" id="vTitle">Servono più dati</div>
     <p id="vText">Registra il peso per qualche giorno: servono almeno 3 pesate nella settimana corrente e 3 in quella prima.</p>
     <p id="vPlan" style="margin-top:8px;color:var(--ink);font-size:14px"></p>
@@ -354,7 +362,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.6</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.7</p>
 </main>
 
 <script>
@@ -366,8 +374,8 @@ var PLAN=[["2026-10-06",77.4],["2026-10-16",76.7],["2026-11-05",78.1],["2026-12-
 var PH=[
   {id:"cut",name:"Cut finale",from:"2026-10-05",to:"2026-10-16",kcal:1900,p:162,c:212,g:42,
    rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,3 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."]},
-  {id:"carb",name:"Carb load",from:"2026-10-17",to:"2026-10-18",kcal:2400,p:160,c:340,g:45,
-   rules:["Giorno prima e giorno della prima partita (domenica 18 ott): ~2400 kcal con i carboidrati alti, per arrivare in campo pieno di glicogeno.","Il peso salirà di 0,5-1,5 kg per acqua e glicogeno: è normale, non è grasso.","Da lunedì 19 si passa alla transizione a 2300 kcal."]},
+  {id:"carb",name:"Ricarica pre-partita",from:"2026-10-17",to:"2026-10-18",kcal:2400,p:160,c:340,g:45,
+   rules:["Sabato 17 e domenica 18 (prima partita): torni circa a mantenimento, ~2400 kcal, con più carboidrati (340 g invece di 212).","Non è un carb load vero: l'obiettivo è arrivare alla partita carico dopo il cut, non pieno o gonfio.","Il peso salirà di 0,5-1 kg per acqua e glicogeno: è normale, non è grasso.","Da lunedì 19 si passa alla transizione a 2300 kcal."]},
   {id:"trans",name:"Transizione",from:"2026-10-19",to:"2026-10-25",kcal:2300,p:160,c:290,g:55,
    rules:["2300 kcal fisse: serve a non passare di colpo da 1900 a 2500.","Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non grasso."]},
   {id:"bulk",name:"Lean bulk",from:"2026-10-26",to:"2027-04-04",kcal:2500,p:160,c:340,g:55,
@@ -464,7 +472,7 @@ function verdict(ph,rate,list){
     if(r<0.1)return {c:"up",t:"+150 kcal",x:"Peso fermo o quasi. Se è così da 2 settimane aggiungi 150 kcal di carboidrati."};
     return {c:"ok",t:"Tutto ok",x:"Ritmo giusto: obiettivo +0,15 / +0,25 kg a settimana."};
   }
-  if(ph.id==="carb")return {c:"ok",t:"Tutto ok",x:"Carb load: il peso sale per acqua e glicogeno, è normale. Non cambiare niente, il verdetto torna a lavorare con la transizione."};
+  if(ph.id==="carb")return {c:"ok",t:"Tutto ok",x:"Ricarica pre-partita: il peso sale per acqua e glicogeno, è normale. Non cambiare niente, il verdetto torna a lavorare con la transizione."};
   if(ph.id==="trans"){
     if(r<-0.3)return {c:"up",t:"+150 kcal",x:"Stai ancora scendendo: aggiungi 150 kcal. Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non preoccuparti."};
     return {c:"ok",t:"Tutto ok",x:"Peso stabile, come previsto. Un salto di ~1 kg all'inizio è acqua e glicogeno."};
@@ -475,6 +483,28 @@ function verdict(ph,rate,list){
     return {c:"ok",t:"Tutto ok",x:"Ritmo di calo nella norma. Se la forza cala, aggiungi 150 kcal."};
   }
   return {c:"ok",t:"Tutto ok",x:"Fase di uscita: mantieni il peso stabile."};
+}
+
+/* ---------- trend: fascia giusta per fase (kg/settimana) e allarme ---------- */
+// Stesse soglie del verdetto. null = nessun limite da quel lato.
+var BAND={cut:[-0.7,-0.1],cutsoft:[-0.7,-0.1],cutfull:[-0.7,-0.1],bulk:[0.1,0.4],trans:[-0.3,null]};
+var FAR=0.25; // oltre la fascia di 0,25 kg/sett = fuori rotta anche con una sola settimana
+function bandOff(b,x){if(x==null)return 0;if(b[0]!=null&&x<b[0])return x-b[0];if(b[1]!=null&&x>b[1])return x-b[1];return 0}
+// r = ritmo ultima settimana, r2 = ritmo della settimana prima. dir>0: mangi troppo, dir<0: mangi troppo poco.
+function trend(ph,r,r2){
+  var b=BAND[ph.id];
+  if(!b||r==null)return {lv:"none",dir:0};
+  var o=bandOff(b,r),o2=bandOff(b,r2),wf=ph.id==="bulk"&&waistFlag(ph,r);
+  if(!o&&!wf)return {lv:"ok",dir:0};
+  var dir=o>0||(!o&&wf)?1:-1,two=!!o2&&(o2>0)===(dir>0);
+  return {lv:Math.abs(o)>=FAR||two?"bad":"warn",dir:dir,two:two};
+}
+var STC={ok:"ok",warn:"warn",bad:"bad"};
+function trendLabel(t){
+  if(t.lv==="ok")return "🟢 In linea";
+  if(t.lv==="warn")return "🟡 Attenzione · forse mangi un po' "+(t.dir>0?"troppo":"poco");
+  if(t.lv==="bad")return "🔴 Fuori rotta · stai mangiando "+(t.dir>0?"troppo":"troppo poco")+(t.two?" (da 2 settimane)":"");
+  return "";
 }
 
 /* ---------- render ---------- */
@@ -488,17 +518,23 @@ function render(){
   var hc=document.getElementById("heroCard");hc.style.background="var(--c-"+ph.id+")";hc.style.color="var(--on-"+ph.id+")";
   var pc0=document.getElementById("phaseLine");pc0.style.background="var(--c-"+ph.id+")";pc0.style.color="var(--on-"+ph.id+")";
 
-  var a=null,b=null,rate=null;
+  var a=null,b=null,rate=null,rate2=null;
   if(last){
     var lt=toT(last.date);
     a=avgWin(list,lt,7);b=avgWin(list,lt-7*DAY,7);
     if(a.n>=3&&b.n>=3)rate=a.avg-b.avg;
+    var c2=avgWin(list,lt-14*DAY,7);
+    if(b.n>=3&&c2.n>=3)rate2=b.avg-c2.avg;
   }
+  var tr=trend(ph,rate,rate2),tl=trendLabel(tr);
+  if(tr.lv!=="none")pc0.textContent=tl.slice(0,2)+" "+pc0.textContent;
+  hc.style.boxShadow=STC[tr.lv]?"0 0 0 4px var(--"+STC[tr.lv]+")":"";
   document.getElementById("avg").innerHTML=(a&&a.avg!=null?fmt(a.avg,1):"–")+"<small>kg</small>";
   setText("rate",rate==null?"–":(rate>0?"+":"")+fmt(rate,2));
 
   var pills=document.getElementById("pills");pills.innerHTML="";
   function pill(t){var s=document.createElement("span");s.className="pill";s.textContent=t;pills.appendChild(s)}
+  if(tr.lv!=="none")pill(tl.split(" · ")[0]);
   if(last){
     pill("ultima: "+fmt(last.kg,1)+" kg ("+itD(last.date)+")");
     var p=planAt(toT(last.date));
@@ -510,7 +546,8 @@ function render(){
 
   var v=verdict(ph,rate,list);
   var vc=document.getElementById("verdictCard");
-  vc.className="card verdict "+v.c;
+  vc.className="card verdict "+(STC[tr.lv]||v.c);
+  var vs=document.getElementById("vStatus");vs.textContent=tl;vs.hidden=!tl;
   setText("vTitle",v.t);setText("vText",v.x);
   var as=adhStats(yesterdayIso(),14);
   setText("vPlan",v.c!=="ok"&&rate!=null&&lowAdh(as,5)?"⚠️ Negli ultimi 14 giorni hai rispettato le kcal nel "+Math.round(as.score*100)+"% dei giorni registrati: prima di cambiare le kcal, prova a rispettarle per una settimana.":"");
@@ -605,9 +642,10 @@ function renderWeek(today){
   var as=adhStats(w.cur.sun,7);
   if(as.n)notes.push("Kcal rispettate: "+as.si+" sì, "+as.circa+" circa, "+as.no+" no"+(as.kAvg!=null?" (media "+Math.round(as.kAvg)+" kcal)":""));
   var nt=document.getElementById("wkNotes");nt.textContent=notes.join(" · ");nt.hidden=!notes.length;
-  var v=verdict(ph,w.rate);
+  var v=verdict(ph,w.rate),wt=trend(phaseAt(iso(toT(mon)+3*DAY)),w.rate,weekInfo(iso(toT(mon)-7*DAY)).rate),wl=trendLabel(wt);
+  var ws=document.getElementById("wkVS");ws.textContent=wl;ws.hidden=!wl;
   if(v.c!=="ok"&&w.rate!=null&&lowAdh(as,4))v={c:v.c,t:v.t,x:v.x+" Però la settimana scorsa le kcal le hai rispettate poco: prima di cambiarle, prova a rispettarle per una settimana."};
-  document.getElementById("wkVerdict").className="wkv "+v.c;
+  document.getElementById("wkVerdict").className="wkv "+(STC[wt.lv]||v.c);
   setText("wkVT",v.t);setText("wkVX",v.x);
 }
 

@@ -23,7 +23,7 @@ Nel JS: `PLAN` (punti di traiettoria peso), `PH` (fasi con kcal e macro), `GOALS
 | Fase | Periodo | Kcal | P / C / G (g) |
 |---|---|---|---|
 | Cut finale | 5 ott – 16 ott 2026 | 1900 | 162 / 212 / 42 |
-| Carb load (giorno prima e giorno della prima partita, dom 18 ott) | 17 – 18 ott | 2400 | 160 / 340 / 45 |
+| Ricarica pre-partita (giorno prima e giorno della prima partita, dom 18 ott; non un carb load vero, solo arrivare carico dopo il cut) | 17 – 18 ott | 2400 | 160 / 340 / 45 |
 | Transizione | 19 – 25 ott | 2300 | 160 / 290 / 55 |
 | Lean bulk | 26 ott – 4 apr 2027 | 2500 | 160 / 340 / 55 |
 | Cut soft | 5 – 25 apr | 2250 | 170 / 270 / 55 |
@@ -34,9 +34,10 @@ Traiettoria peso attesa (`PLAN`): 6 ott 77,4 (partenza reale) – 16 ott 76,7 (f
 
 Regole del verdetto (calcolate su media 7 giorni vs 7 giorni prima, servono almeno 3 pesate per finestra):
 - Bulk: ritmo <0,1 kg/sett -> +150 kcal; >0,4 -> -150; vita +1,5 cm in 10+ giorni con peso in salita -> -150; altrimenti ok (obiettivo +0,15/+0,25).
-- Carb load: sempre ok (il peso sale per acqua e glicogeno, non si cambia niente).
+- Ricarica pre-partita: sempre ok (il peso sale per acqua e glicogeno, non si cambia niente).
 - Transizione: scende piu' di 0,3 kg/sett -> +150; altrimenti ok.
 - Cut: scende piu' di 0,7 kg/sett -> +150; peso fermo (> -0,1) -> -100/150; altrimenti ok.
+- Allarme sul trend (`BAND`, `trend()`): fascia giusta in kg/sett = cut/cut soft/cut pieno [-0,7; -0,1], bulk [+0,1; +0,4], transizione [-0,3; nessun limite]; ricarica e uscita senza fascia. In fascia = 🟢 in linea; fuori = 🟡 attenzione; fuori di oltre 0,25 kg/sett o fuori dallo stesso lato anche la settimana prima = 🔴 fuori rotta. Sopra la fascia = "mangi troppo", sotto = "mangi troppo poco" (nel bulk conta anche la vita +1,5 cm). Lo stato colora verdetto, anello della card del peso, chip in alto e riepilogo settimanale; i colori delle fasi restano.
 - Soglie per anticipare il cut: vita >= 87 cm, peso medio >= 83 kg.
 - Aderenza (punteggio si'=1, circa=0,5, no=0): se il verdetto chiede di cambiare le kcal ma negli ultimi 14 giorni l'aderenza e' sotto il 70% (con almeno 5 giorni registrati), avvisa di rispettare prima le kcal. Nel riepilogo settimanale stessa regola sulla settimana (almeno 4 giorni).
 - Mantenimento reale: ultime 4 settimane, media kcal registrate - pendenza del peso (retta dei minimi quadrati, kg/giorno) x 7700; servono 14 giorni con kcal e 10 pesate su almeno 14 giorni.
