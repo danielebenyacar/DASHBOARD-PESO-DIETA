@@ -534,7 +534,7 @@ body.noscroll{overflow:hidden}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.14</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.15</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1542,7 +1542,18 @@ function saveP(){lsPut("diario_pasti",meals)}
 function r1(x){return Math.round(x*10)/10}
 function nfmt(x){return String(r1(x)).replace(".",",")}
 function mealCfg(id){var m=MEALID[id],c=(meta.meals||{})[id]||{};return {id:m.id,n:m.n,e:m.e,bg:m.bg,t:c.t||m.t,pct:typeof c.pct==="number"?c.pct:m.pct}}
-function foodById(id){return id&&(foods[id]||FOODB[id])||null}
+function foodById(id){if(id&&id.indexOf("s:")===0)return estFoods()[id]||null;return id&&(foods[id]||FOODB[id])||null}
+// Pasti veloci (descrizione + kcal) gia' segnati: si ritrovano nella ricerca e nella cronologia per nome.
+// Non hanno una chiave loro: si leggono dai pasti salvati e, a parita' di nome, vale l'ultimo.
+function estKey(n){return "s:"+norm(n).replace(/[^a-z0-9]+/g," ").trim()}
+function estFoods(){
+  var out={};
+  Object.keys(meals).sort().forEach(function(d){MEALS.forEach(function(m){var M=meals[d]&&meals[d][m.id];(M&&M.items||[]).forEach(function(x){
+    if(x.b==="stima"&&!x.per&&x.n)out[estKey(x.n)]={id:estKey(x.n),n:x.n,b:"",k:x.k,p:x.p,c:x.c,g:x.g,u:{n:"piatto",g:100},u2:null,src:"stima"};
+  })})});
+  return out;
+}
+function estItem(f){return {f:null,n:f.n,b:"stima",q:null,u:null,un:null,per:null,k:Math.round(f.k),p:r1(f.p),c:r1(f.c),g:r1(f.g)}}
 function dayMeal(d,m){return meals[d]&&meals[d][m]||null}
 function mealTot(items){var o={k:0,p:0,c:0,g:0};(items||[]).forEach(function(x){o.k+=x.k;o.p+=x.p;o.c+=x.c;o.g+=x.g});return o}
 function dayTot(d){
@@ -1621,7 +1632,7 @@ function portion(x){
 }
 // Unita' di un cibo (oltre ai grammi): porzione/unita' e, per i prodotti online, la confezione.
 function unitsOf(f){return [f.u,f.u2].filter(function(u){return u&&u.g>0})}
-var SRC={base:"Cibi base (valori medi)",off:"Open Food Facts",mio:"Creato da te"};
+var SRC={base:"Cibi base (valori medi)",off:"Open Food Facts",mio:"Creato da te",stima:"Pasto veloce"};
 // Quantita' proposta: la porzione/unita'; la confezione solo se e' da una volta (fino a 400 g e 600 kcal: yogurt, lattina, snack,
 // piatto pronto), se no 100 g (niente barattolo intero di Nutella col +). Le altre unita' restano nel menu.
 function defUnit(f){var u=unitsOf(f)[0];return u&&!(u.n==="confezione"&&(u.g>400||f.k*u.g/100>600))?u:null}
@@ -1758,15 +1769,16 @@ function vMeal(){
 function vAdd(){
   var h=shead("meal","Ricerca di alimenti",'<button type="button" class="tplus" data-sh="food" aria-label="Crea alimento">+</button>');
   h+='<form id="sForm" class="sbox" autocomplete="off" role="search"><label class="sr" for="sQ">Cerca alimenti</label><input id="sQ" type="search" enterkeyhint="search" placeholder="Cerca alimenti o marche…" value="'+esc(sh.qs||"")+'"><button class="sgo" type="submit" aria-label="Cerca">🔍</button></form>';
-  h+='<div class="schips"><button type="button" class="pill2" data-sh="est">✏️ Stima a mano</button><span class="note" style="margin:0">per '+mealCfg(sh.m).n.toLowerCase()+'</span></div>';
+  h+='<div class="schips"><button type="button" class="pill2" data-sh="est">✏️ Pasto veloce</button><span class="note" style="margin:0">per '+mealCfg(sh.m).n.toLowerCase()+'</span></div>';
   h+='<div id="sRes"></div>';
   return h;
 }
 function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
 function localSearch(q){
   var w=norm(q).split(/\s+/).filter(Boolean);if(!w.length)return [];
+  var ef=estFoods(),est=Object.keys(ef).map(function(k){return ef[k]});
   var mine=Object.keys(foods).map(function(k){return foods[k]}),base=Object.keys(FOODB).map(function(k){return FOODB[k]});
-  return mine.concat(base).filter(function(f){var t=norm(f.n+" "+(f.b||""));return w.every(function(x){return t.indexOf(x)>=0})}).slice(0,30);
+  return est.concat(mine,base).filter(function(f){var t=norm(f.n+" "+(f.b||""));return w.every(function(x){return t.indexOf(x)>=0})}).slice(0,30);
 }
 function foodRow(f,open,quick){
   return '<div class="srow"><button type="button" class="sopen" '+open+'><b>'+esc(f.n)+(f.src==="base"?' <i class="ver" title="Cibo base">✓</i>':'')+'</b>'+
@@ -1882,8 +1894,9 @@ var toastT=0;
 function toast(t){var e=document.getElementById("toast");e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){e.hidden=true},2200)}
 function quickAdd(f){
   if(!f)return;
-  keepFood(f);
-  var mode=defMode(f);putItem(itemFrom(f,mode,mode==="g"?100:1));addRecent(f.id);
+  if(f.src==="stima")putItem(estItem(f));
+  else{keepFood(f);var mode=defMode(f);putItem(itemFrom(f,mode,mode==="g"?100:1))}
+  addRecent(f.id);
   toast("Aggiunto a "+mealCfg(sh.m).n.toLowerCase()+": "+f.n+" · "+defKcal(f)+" kcal");
   render();
 }
@@ -1957,20 +1970,20 @@ function saveFood(){
   sh={v:"qty",m:sh.m,f:foods[id]};renderSheet();
 }
 function vEst(){
-  var x=sh.idx!=null?dayMeal(pDay,sh.m).items[sh.idx]:null;
-  var h=shead(x?"meal":"add","Stima a mano");
-  h+='<p class="note" style="margin-top:-4px">Per i pasti fuori o quando non sai i grammi: scrivi una stima. I macro sono facoltativi.</p>';
-  h+='<div class="fields"><div><label for="esN">Cosa</label><input id="esN" maxlength="60" value="'+esc(x?x.n:"Pasto fuori")+'"></div><div><label for="esK">Kcal</label><input id="esK" inputmode="numeric" value="'+(x?Math.round(x.k):"")+'"></div></div>';
-  h+='<div class="fields four" style="margin-top:8px">'+[["p","P (g)"],["c","C (g)"],["g","G (g)"]].map(function(k){return '<div><label for="es-'+k[0]+'">'+k[1]+'</label><input id="es-'+k[0]+'" inputmode="decimal" value="'+(x&&x[k[0]]?nfmt(x[k[0]]):"")+'"></div>'}).join("")+'</div>';
-  h+='<div class="msg" id="esMsg" role="status"></div><button type="button" class="btn bigbtn" data-essave="1">Salvare</button>'+(x?'<button type="button" class="btn ghost bigbtn" data-del="'+sh.idx+'">Rimuovi dal pasto</button>':'');
+  var x=sh.idx!=null?dayMeal(pDay,sh.m).items[sh.idx]:sh.pre||null;
+  var h=shead(sh.idx!=null?"meal":"add","Pasto veloce");
+  h+='<p class="note" style="margin-top:-4px">Per un pasto fuori o un cibo senza etichetta: scrivi cosa hai mangiato e le kcal, i macro se li sai. Lo ritrovi poi cercandolo per nome.</p>';
+  h+='<div class="fields" style="grid-template-columns:1fr"><div><label for="esN">Cosa hai mangiato</label><input id="esN" maxlength="80" placeholder="es. Pizza margherita e birra" value="'+esc(x?x.n:"")+'"></div></div>';
+  h+='<div class="fields four" style="margin-top:8px"><div><label for="esK">Kcal</label><input id="esK" inputmode="numeric" value="'+(x?Math.round(x.k):"")+'"></div>'+[["p","P (g)"],["c","C (g)"],["g","G (g)"]].map(function(k){return '<div><label for="es-'+k[0]+'">'+k[1]+'</label><input id="es-'+k[0]+'" inputmode="decimal" value="'+(x&&x[k[0]]?nfmt(x[k[0]]):"")+'"></div>'}).join("")+'</div>';
+  h+='<div class="msg" id="esMsg" role="status"></div><button type="button" class="btn bigbtn" data-essave="1">Salvare</button>'+(sh.idx!=null?'<button type="button" class="btn ghost bigbtn" data-del="'+sh.idx+'">Rimuovi dal pasto</button>':'');
   return h;
 }
 function saveEst(){
   var n=document.getElementById("esN").value.trim()||"Pasto fuori",k=num(document.getElementById("esK").value),o={};
-  if(k==null||k<=0||k>5000){msg("esMsg","Scrivi le kcal stimate.");return}
+  if(k==null||k<=0||k>5000){msg("esMsg","Scrivi le kcal (anche una stima).");return}
   var bad=["p","c","g"].some(function(x){var v=document.getElementById("es-"+x).value.trim();o[x]=v?num(v):0;return o[x]==null||o[x]<0||o[x]>500});
   if(bad){msg("esMsg","Controlla i macro.");return}
-  putItem({f:null,n:n,b:"stima",q:null,u:null,un:null,per:null,k:Math.round(k),p:r1(o.p),c:r1(o.c),g:r1(o.g)});
+  putItem(estItem({n:n,k:k,p:o.p,c:o.c,g:o.g}));addRecent(estKey(n));
   sh={v:"meal",m:sh.m};render();
 }
 // Controlli per il ripristino da backup.
@@ -2030,7 +2043,7 @@ sheetEl.addEventListener("click",function(ev){
   if((b=ev.target.closest("[data-qdb]"))){quickAdd(sh.dbl&&sh.dbl[+b.getAttribute("data-qdb")]);return}
   if((b=ev.target.closest("[data-db]"))){sh={v:"qty",m:sh.m,f:sh.dbl[+b.getAttribute("data-db")],qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
   if((b=ev.target.closest("[data-qoff]"))){quickAdd(sh.online&&sh.online.list[+b.getAttribute("data-qoff")]);return}
-  if((b=ev.target.closest("[data-food]"))){sh={v:"qty",m:sh.m,f:foodById(b.getAttribute("data-food")),qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
+  if((b=ev.target.closest("[data-food]"))){var ff=foodById(b.getAttribute("data-food"));if(!ff)return;sh=ff.src==="stima"?{v:"est",m:sh.m,pre:ff,qs:sh.qs,online:sh.online}:{v:"qty",m:sh.m,f:ff,qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
   if((b=ev.target.closest("[data-off]"))){sh={v:"qty",m:sh.m,f:sh.online.list[+b.getAttribute("data-off")],qs:sh.qs,online:sh.online};renderSheet();sheetEl.scrollTop=0;return}
   if(ev.target.closest("[data-online]")){var q0=(sh.qs||"").trim();if(q0)runOnline(q0);return}
   if(ev.target.closest("[data-fix]")){var qn2=document.getElementById("qN");sh.qv=qn2?qn2.value:sh.qv;sh.fix=true;renderSheet();return}
