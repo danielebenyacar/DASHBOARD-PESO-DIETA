@@ -30,7 +30,7 @@ Nel JS: `PLAN` (punti di traiettoria peso), `PH` (fasi con kcal e macro), `GOALS
 | Cut pieno | 26 apr – 14 giu | 2100 | 170 / 245 / 50 |
 | Uscita | 15 – 28 giu | 2300 poi 2500 | 160 / 290 / 55 |
 
-Traiettoria peso attesa (`PLAN`): 5 ott 78,5 – 17 ott 77,8 – 5 nov 79,2 – 5 dic 79,9 – 5 gen 80,6 – 5 feb 81,3 – 5 mar 81,9 – 5 apr 82,5 – 25 apr 81,6 – 14 giu 78,5 (kg, media settimanale).
+Traiettoria peso attesa (`PLAN`): 6 ott 77,4 (partenza reale) – 17 ott 76,7 – 5 nov 78,1 – 5 dic 78,8 – 5 gen 79,5 – 5 feb 80,2 – 5 mar 80,8 – 5 apr 81,4 – 25 apr 80,5 – 14 giu 77,4 (kg, media settimanale). Il piano iniziale partiva da 78,5: tutti i punti sono stati spostati di -1,1 kg mantenendo gli stessi ritmi. `GOALS` usa gli stessi valori (cut 77,4 -> 76,7; bulk 76,7 -> 81,4; cut di fine stagione 81,4 -> 77,4).
 
 Regole del verdetto (calcolate su media 7 giorni vs 7 giorni prima, servono almeno 3 pesate per finestra):
 - Bulk: ritmo <0,1 kg/sett -> +150 kcal; >0,4 -> -150; vita +1,5 cm in 10+ giorni con peso in salita -> -150; altrimenti ok (obiettivo +0,15/+0,25).

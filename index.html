@@ -354,14 +354,15 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.3</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.4</p>
 </main>
 
 <script>
 (function(){
 "use strict";
 var DAY=86400000;
-var PLAN=[["2026-10-05",78.5],["2026-10-17",77.8],["2026-11-05",79.2],["2026-12-05",79.9],["2027-01-05",80.6],["2027-02-05",81.3],["2027-03-05",81.9],["2027-04-05",82.5],["2027-04-25",81.6],["2027-06-14",78.5]];
+// Partenza reale: 6 ott 2026 a 77,4 kg (il piano iniziale partiva da 78,5: tutti i punti spostati di -1,1 kg, stessi ritmi).
+var PLAN=[["2026-10-06",77.4],["2026-10-17",76.7],["2026-11-05",78.1],["2026-12-05",78.8],["2027-01-05",79.5],["2027-02-05",80.2],["2027-03-05",80.8],["2027-04-05",81.4],["2027-04-25",80.5],["2027-06-14",77.4]];
 var PH=[
   {id:"cut",name:"Cut finale",from:"2026-10-05",to:"2026-10-17",kcal:1900,p:162,c:212,g:42,
    rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,3 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."],
@@ -379,11 +380,11 @@ var PH=[
    rules:["2 settimane a 2300 kcal, poi risali a 2500 (160 P / 340 C / 55 G).","Peso stabile."]}
 ];
 var PHASES=PH;
-var PLANLAB=["5 ott · partenza","17 ott · fine cut finale","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr · fine bulk","25 apr · fine cut soft","14 giu · fine cut pieno"];
+var PLANLAB=["6 ott · partenza","17 ott · fine cut finale","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr · fine bulk","25 apr · fine cut soft","14 giu · fine cut pieno"];
 var GOALS=[
-  {id:"cut",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-05",to:"2026-10-17",start:78.5,target:77.8,col:"cut"},
-  {id:"bulk",emo:"💪",title:"Lean bulk",from:"2026-10-25",to:"2027-04-05",start:77.8,target:82.5,col:"bulk"},
-  {id:"cutf",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-05",to:"2027-06-14",start:82.5,target:78.5,col:"cutfull"}
+  {id:"cut",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-06",to:"2026-10-17",start:77.4,target:76.7,col:"cut"},
+  {id:"bulk",emo:"💪",title:"Lean bulk",from:"2026-10-25",to:"2027-04-05",start:76.7,target:81.4,col:"bulk"},
+  {id:"cutf",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-05",to:"2027-06-14",start:81.4,target:77.4,col:"cutfull"}
 ];
 var selPh=null;
 
@@ -895,7 +896,7 @@ function renderPiano(list){
     pl.appendChild(b);
   });
 
-  var w=curAvg(list)||78.5;
+  var w=curAvg(list)||PLAN[0][1];
   var kP=sel.p*4,kC=sel.c*4,kG=sel.g*9,kT=kP+kC+kG;
   function pc(x){return Math.round(x/kT*100)}
   var endKg=planAt(toT(sel.to));
