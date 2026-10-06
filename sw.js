@@ -1,5 +1,5 @@
 // Incrementa CACHE a ogni modifica di index.html o degli asset, cosi' l'app si aggiorna.
-const CACHE = "diario-peso-v1.5";
+const CACHE = "diario-peso-v1.6";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

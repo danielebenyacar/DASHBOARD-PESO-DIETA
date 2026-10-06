@@ -19,8 +19,8 @@
   --bg:#E8ECFF; --card:#FFFFFF; --ink:#1A1744; --mute:#5E5C86; --line:#DCDDF2; --soft:#F3F4FF;
   --accent:#5B3FE6; --blue:#2563EB; --plan:#FF6A1F; --ok:#0A9467; --warn:#B36F00; --bad:#D6342A;
   --okbg:#D9F6E9; --upbg:#FFEBC2; --downbg:#FFDDD7; --onsel:#FFFFFF; --shadow:0 4px 14px rgba(60,40,160,.10);
-  --c-cut:#D2361C; --c-trans:#FFB020; --c-bulk:#08805A; --c-cutsoft:#BF5200; --c-cutfull:#C42766; --c-out:#2F6FD0;
-  --on-cut:#FFFFFF; --on-trans:#2B1B00; --on-bulk:#FFFFFF; --on-cutsoft:#FFFFFF; --on-cutfull:#FFFFFF; --on-out:#FFFFFF;
+  --c-cut:#D2361C; --c-trans:#FFB020; --c-bulk:#08805A; --c-cutsoft:#BF5200; --c-cutfull:#C42766; --c-out:#2F6FD0; --c-carb:#0E7490;
+  --on-cut:#FFFFFF; --on-trans:#2B1B00; --on-bulk:#FFFFFF; --on-cutsoft:#FFFFFF; --on-cutfull:#FFFFFF; --on-out:#FFFFFF; --on-carb:#FFFFFF;
   --mp:#2563EB; --mc:#F59E0B; --mg:#DB2777; --mpb:#E1EBFF; --mcb:#FFF0D1; --mgb:#FFDFEE;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -31,8 +31,8 @@
     --bg:#0E0D24; --card:#1A1940; --ink:#EEEDFF; --mute:#A9A7D6; --line:#2F2E63; --soft:#23224F;
     --accent:#9B87FF; --blue:#6EA0FF; --plan:#FF9150; --ok:#3FD6A0; --warn:#F5B94A; --bad:#FF7F73;
     --okbg:#0F3A2D; --upbg:#40300B; --downbg:#47201C; --onsel:#12102E; --shadow:none;
-    --c-cut:#FF7A62; --c-trans:#FFC24D; --c-bulk:#34D399; --c-cutsoft:#FFA040; --c-cutfull:#FF7BAA; --c-out:#7DB0FF;
-    --on-cut:#12102E; --on-trans:#12102E; --on-bulk:#12102E; --on-cutsoft:#12102E; --on-cutfull:#12102E; --on-out:#12102E;
+    --c-cut:#FF7A62; --c-trans:#FFC24D; --c-bulk:#34D399; --c-cutsoft:#FFA040; --c-cutfull:#FF7BAA; --c-out:#7DB0FF; --c-carb:#22D3EE;
+    --on-cut:#12102E; --on-trans:#12102E; --on-bulk:#12102E; --on-cutsoft:#12102E; --on-cutfull:#12102E; --on-out:#12102E; --on-carb:#12102E;
     --mp:#7FB2FF; --mc:#FBBF4D; --mg:#F472B6; --mpb:#1C2D5C; --mcb:#4A3510; --mgb:#4A1D38;
   }
 }
@@ -40,8 +40,8 @@
   --bg:#0E0D24; --card:#1A1940; --ink:#EEEDFF; --mute:#A9A7D6; --line:#2F2E63; --soft:#23224F;
     --accent:#9B87FF; --blue:#6EA0FF; --plan:#FF9150; --ok:#3FD6A0; --warn:#F5B94A; --bad:#FF7F73;
     --okbg:#0F3A2D; --upbg:#40300B; --downbg:#47201C; --onsel:#12102E; --shadow:none;
-    --c-cut:#FF7A62; --c-trans:#FFC24D; --c-bulk:#34D399; --c-cutsoft:#FFA040; --c-cutfull:#FF7BAA; --c-out:#7DB0FF;
-    --on-cut:#12102E; --on-trans:#12102E; --on-bulk:#12102E; --on-cutsoft:#12102E; --on-cutfull:#12102E; --on-out:#12102E;
+    --c-cut:#FF7A62; --c-trans:#FFC24D; --c-bulk:#34D399; --c-cutsoft:#FFA040; --c-cutfull:#FF7BAA; --c-out:#7DB0FF; --c-carb:#22D3EE;
+    --on-cut:#12102E; --on-trans:#12102E; --on-bulk:#12102E; --on-cutsoft:#12102E; --on-cutfull:#12102E; --on-out:#12102E; --on-carb:#12102E;
     --mp:#7FB2FF; --mc:#FBBF4D; --mg:#F472B6; --mpb:#1C2D5C; --mcb:#4A3510; --mgb:#4A1D38;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -354,7 +354,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.5</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.6</p>
 </main>
 
 <script>
@@ -362,14 +362,15 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 "use strict";
 var DAY=86400000;
 // Partenza reale: 6 ott 2026 a 77,4 kg (il piano iniziale partiva da 78,5: tutti i punti spostati di -1,1 kg, stessi ritmi).
-var PLAN=[["2026-10-06",77.4],["2026-10-17",76.7],["2026-11-05",78.1],["2026-12-05",78.8],["2027-01-05",79.5],["2027-02-05",80.2],["2027-03-05",80.8],["2027-04-05",81.4],["2027-04-25",80.5],["2027-06-14",77.4]];
+var PLAN=[["2026-10-06",77.4],["2026-10-16",76.7],["2026-11-05",78.1],["2026-12-05",78.8],["2027-01-05",79.5],["2027-02-05",80.2],["2027-03-05",80.8],["2027-04-05",81.4],["2027-04-25",80.5],["2027-06-14",77.4]];
 var PH=[
-  {id:"cut",name:"Cut finale",from:"2026-10-05",to:"2026-10-17",kcal:1900,p:162,c:212,g:42,
-   rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,3 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."],
-   spec:"16-17 ott (giorno prima e giorno della prima partita): ~2400 kcal, 160 P / 340 C / 45 G."},
-  {id:"trans",name:"Transizione",from:"2026-10-18",to:"2026-10-24",kcal:2300,p:160,c:290,g:55,
+  {id:"cut",name:"Cut finale",from:"2026-10-05",to:"2026-10-16",kcal:1900,p:162,c:212,g:42,
+   rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,3 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."]},
+  {id:"carb",name:"Carb load",from:"2026-10-17",to:"2026-10-18",kcal:2400,p:160,c:340,g:45,
+   rules:["Giorno prima e giorno della prima partita (domenica 18 ott): ~2400 kcal con i carboidrati alti, per arrivare in campo pieno di glicogeno.","Il peso salirà di 0,5-1,5 kg per acqua e glicogeno: è normale, non è grasso.","Da lunedì 19 si passa alla transizione a 2300 kcal."]},
+  {id:"trans",name:"Transizione",from:"2026-10-19",to:"2026-10-25",kcal:2300,p:160,c:290,g:55,
    rules:["2300 kcal fisse: serve a non passare di colpo da 1900 a 2500.","Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non grasso."]},
-  {id:"bulk",name:"Lean bulk",from:"2026-10-25",to:"2027-04-04",kcal:2500,p:160,c:340,g:55,
+  {id:"bulk",name:"Lean bulk",from:"2026-10-26",to:"2027-04-04",kcal:2500,p:160,c:340,g:55,
    rules:["Obiettivo: +0,15 / +0,25 kg a settimana (media settimanale).","Niente cheat day: 1 pasto libero a settimana dentro le kcal.","Carboidrati concentrati prima e dopo partita e allenamenti pesanti.","Verso gennaio il mantenimento sale: probabile ritocco a ~2600 kcal (+25 g di carbo)."]},
   {id:"cutsoft",name:"Cut soft",from:"2027-04-05",to:"2027-04-25",kcal:2250,p:170,c:270,g:55,
    rules:["Stagione ancora in corso: deficit moderato, circa -0,3 kg a settimana.","Proteine alte e carboidrati attorno a partite e allenamenti pesanti."],
@@ -380,10 +381,10 @@ var PH=[
    rules:["2 settimane a 2300 kcal, poi risali a 2500 (160 P / 340 C / 55 G).","Peso stabile."]}
 ];
 var PHASES=PH;
-var PLANLAB=["6 ott · partenza","17 ott · fine cut finale","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr · fine bulk","25 apr · fine cut soft","14 giu · fine cut pieno"];
+var PLANLAB=["6 ott · partenza","16 ott · fine cut finale","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr · fine bulk","25 apr · fine cut soft","14 giu · fine cut pieno"];
 var GOALS=[
-  {id:"cut",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-06",to:"2026-10-17",start:77.4,target:76.7,col:"cut"},
-  {id:"bulk",emo:"💪",title:"Lean bulk",from:"2026-10-25",to:"2027-04-05",start:76.7,target:81.4,col:"bulk"},
+  {id:"cut",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-06",to:"2026-10-16",start:77.4,target:76.7,col:"cut"},
+  {id:"bulk",emo:"💪",title:"Lean bulk",from:"2026-10-26",to:"2027-04-05",start:76.7,target:81.4,col:"bulk"},
   {id:"cutf",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-05",to:"2027-06-14",start:81.4,target:77.4,col:"cutfull"}
 ];
 var selPh=null;
@@ -463,6 +464,7 @@ function verdict(ph,rate,list){
     if(r<0.1)return {c:"up",t:"+150 kcal",x:"Peso fermo o quasi. Se è così da 2 settimane aggiungi 150 kcal di carboidrati."};
     return {c:"ok",t:"Tutto ok",x:"Ritmo giusto: obiettivo +0,15 / +0,25 kg a settimana."};
   }
+  if(ph.id==="carb")return {c:"ok",t:"Tutto ok",x:"Carb load: il peso sale per acqua e glicogeno, è normale. Non cambiare niente, il verdetto torna a lavorare con la transizione."};
   if(ph.id==="trans"){
     if(r<-0.3)return {c:"up",t:"+150 kcal",x:"Stai ancora scendendo: aggiungi 150 kcal. Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non preoccuparti."};
     return {c:"ok",t:"Tutto ok",x:"Peso stabile, come previsto. Un salto di ~1 kg all'inizio è acqua e glicogeno."};
@@ -584,7 +586,7 @@ function weekInfo(mon){
     dv:cur.avg!=null?cur.avg-planAt(toT(mon)+3*DAY):null,
     dw:wIn&&wBef?wIn.cm-wBef.cm:null};
 }
-function sgn(x,d){return (x>0?"+":"")+fmt(x,d)}
+function sgn(x,d){var r=+x.toFixed(d);return r===0?fmt(0,d):(r>0?"+":"")+fmt(r,d)}
 function renderWeek(today){
   var mon=iso(toT(mondayOf(today))-7*DAY),w=weekInfo(mon),card=document.getElementById("weekCard");
   card.hidden=!(w.cur.n>0&&meta.weekSeen!==mon);
