@@ -166,6 +166,18 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .wkv b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:24px;line-height:1.1}
 .wkv.ok b{color:var(--ok)} .wkv.up b{color:var(--warn)} .wkv.down b{color:var(--bad)}
 .wkv p{margin:3px 0 0;font-size:14px;opacity:.85}
+.kq{font-size:14.5px;font-weight:600;margin:12px 0 6px}
+.adh{display:flex;gap:8px}
+.adh button{flex:1;min-height:48px;border:0;border-radius:12px;background:var(--soft);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.adh button[data-a="si"][aria-pressed="true"]{background:var(--c-bulk);color:var(--on-bulk)}
+.adh button[data-a="circa"][aria-pressed="true"]{background:var(--c-trans);color:var(--on-trans)}
+.adh button[data-a="no"][aria-pressed="true"]{background:var(--c-cut);color:var(--on-cut)}
+.kdays{display:flex;gap:4px;margin-top:12px}
+.kday{flex:1;min-height:48px;border:0;border-radius:10px;background:transparent;color:var(--mute);font:inherit;font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:4px 0}
+.kday[aria-pressed="true"]{background:var(--soft);color:var(--ink)}
+.kday i{display:block;width:14px;height:14px;border-radius:50%;background:var(--line)}
+.kday i.si{background:var(--c-bulk)} .kday i.circa{background:var(--c-trans)} .kday i.no{background:var(--c-cut)}
+.note{margin:12px 0 0;color:var(--mute);font-size:13.5px}
 </style>
 </head>
 <body>
@@ -251,6 +263,22 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     </form>
   </section>
 
+  <section class="card" id="kcalCard">
+    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Kcal e aderenza</span></h2>
+    <div class="fields">
+      <div><label for="kd">Giorno</label><input id="kd" type="date"></div>
+      <div><label for="kk">Kcal (facoltativo)</label><input id="kk" type="text" inputmode="numeric" placeholder="1900" autocomplete="off"></div>
+    </div>
+    <div class="kq">Hai rispettato le kcal del piano?</div>
+    <div class="adh" role="group" aria-label="Aderenza alle kcal">
+      <button type="button" data-a="si" aria-pressed="false">Sì</button>
+      <button type="button" data-a="circa" aria-pressed="false">Circa</button>
+      <button type="button" data-a="no" aria-pressed="false">No</button>
+    </div>
+    <div class="kdays" id="kDays"></div>
+    <div class="msg" id="kmsg" role="status"></div>
+  </section>
+
   <section class="card">
     <h2><i class="hd" style="background:var(--c-cutsoft)"></i>Soglie per anticipare il cut</h2>
     <div id="trig"></div>
@@ -319,13 +347,14 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
       <div class="plist" id="plist" style="margin-top:8px"></div>
     </section>
     <section class="card" id="pdetail"></section>
+    <section class="card" id="tdeeCard"></section>
   </div>
 
   <div id="t-goals" role="tabpanel" hidden>
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.2</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.3</p>
 </main>
 
 <script>
@@ -361,6 +390,8 @@ var selPh=null;
 var entries={};      // date -> {date,kg}
 var waists={};       // date -> {date,cm}
 var meta={};         // {lastBackup, chartWaist, weekSeen}
+var kcalLog={};      // date -> {date,adh:"si"|"circa"|"no",kcal?}
+var ADH={si:"sì",circa:"circa",no:"no"};
 var range="30";
 
 function pad(n){return n<10?"0"+n:""+n}
@@ -392,11 +423,27 @@ function avgWin(list,endT,days){
 function lsGet(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):{}}catch(e){return {}}}
 function lsSet(){try{localStorage.setItem("diario_peso",JSON.stringify(entries));localStorage.setItem("diario_vita",JSON.stringify(waists))}catch(e){}}
 function saveMeta(){try{localStorage.setItem("diario_meta",JSON.stringify(meta))}catch(e){}}
+function saveK(){try{localStorage.setItem("diario_kcal",JSON.stringify(kcalLog))}catch(e){}}
 function save(e){entries[e.date]=e;lsSet();return Promise.resolve()}
 function remove(date){delete entries[date];lsSet();return Promise.resolve()}
 function saveW(e){waists[e.date]=e;lsSet();return Promise.resolve()}
 function removeW(date){delete waists[date];lsSet();return Promise.resolve()}
 function sortedW(){return Object.keys(waists).sort().map(function(k){return waists[k]})}
+function yesterdayIso(){return iso(toT(todayIso())-DAY)}
+// Aderenza dei "days" giorni che finiscono in endIso (incluso). score: si=1, circa=0,5, no=0.
+function adhStats(endIso,days){
+  var o={n:0,si:0,circa:0,no:0,kn:0,kSum:0,tSum:0};
+  for(var i=0;i<days;i++){
+    var d=iso(toT(endIso)-i*DAY),e=kcalLog[d];
+    if(!e)continue;
+    o.n++;o[e.adh]++;
+    if(typeof e.kcal==="number"){o.kn++;o.kSum+=e.kcal;o.tSum+=phaseAt(d).kcal}
+  }
+  o.score=o.n?(o.si+o.circa*0.5)/o.n:null;
+  o.kAvg=o.kn?o.kSum/o.kn:null;o.tAvg=o.kn?o.tSum/o.kn:null;
+  return o;
+}
+function lowAdh(as,min){return as.n>=min&&as.score<0.7}
 
 /* ---------- verdict ---------- */
 function waistFlag(ph,rate){
@@ -462,7 +509,8 @@ function render(){
   var vc=document.getElementById("verdictCard");
   vc.className="card verdict "+v.c;
   setText("vTitle",v.t);setText("vText",v.x);
-  setText("vPlan","");
+  var as=adhStats(yesterdayIso(),14);
+  setText("vPlan",v.c!=="ok"&&rate!=null&&lowAdh(as,5)?"⚠️ Negli ultimi 14 giorni hai rispettato le kcal nel "+Math.round(as.score*100)+"% dei giorni registrati: prima di cambiare le kcal, prova a rispettarle per una settimana.":"");
 
   renderTodo(list,last);
   renderTrig(list,a);
@@ -470,12 +518,15 @@ function render(){
   renderWaist();
   renderChart(list);
   renderPiano(list);
+  renderTdee();
   renderGoals(list);
 }
 
 /* in cima al Diario: pesata mancante e promemoria backup */
 var weighCard=document.getElementById("weighCard"),weighHome=document.createComment("pesata");
 weighCard.parentNode.insertBefore(weighHome,weighCard);
+var kcalCard=document.getElementById("kcalCard"),kcalHome=document.createComment("kcal");
+kcalCard.parentNode.insertBefore(kcalHome,kcalCard);
 function renderTodo(list,last){
   var today=todayIso(),todo=document.getElementById("todo");
   var due=!entries[today];
@@ -486,6 +537,13 @@ function renderTodo(list,last){
   var kg=document.getElementById("kg");
   if(due&&last&&!kg.value&&document.activeElement!==kg)kg.value=fmt(last.kg,1);
 
+  var kdue=!kcalLog[yesterdayIso()];
+  if(kdue&&kcalCard.parentNode!==todo)todo.insertBefore(kcalCard,weighCard.parentNode===todo?weighCard.nextSibling:todo.firstChild);
+  if(!kdue&&kcalCard.parentNode===todo)kcalHome.parentNode.insertBefore(kcalCard,kcalHome.nextSibling);
+  kcalCard.classList.toggle("due",kdue);
+  setText("kTitle",kdue?"Com'è andata ieri?":"Kcal e aderenza");
+  renderKcal();
+
   var lb=meta.lastBackup,ago=lb?Math.max(0,daysBetween(lb,today)):null;
   var warn=list.length>=7&&(ago==null||ago>=30);
   document.getElementById("bkWarn").hidden=!warn;
@@ -493,6 +551,21 @@ function renderTodo(list,last){
   setText("bkLast",lb?"Ultimo backup: "+dIt(lb)+(ago===0?" (oggi)":" ("+ago+(ago===1?" giorno fa)":" giorni fa)")):"Nessun backup fatto finora.");
   renderWeek(today);
 }
+
+/* ---------- kcal e aderenza ---------- */
+var DL=["D","L","M","M","G","V","S"];
+function renderKcal(){
+  var kd=document.getElementById("kd"),d=kd.value,e=kcalLog[d];
+  document.getElementById("kk").placeholder=d?String(phaseAt(d).kcal):"";
+  Array.prototype.forEach.call(document.querySelectorAll(".adh button"),function(b){b.setAttribute("aria-pressed",e&&e.adh===b.getAttribute("data-a")?"true":"false")});
+  var h="",y=yesterdayIso();
+  for(var i=6;i>=0;i--){
+    var dd=iso(toT(y)-i*DAY),x=kcalLog[dd];
+    h+='<button type="button" class="kday" data-d="'+dd+'" aria-pressed="'+(dd===d?"true":"false")+'" aria-label="'+dIt(dd)+': '+(x?ADH[x.adh]:"non registrato")+'"><i class="'+(x?x.adh:"")+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
+  }
+  document.getElementById("kDays").innerHTML=h;
+}
+function loadKDay(){var e=kcalLog[document.getElementById("kd").value];document.getElementById("kk").value=e&&typeof e.kcal==="number"?String(e.kcal):"";renderKcal()}
 
 /* ---------- settimane (lunedi'-domenica) ---------- */
 function mondayOf(s){var t=toT(s);return iso(t-((new Date(t).getUTCDay()+6)%7)*DAY)}
@@ -526,8 +599,11 @@ function renderWeek(today){
   var notes=[],ph=phaseAt(today);
   if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
   if(phaseAt(mon).id!==ph.id)notes.push("Nuova fase: "+ph.name+" · "+ph.kcal+" kcal");
+  var as=adhStats(w.cur.sun,7);
+  if(as.n)notes.push("Kcal rispettate: "+as.si+" sì, "+as.circa+" circa, "+as.no+" no"+(as.kAvg!=null?" (media "+Math.round(as.kAvg)+" kcal)":""));
   var nt=document.getElementById("wkNotes");nt.textContent=notes.join(" · ");nt.hidden=!notes.length;
   var v=verdict(ph,w.rate);
+  if(v.c!=="ok"&&w.rate!=null&&lowAdh(as,4))v={c:v.c,t:v.t,x:v.x+" Però la settimana scorsa le kcal le hai rispettate poco: prima di cambiarle, prova a rispettarle per una settimana."};
   document.getElementById("wkVerdict").className="wkv "+v.c;
   setText("wkVT",v.t);setText("wkVX",v.x);
 }
@@ -668,6 +744,27 @@ Array.prototype.forEach.call(document.querySelectorAll(".step"),function(b){
   });
 });
 document.getElementById("wd").value=todayIso();
+document.getElementById("kd").addEventListener("change",function(){msg("kmsg","");loadKDay()});
+document.getElementById("kDays").addEventListener("click",function(ev){
+  var b=ev.target.closest(".kday");if(!b)return;
+  document.getElementById("kd").value=b.getAttribute("data-d");msg("kmsg","");loadKDay();
+});
+Array.prototype.forEach.call(document.querySelectorAll(".adh button"),function(b){
+  b.addEventListener("click",function(){
+    var d=document.getElementById("kd").value,a=b.getAttribute("data-a"),raw=document.getElementById("kk").value.trim();
+    if(!d||d>todayIso()){msg("kmsg","Scegli un giorno fino a oggi.");return}
+    var k=raw?num(raw):null;
+    if(raw&&(k==null||k<500||k>8000)){msg("kmsg","Controlla le kcal.");return}
+    var old=kcalLog[d];
+    if(old&&old.adh===a&&(k==null?old.kcal==null:old.kcal===Math.round(k))){
+      delete kcalLog[d];saveK();msg("kmsg","Tolto il "+dIt(d)+".");render();return;
+    }
+    var e={date:d,adh:a};if(k!=null)e.kcal=Math.round(k);
+    kcalLog[d]=e;saveK();
+    msg("kmsg","Salvato: "+dIt(d)+" · "+ADH[a]+(e.kcal!=null?" · "+e.kcal+" kcal":"")+".");
+    render();
+  });
+});
 document.getElementById("fw").addEventListener("submit",function(ev){
   ev.preventDefault();
   var d=document.getElementById("wd").value,c=num(document.getElementById("wc").value);
@@ -720,7 +817,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){return JSON.stringify({v:1,exported:todayIso(),weights:entries,waists:waists})}
+function backupText(){return JSON.stringify({v:2,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog})}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -738,8 +835,11 @@ document.getElementById("bkGo").addEventListener("click",function(){
     var w=o.weights||{},c=o.waists||{},nw=0,nc=0;
     Object.keys(w).forEach(function(k){var v=w[k];if(v&&v.date&&typeof v.kg==="number"){entries[v.date]={date:v.date,kg:v.kg};nw++}});
     Object.keys(c).forEach(function(k){var v=c[k];if(v&&v.date&&typeof v.cm==="number"){waists[v.date]={date:v.date,cm:v.cm};nc++}});
-    lsSet();render();
-    msg("bkMsg","Ripristinate "+nw+" pesate e "+nc+" misure.");
+    // v2: anche le kcal (i backup v1 non le hanno)
+    var kl=o.kcal||{},nk=0;
+    Object.keys(kl).forEach(function(k){var v=kl[k];if(v&&v.date&&Object.prototype.hasOwnProperty.call(ADH,v.adh)){var e={date:v.date,adh:v.adh};if(typeof v.kcal==="number")e.kcal=v.kcal;kcalLog[v.date]=e;nk++}});
+    lsSet();saveK();render();loadKDay();
+    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?" e "+nk+" giorni di kcal":"")+".");
     document.getElementById("bk").value="";
   }catch(e){msg("bkMsg","Testo non valido.")}
 });
@@ -816,6 +916,39 @@ function renderPiano(list){
   document.getElementById("pdetail").innerHTML=h;
 }
 
+/* ---------- mantenimento reale (ultime 4 settimane) ---------- */
+function tdee(){
+  var today=todayIso(),end=yesterdayIso(),from=iso(toT(end)-27*DAY),ks=[],ws=[];
+  Object.keys(kcalLog).forEach(function(d){var e=kcalLog[d];if(d>=from&&d<=end&&typeof e.kcal==="number")ks.push(e.kcal)});
+  sorted().forEach(function(e){if(e.date>=from&&e.date<=today)ws.push(e)});
+  var span=ws.length?daysBetween(ws[0].date,ws[ws.length-1].date):0;
+  var o={nk:ks.length,nw:ws.length,ok:ks.length>=14&&ws.length>=10&&span>=14};
+  if(!o.ok)return o;
+  // retta dei minimi quadrati sul peso: pendenza in kg al giorno
+  var x0=toT(ws[0].date),mx=0,my=0,sxy=0,sxx=0;
+  ws.forEach(function(e){mx+=(toT(e.date)-x0)/DAY;my+=e.kg});mx/=ws.length;my/=ws.length;
+  ws.forEach(function(e){var x=(toT(e.date)-x0)/DAY-mx;sxy+=x*(e.kg-my);sxx+=x*x});
+  var slope=sxy/sxx;
+  o.kAvg=ks.reduce(function(a,b){return a+b},0)/ks.length;
+  o.week=slope*7;
+  o.est=Math.round((o.kAvg-slope*7700)/50)*50;
+  return o;
+}
+function renderTdee(){
+  var o=tdee(),ph=phaseAt(todayIso());
+  var h='<h2><i class="hd" style="background:var(--c-cut)"></i>Mantenimento reale</h2>';
+  if(!o.ok){
+    h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Servono, nelle ultime 4 settimane, almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal le scrivi nel Diario, in "Com\'è andata ieri?".</p>';
+  }else{
+    var diff=ph.kcal-o.est,kgw=diff*7/7700;
+    h+='<div class="kc">~'+o.est+'<small>kcal al giorno</small></div>';
+    h+='<p style="margin:10px 0 0;font-size:14.5px">Ultime 4 settimane: hai mangiato in media <b>'+Math.round(o.kAvg)+' kcal</b> e il peso è cambiato di <b>'+sgn(o.week,2)+' kg a settimana</b> ('+o.nk+' giorni con kcal, '+o.nw+' pesate).</p>';
+    h+='<div class="spec">'+(Math.abs(diff)<25?'Con le '+ph.kcal+' kcal di '+ph.name+' sei in pari con il mantenimento: peso stabile.':'Con le '+ph.kcal+' kcal di '+ph.name+' sei a circa <b>'+sgn(diff,0)+' kcal al giorno</b> sul mantenimento: circa '+sgn(kgw,2)+' kg a settimana.')+'</div>';
+    h+='<p class="note">È una stima: acqua, sale e glicogeno la fanno oscillare, soprattutto nei cambi di fase. Usala insieme al verdetto, non al suo posto.</p>';
+  }
+  document.getElementById("tdeeCard").innerHTML=h;
+}
+
 function renderGoals(list){
   var today=todayIso(),cur=curAvg(list),box=document.getElementById("goalsBox");
   var h='';
@@ -862,14 +995,27 @@ function renderGoals(list){
   h+='<div class="bar"><i style="width:'+n14/14*100+'%;background:var(--accent)"></i></div>';
   h+='<div class="st" style="margin-top:10px">Serie in corso: '+streak+(streak===1?" giorno":" giorni")+'</div></section>';
 
+  // aderenza alle kcal
+  var as=adhStats(yesterdayIso(),14);
+  h+='<section class="card"><div class="gh"><b>🍽️ Kcal rispettate</b><span>ultimi 14 giorni</span></div>';
+  if(!as.n)h+='<div class="st" style="color:var(--mute)">Nessun dato: rispondi a "Com\'è andata ieri?" nel Diario.</div>';
+  else{
+    var ac=as.score>=0.85?"var(--ok)":as.score>=0.7?"var(--warn)":"var(--bad)";
+    h+='<div class="gl"><span>Aderenza ('+as.n+'/14 giorni registrati)</span><span>'+Math.round(as.score*100)+'%</span></div>';
+    h+='<div class="bar"><i style="width:'+as.score*100+'%;background:'+ac+'"></i></div>';
+    h+='<div class="st" style="margin-top:10px;color:'+ac+'">'+as.si+' sì · '+as.circa+' circa · '+as.no+' no</div>';
+    if(as.kAvg!=null)h+='<div class="gl" style="margin:8px 0 0"><span>Media kcal ('+as.kn+' giorni)</span><span>'+Math.round(as.kAvg)+' / piano '+Math.round(as.tAvg)+'</span></div>';
+  }
+  h+='</section>';
+
   // settimane concluse, dalla piu' recente
   var wk=[],first=list.length?mondayOf(list[0].date):null;
   for(var m=iso(toT(mondayOf(today))-7*DAY);first&&m>=first&&wk.length<8;m=iso(toT(m)-7*DAY))wk.push(weekInfo(m));
   h+='<section class="card"><div class="gh"><b>📅 Settimane</b><span>media lun–dom</span></div>';
   if(!wk.length)h+='<div class="st" style="color:var(--mute)">Il primo riepilogo arriva lunedì prossimo.</div>';
   else{
-    h+='<div class="scroll"><table><thead><tr><th>Settimana</th><th>Media</th><th>vs prima</th><th>Pesate</th></tr></thead><tbody>';
-    wk.forEach(function(w){h+='<tr><td>'+dIt(w.cur.mon)+'</td><td class="n">'+(w.cur.avg==null?"–":fmt(w.cur.avg,1))+'</td><td class="n">'+(w.rate==null?"–":sgn(w.rate,2))+'</td><td class="n">'+w.cur.n+'/7</td></tr>'});
+    h+='<div class="scroll"><table><thead><tr><th>Settimana</th><th>Media</th><th>vs prima</th><th>Pesate</th><th>Kcal ok</th></tr></thead><tbody>';
+    wk.forEach(function(w){var ws=adhStats(w.cur.sun,7);h+='<tr><td>'+dIt(w.cur.mon)+'</td><td class="n">'+(w.cur.avg==null?"–":fmt(w.cur.avg,1))+'</td><td class="n">'+(w.rate==null?"–":sgn(w.rate,2))+'</td><td class="n">'+w.cur.n+'/7</td><td class="n">'+(ws.n?Math.round(ws.score*100)+"%":"–")+'</td></tr>'});
     h+='</tbody></table></div>';
   }
   h+='</section>';
@@ -915,16 +1061,18 @@ var autoD=todayIso();
 function syncDates(){
   var n=todayIso();
   if(n===autoD)return;
-  var d=document.getElementById("d"),wd=document.getElementById("wd");
+  var d=document.getElementById("d"),wd=document.getElementById("wd"),kd=document.getElementById("kd");
   if(d.value===autoD)d.value=n;
   if(wd.value===autoD)wd.value=n;
+  if(kd.value===iso(toT(autoD)-DAY)){kd.value=iso(toT(n)-DAY);loadKDay()}
   autoD=n;render();
 }
 document.addEventListener("visibilitychange",function(){if(!document.hidden)syncDates()});
 window.addEventListener("focus",syncDates);
 
 /* ---------- boot ---------- */
-entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");
+entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");
+document.getElementById("kd").value=yesterdayIso();loadKDay();
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 try{if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(function(){})}catch(e){}

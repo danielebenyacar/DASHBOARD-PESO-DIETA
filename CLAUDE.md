@@ -9,13 +9,14 @@ Web app personale, mobile-first, per registrare il peso ogni mattina e seguire u
 - Dati salvati in `localStorage` (solo sul dispositivo):
   - `diario_peso` -> oggetto `{ "YYYY-MM-DD": { date, kg } }`
   - `diario_vita`  -> oggetto `{ "YYYY-MM-DD": { date, cm } }`
+  - `diario_kcal`  -> oggetto `{ "YYYY-MM-DD": { date, adh: "si"|"circa"|"no", kcal? } }` (giorno a cui si riferisce il mangiare, kcal facoltative)
   - `diario_meta`  -> oggetto `{ lastBackup: "YYYY-MM-DD", chartWaist: bool, weekSeen: "YYYY-MM-DD" }` (impostazioni e promemoria, non dati di misura)
-- **Non cambiare mai il formato di queste chiavi senza scrivere una migrazione**: l'utente ha dati reali. Backup/ripristino in JSON: `{ v, exported, weights, waists }`.
+- **Non cambiare mai il formato di queste chiavi senza scrivere una migrazione**: l'utente ha dati reali. Backup/ripristino in JSON: `{ v: 2, exported, weights, waists, kcal }`; il ripristino accetta anche i backup `v: 1` senza `kcal`.
 - PWA: `manifest.webmanifest`, `sw.js` (network-first, fallback cache), icone `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`. Tutti i percorsi sono **relativi** (`./`) perche' il sito sta in una sottocartella di GitHub Pages.
 - Su iOS la PWA aggiunta alla Home ha uno storage separato da Safari: i dati inseriti in Safari non compaiono nell'icona. Usare solo l'icona, oppure passare i dati col backup.
 
 ## Struttura di index.html
-Tre tab: **Diario** (in cima `#todo`: card della pesata spostata li' se manca quella di oggi + riepilogo della settimana precedente (lun-dom, da lunedi' finche' non premi "Ok, visto") + avviso backup oltre 30 giorni; poi peso, grafico con vita attivabile, verdetto, vita nascosta in un `<details>`, ultime pesate, incolla pesate, backup), **Piano** (timeline colorata delle fasi, dettaglio kcal/macro), **Goals** (barre di avanzamento, vita, costanza, storico settimane, traguardi).
+Tre tab: **Diario** (in cima `#todo`: card della pesata spostata li' se manca quella di oggi + card "Com'e' andata ieri?" (aderenza si'/circa/no e kcal facoltative) se manca ieri + riepilogo della settimana precedente (lun-dom, da lunedi' finche' non premi "Ok, visto") + avviso backup oltre 30 giorni; poi peso, grafico con vita attivabile, verdetto, vita nascosta in un `<details>`, ultime pesate, incolla pesate, backup), **Piano** (timeline colorata delle fasi, dettaglio kcal/macro, mantenimento reale stimato), **Goals** (barre di avanzamento, vita, costanza, kcal rispettate, storico settimane, traguardi).
 Nel JS: `PLAN` (punti di traiettoria peso), `PH` (fasi con kcal e macro), `GOALS`, `PLANLAB`, funzioni `verdict`, `render*`, `save/remove` (+`saveW/removeW` per la vita).
 
 ## Il piano (fonte di verita' in `PH` e `PLAN`)
@@ -36,6 +37,8 @@ Regole del verdetto (calcolate su media 7 giorni vs 7 giorni prima, servono alme
 - Transizione: scende piu' di 0,3 kg/sett -> +150; altrimenti ok.
 - Cut: scende piu' di 0,7 kg/sett -> +150; peso fermo (> -0,1) -> -100/150; altrimenti ok.
 - Soglie per anticipare il cut: vita >= 87 cm, peso medio >= 83 kg.
+- Aderenza (punteggio si'=1, circa=0,5, no=0): se il verdetto chiede di cambiare le kcal ma negli ultimi 14 giorni l'aderenza e' sotto il 70% (con almeno 5 giorni registrati), avvisa di rispettare prima le kcal. Nel riepilogo settimanale stessa regola sulla settimana (almeno 4 giorni).
+- Mantenimento reale: ultime 4 settimane, media kcal registrate - pendenza del peso (retta dei minimi quadrati, kg/giorno) x 7700; servono 14 giorni con kcal e 10 pesate su almeno 14 giorni.
 Se si cambia il piano, aggiornare **sia** `PH`/`PLAN`/`GOALS` **sia** questa tabella.
 
 ## Design
