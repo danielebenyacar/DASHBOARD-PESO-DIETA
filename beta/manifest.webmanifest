@@ -1,0 +1,25 @@
+{
+  "name": "Diario peso BETA",
+  "short_name": "Peso BETA",
+  "description": "Versione di prova del Diario peso (dati separati)",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E8ECFF",
+  "theme_color": "#5B3FE6",
+  "lang": "it",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

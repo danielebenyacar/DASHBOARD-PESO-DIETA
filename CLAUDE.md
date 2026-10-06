@@ -51,11 +51,19 @@ Se si cambia il piano, aggiornare **sia** `PH`/`PLAN`/`GOALS` **sia** questa tab
 ## Design
 Palette vivace con token CSS su `:root` (chiaro) e override scuro in `@media (prefers-color-scheme: dark)` e `[data-theme="dark"]`. Ogni fase ha un colore (`--c-cut`, `--c-carb`, `--c-trans`, `--c-bulk`, `--c-cutsoft`, `--c-cutfull`, `--c-out`) e il testo relativo (`--on-*`): la card del peso prende il colore della fase corrente. Tab colorate (viola, verde, arancione). Font: Barlow Condensed per i numeri grandi, Barlow per il testo. Rispettare `env(safe-area-inset-*)` e `viewport-fit=cover`. Mantenere contrasto leggibile e target touch >= 44 px.
 
+## Beta: provare prima di pubblicare
+- `beta/` contiene la versione di prova: lo **stesso** `index.html` dell'app con le novita', piu' copie di `sw.js` (CACHE `diario-peso-beta-...`), `manifest.webmanifest` e icone. Indirizzo: `https://danielebenyacar.github.io/DASHBOARD-PESO-DIETA/beta/`, da aprire in **Safari** (storage separato dall'icona).
+- In `/beta/` il codice usa da solo il prefisso `beta_` per tutte le chiavi `localStorage` (`BETA`, `PFX`, `lsGet`/`lsPut`), mostra la fascia "Versione BETA" e aggiunge "· BETA" al footer: la beta non tocca mai i dati dell'app vera. Per provarla coi dati veri: backup dall'icona e "Ripristina da backup" nella beta.
+- Ogni novita' va prima in beta; quando l'utente approva: copia `beta/index.html` in `index.html` (fuori da `/beta/` il prefisso e' vuoto), aumenta CACHE in `sw.js` e `beta/sw.js` e il footer, aggiorna questo file.
+- In beta adesso (v1.11, non ancora nell'app vera): **tab Pasti** (quarto tab, stile Nutrium coi colori dell'app). Diario alimentare: settimana con giorni ✓/↑/↓, serie 🔥, semicerchio consumato/obiettivo, barre P/C/G, card colazione/pranzo/merenda/cena con stato completato/lontano/saltato; scheda del pasto con obiettivo del pasto, cibi e orario; ricerca per nome e marca nei cibi base (`BASE`, valori medi indicativi per 100 g), nei tuoi cibi e online su Open Food Facts; quantita' in grammi o unita'; "Crea alimento"; "Stima a mano". Piano alimentare: percentuali dei pasti (default 20/35/15, la cena prende quello che resta) e orari. Il totale del giorno va in `diario_kcal` con `src:"pasti"` (la card kcal del Diario per quel giorno e' bloccata).
+- Chiavi nuove in beta: `diario_cibi` (`{ id: { id, n, b, k, p, c, g, u:{n,g}|null, src:"mio"|"off" } }`, per 100 g), `diario_pasti` (`{ giorno: { pasto: { items:[ { f, n, b, q, u, un, per:{k,p,c,g}|null, k, p, c, g } ], skip?, time? } } }`), in `diario_meta` anche `meals` (percentuali e orari) e `recent`. Backup `v: 4` con `foods` e `meals` (ripristino con `validFood`/`cleanDay`).
+- Eccezione alla regola "niente rete" (solo beta per ora): ricerca prodotti su `it.openfoodfacts.org` (solo il testo cercato esce dal telefono). Niente codici a barre (scelta dell'utente).
+
 ## Come lavorare
 1. Modifica solo cio' che serve, mantenendo il file unico e l'impostazione delle tre tab.
 2. Prova in locale: `python3 -m http.server 8000` e apri `http://localhost:8000` (il service worker richiede http/https, non `file://`). Controlla la console senza errori e prova viewport 390x844, tema chiaro e scuro.
 3. **Ad ogni modifica a index.html o agli asset**: incrementa la versione in `sw.js` (`CACHE`) e nel footer `v1.x` di `index.html`, cosi' il telefono scarica l'aggiornamento.
-4. Commit chiari in italiano, poi `git push` su `main`. GitHub Pages pubblica da `main` / root.
+4. Commit chiari in italiano, poi `git push` su `main`. GitHub Pages pubblica da `main` / root (anche `beta/`).
 5. Mai committare dati personali dell'utente (esportazioni CSV/JSON). Il repo e' pubblico: nessun segreto e nessun dato di peso reale.
 
 ## Idee future (solo su richiesta)
