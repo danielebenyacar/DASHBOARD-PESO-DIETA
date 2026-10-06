@@ -185,6 +185,22 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .kday i{display:block;width:14px;height:14px;border-radius:50%;background:var(--line)}
 .kday i.si{background:var(--c-bulk)} .kday i.circa{background:var(--c-trans)} .kday i.no{background:var(--c-cut)}
 .note{margin:12px 0 0;color:var(--mute);font-size:13.5px}
+.rhead{border-radius:16px;padding:14px 14px 12px;margin-bottom:12px;background:var(--soft)}
+.rhead.ok{background:var(--okbg)} .rhead.warn{background:var(--upbg)} .rhead.bad{background:var(--downbg)}
+.rstars{font-size:22px;letter-spacing:2px;line-height:1}
+.rtitle{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:30px;line-height:1.05;margin-top:6px}
+.rhead.ok .rtitle{color:var(--ok)} .rhead.warn .rtitle{color:var(--warn)} .rhead.bad .rtitle{color:var(--bad)}
+.rsub{font-size:13.5px;color:var(--mute);margin-top:2px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.bdg{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;padding:6px 11px;border-radius:999px}
+.bdg.pos{background:var(--okbg);color:var(--ink)} .bdg.neg{background:var(--downbg);color:var(--ink)}
+.wrow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;padding:8px 4px;cursor:pointer}
+.wrow:last-child{border-bottom:0}
+.wrow .wm{flex:1;min-width:0}
+.wrow .wm b{display:block;font-size:14.5px}
+.wrow .wm small{display:block;font-size:12.5px;color:var(--mute)}
+.wrow .ws{font-size:13px;font-weight:700;white-space:nowrap}
+.wrow[aria-pressed="true"]{background:var(--soft);border-radius:12px}
 </style>
 </head>
 <body>
@@ -203,11 +219,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
   <div id="todo">
     <section class="card" id="weekCard" hidden>
       <h2><i class="hd" style="background:var(--blue)"></i>La tua settimana</h2>
-      <div class="wkd" id="wkDates"></div>
-      <div class="wgrid" id="wkGrid"></div>
-      <p class="wkn" id="wkNotes"></p>
-      <div class="wkl">Cosa fare questa settimana</div>
-      <div class="wkv" id="wkVerdict"><div class="vst" id="wkVS" hidden></div><b id="wkVT"></b><p id="wkVX"></p></div>
+      <div id="wkBody"></div>
       <div class="actions"><button class="btn" id="wkOk" type="button">Ok, visto</button></div>
     </section>
     <section class="card warnCard" id="bkWarn" hidden>
@@ -359,10 +371,15 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
   </div>
 
   <div id="t-goals" role="tabpanel" hidden>
+    <section class="card" id="repView" hidden>
+      <h2><i class="hd" style="background:var(--blue)"></i>Report della settimana</h2>
+      <div id="rvBody"></div>
+      <div class="actions"><button class="btn ghost" id="rvClose" type="button">Chiudi</button></div>
+    </section>
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.7</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.8</p>
 </main>
 
 <script>
@@ -402,6 +419,8 @@ var waists={};       // date -> {date,cm}
 var meta={};         // {lastBackup, chartWaist, weekSeen}
 var kcalLog={};      // date -> {date,adh:"si"|"circa"|"no",kcal?}
 var ADH={si:"sì",circa:"circa",no:"no"};
+var reports={};      // lunedi' -> report salvato della settimana (vedi buildReport)
+var showAllWeeks=false;
 var range="30";
 
 function pad(n){return n<10?"0"+n:""+n}
@@ -434,6 +453,7 @@ function lsGet(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):{}}ca
 function lsSet(){try{localStorage.setItem("diario_peso",JSON.stringify(entries));localStorage.setItem("diario_vita",JSON.stringify(waists))}catch(e){}}
 function saveMeta(){try{localStorage.setItem("diario_meta",JSON.stringify(meta))}catch(e){}}
 function saveK(){try{localStorage.setItem("diario_kcal",JSON.stringify(kcalLog))}catch(e){}}
+function saveR(){try{localStorage.setItem("diario_report",JSON.stringify(reports))}catch(e){}}
 function save(e){entries[e.date]=e;lsSet();return Promise.resolve()}
 function remove(date){delete entries[date];lsSet();return Promise.resolve()}
 function saveW(e){waists[e.date]=e;lsSet();return Promise.resolve()}
@@ -624,29 +644,96 @@ function weekInfo(mon){
     dw:wIn&&wBef?wIn.cm-wBef.cm:null};
 }
 function sgn(x,d){var r=+x.toFixed(d);return r===0?fmt(0,d):(r>0?"+":"")+fmt(r,d)}
+/* ---------- report settimanali: premi, malus e stelle ---------- */
+var BADGE={
+  perfetta:{e:"🏅",t:"Settimana perfetta",k:1},
+  cecchino:{e:"🎯",t:"Cecchino delle kcal",k:1},
+  ritmo:{e:"📈",t:"Ritmo giusto",k:1},
+  piano:{e:"🧭",t:"Sul piano",k:1},
+  serie:{e:"🔥",t:"In serie",k:1},
+  saltate:{e:"😴",t:"Pesate saltate",k:-1},
+  sgarri:{e:"🍕",t:"Troppi sgarri",k:-1},
+  giri:{e:"🚀",t:"Fuori giri",k:-1},
+  secco:{e:"🪫",t:"Serbatoio vuoto",k:-1},
+  vita:{e:"📏",t:"Vita in salita",k:-1}
+};
+var RTITLE=["","Settimana da dimenticare","Settimana storta","Settimana ok","Ottima settimana","Settimana da campione"];
+function weekTrend(mon){
+  var w=weekInfo(mon);
+  return trend(phaseAt(iso(toT(mon)+3*DAY)),w.rate,weekInfo(iso(toT(mon)-7*DAY)).rate);
+}
+function buildReport(mon){
+  var w=weekInfo(mon),phw=phaseAt(iso(toT(mon)+3*DAY)),phn=phaseAt(iso(toT(mon)+7*DAY));
+  var t=weekTrend(mon),as=adhStats(w.cur.sun,7);
+  var notes=[];
+  if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
+  if(phaseAt(mon).id!==phn.id)notes.push("Nuova fase: "+phn.name+" · "+phn.kcal+" kcal");
+  if(as.n)notes.push("Kcal rispettate: "+as.si+" sì, "+as.circa+" circa, "+as.no+" no"+(as.kAvg!=null?" (media "+Math.round(as.kAvg)+" kcal)":""));
+  var v=verdict(phn,w.rate);
+  if(v.c!=="ok"&&w.rate!=null&&lowAdh(as,4))v={c:v.c,t:v.t,x:v.x+" Però la settimana scorsa le kcal le hai rispettate poco: prima di cambiarle, prova a rispettarle per una settimana."};
+  var b=[],streak=0;
+  if(w.cur.n===7)b.push("perfetta");
+  if(as.n>=5&&as.score>=0.9)b.push("cecchino");
+  if(t.lv==="ok")b.push("ritmo");
+  if(w.dv!=null&&Math.abs(w.dv)<=0.3)b.push("piano");
+  if(t.lv==="ok"){for(var m=mon;streak<52&&weekTrend(m).lv==="ok";m=iso(toT(m)-7*DAY))streak++}
+  if(streak>=3)b.push("serie");
+  if(w.cur.n<=3)b.push("saltate");
+  if(as.n>=4&&as.score<0.6)b.push("sgarri");
+  if(t.lv==="bad")b.push(t.dir>0?"giri":"secco");
+  if(w.dw!=null&&w.dw>=1)b.push("vita");
+  var pts=3;b.forEach(function(k){pts+=BADGE[k].k});
+  return {mon:mon,sun:w.cur.sun,n:w.cur.n,avg:w.cur.avg,rate:w.rate,dv:w.dv,dw:w.dw,
+    adh:{n:as.n,si:as.si,circa:as.circa,no:as.no,kAvg:as.kAvg},
+    ph:phw.id,st:t.lv,dir:t.dir,two:t.two,streak:streak,badges:b,stars:clamp(pts,1,5),
+    notes:notes.join(" · "),vc:v.c,vt:v.t,vx:v.x,seen:false,made:todayIso()};
+}
+// Crea i report delle settimane concluse che mancano. L'ultima resta "viva" (si ricalcola) finche' non premi Ok, visto.
+function ensureReports(today){
+  var list=sorted();if(!list.length)return;
+  var last=iso(toT(mondayOf(today))-7*DAY),changed=false;
+  for(var m=mondayOf(list[0].date);m<=last;m=iso(toT(m)+7*DAY)){
+    var r=reports[m];
+    if(r&&(r.seen||m!==last))continue;
+    if(!weekStats(m).n)continue;
+    var nr=buildReport(m);
+    nr.seen=m!==last||meta.weekSeen===m;
+    reports[m]=nr;changed=true;
+  }
+  if(changed)saveR();
+}
+function stars(n){var s="";for(var i=1;i<=5;i++)s+=i<=n?"⭐":"☆";return s}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+// Controllo dei report che arrivano da un backup: solo campi del formato giusto.
+function validReport(r,k){
+  var D=/^\d{4}-\d{2}-\d{2}$/;
+  function nn(x){return x===null||typeof x==="number"&&isFinite(x)}
+  return !!r&&r.mon===k&&D.test(k)&&D.test(r.sun)&&typeof r.n==="number"&&nn(r.avg)&&nn(r.rate)&&nn(r.dv)&&nn(r.dw)&&
+    !!r.adh&&["n","si","circa","no"].every(function(f){return typeof r.adh[f]==="number"})&&nn(r.adh.kAvg)&&
+    (r.st in STC||r.st==="none")&&typeof r.stars==="number"&&r.stars%1===0&&r.stars>=1&&r.stars<=5&&
+    Array.isArray(r.badges)&&r.badges.every(function(b){return BADGE.hasOwnProperty(b)})&&
+    ["notes","vt","vx","vc"].every(function(f){return typeof r[f]==="string"});
+}
+function reportHTML(r,pre){
+  var ph=PH.filter(function(p){return p.id===r.ph})[0];
+  function tile(l,v){return '<div class="wt"><span>'+l+'</span><b>'+v+'</b></div>'}
+  var h='<div class="rhead '+(STC[r.st]||"")+'"><div class="rstars" aria-label="'+r.stars+' stelle su 5">'+stars(r.stars)+'</div>';
+  h+='<div class="rtitle">'+RTITLE[r.stars]+'</div><div class="rsub"><span id="'+pre+'Dates">'+dIt(r.mon)+' – '+dIt(r.sun)+'</span>'+(ph?' · '+ph.name:'')+'</div></div>';
+  if(r.badges.length)h+='<div class="badges">'+r.badges.map(function(k){var x=BADGE[k];return '<span class="bdg '+(x.k>0?"pos":"neg")+'">'+x.e+' '+x.t+(k==="serie"?": "+r.streak+" settimane":"")+'</span>'}).join("")+'</div>';
+  h+='<div class="wgrid" id="'+pre+'Grid">'+tile("Media",fmt(r.avg,1)+" kg")+tile("vs settimana prima",r.rate==null?"–":sgn(r.rate,2)+" kg")+tile("vs piano",r.dv==null?"–":sgn(r.dv,1)+" kg")+tile("Pesate",r.n+" / 7")+'</div>';
+  h+='<p class="wkn" id="'+pre+'Notes"'+(r.notes?'':' hidden')+'>'+esc(r.notes)+'</p>';
+  var tl=trendLabel({lv:r.st,dir:r.dir,two:r.two});
+  h+='<div class="wkl">Cosa fare la settimana dopo</div>';
+  h+='<div class="wkv '+(STC[r.st]||esc(r.vc))+'" id="'+pre+'Verdict"><div class="vst" id="'+pre+'VS"'+(tl?'':' hidden')+'>'+tl+'</div><b id="'+pre+'VT">'+esc(r.vt)+'</b><p id="'+pre+'VX">'+esc(r.vx)+'</p></div>';
+  return h;
+}
 function renderWeek(today){
-  var mon=iso(toT(mondayOf(today))-7*DAY),w=weekInfo(mon),card=document.getElementById("weekCard");
-  card.hidden=!(w.cur.n>0&&meta.weekSeen!==mon);
+  ensureReports(today);
+  var mon=iso(toT(mondayOf(today))-7*DAY),r=reports[mon],card=document.getElementById("weekCard");
+  card.hidden=!(r&&!r.seen);
   if(card.hidden)return;
   card.setAttribute("data-mon",mon);
-  setText("wkDates",dIt(mon)+" – "+dIt(w.cur.sun));
-  function tile(l,v){return '<div class="wt"><span>'+l+'</span><b>'+v+'</b></div>'}
-  document.getElementById("wkGrid").innerHTML=
-    tile("Media",fmt(w.cur.avg,1)+" kg")+
-    tile("vs settimana prima",w.rate==null?"–":sgn(w.rate,2)+" kg")+
-    tile("vs piano",w.dv==null?"–":sgn(w.dv,1)+" kg")+
-    tile("Pesate",w.cur.n+" / 7");
-  var notes=[],ph=phaseAt(today);
-  if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
-  if(phaseAt(mon).id!==ph.id)notes.push("Nuova fase: "+ph.name+" · "+ph.kcal+" kcal");
-  var as=adhStats(w.cur.sun,7);
-  if(as.n)notes.push("Kcal rispettate: "+as.si+" sì, "+as.circa+" circa, "+as.no+" no"+(as.kAvg!=null?" (media "+Math.round(as.kAvg)+" kcal)":""));
-  var nt=document.getElementById("wkNotes");nt.textContent=notes.join(" · ");nt.hidden=!notes.length;
-  var v=verdict(ph,w.rate),wt=trend(phaseAt(iso(toT(mon)+3*DAY)),w.rate,weekInfo(iso(toT(mon)-7*DAY)).rate),wl=trendLabel(wt);
-  var ws=document.getElementById("wkVS");ws.textContent=wl;ws.hidden=!wl;
-  if(v.c!=="ok"&&w.rate!=null&&lowAdh(as,4))v={c:v.c,t:v.t,x:v.x+" Però la settimana scorsa le kcal le hai rispettate poco: prima di cambiarle, prova a rispettarle per una settimana."};
-  document.getElementById("wkVerdict").className="wkv "+(STC[wt.lv]||v.c);
-  setText("wkVT",v.t);setText("wkVX",v.x);
+  document.getElementById("wkBody").innerHTML=reportHTML(r,"wk");
 }
 
 function renderTrig(list,a){
@@ -858,7 +945,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){return JSON.stringify({v:2,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog})}
+function backupText(){return JSON.stringify({v:3,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports})}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -879,8 +966,11 @@ document.getElementById("bkGo").addEventListener("click",function(){
     // v2: anche le kcal (i backup v1 non le hanno)
     var kl=o.kcal||{},nk=0;
     Object.keys(kl).forEach(function(k){var v=kl[k];if(v&&v.date&&Object.prototype.hasOwnProperty.call(ADH,v.adh)){var e={date:v.date,adh:v.adh};if(typeof v.kcal==="number")e.kcal=v.kcal;kcalLog[v.date]=e;nk++}});
-    lsSet();saveK();render();loadKDay();
-    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?" e "+nk+" giorni di kcal":"")+".");
+    // v3: anche i report settimanali salvati
+    var rl=o.reports||{},nr=0;
+    Object.keys(rl).forEach(function(k){var r=rl[k];if(validReport(r,k)){reports[k]=r;nr++}});
+    lsSet();saveK();saveR();render();loadKDay();
+    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+".");
     document.getElementById("bk").value="";
   }catch(e){msg("bkMsg","Testo non valido.")}
 });
@@ -892,7 +982,21 @@ Array.prototype.forEach.call(document.querySelectorAll(".seg button"),function(b
   });
 });
 document.getElementById("wTog").addEventListener("click",function(){meta.chartWaist=!meta.chartWaist;saveMeta();renderChart(sorted())});
-document.getElementById("wkOk").addEventListener("click",function(){meta.weekSeen=document.getElementById("weekCard").getAttribute("data-mon");saveMeta();render()});
+document.getElementById("wkOk").addEventListener("click",function(){
+  var m=document.getElementById("weekCard").getAttribute("data-mon");
+  if(reports[m]){reports[m].seen=true;saveR()}
+  meta.weekSeen=m;saveMeta();render();
+});
+document.getElementById("rvClose").addEventListener("click",function(){document.getElementById("repView").hidden=true;renderGoals(sorted())});
+document.getElementById("goalsBox").addEventListener("click",function(ev){
+  var b=ev.target.closest(".wrow");
+  if(b){
+    var r=reports[b.getAttribute("data-mon")],rv=document.getElementById("repView");if(!r)return;
+    document.getElementById("rvBody").innerHTML=reportHTML(r,"rv");rv.hidden=false;rv.setAttribute("data-mon",r.mon);
+    renderGoals(sorted());rv.scrollIntoView({behavior:"smooth",block:"start"});return;
+  }
+  if(ev.target.closest("#wkAll")){showAllWeeks=!showAllWeeks;renderGoals(sorted())}
+});
 
 
 function curAvg(list){
@@ -1049,15 +1153,22 @@ function renderGoals(list){
   }
   h+='</section>';
 
-  // settimane concluse, dalla piu' recente
-  var wk=[],first=list.length?mondayOf(list[0].date):null;
-  for(var m=iso(toT(mondayOf(today))-7*DAY);first&&m>=first&&wk.length<8;m=iso(toT(m)-7*DAY))wk.push(weekInfo(m));
-  h+='<section class="card"><div class="gh"><b>📅 Settimane</b><span>media lun–dom</span></div>';
-  if(!wk.length)h+='<div class="st" style="color:var(--mute)">Il primo riepilogo arriva lunedì prossimo.</div>';
+  // report settimanali salvati, dal piu' recente: tocca una riga per riaprirlo
+  var wk=Object.keys(reports).sort().reverse(),open=document.getElementById("repView");
+  var openMon=open.hidden?null:open.getAttribute("data-mon");
+  h+='<section class="card"><div class="gh"><b>📅 Report settimanali</b><span>tocca per aprire</span></div>';
+  if(!wk.length)h+='<div class="st" style="color:var(--mute)">Il primo report arriva lunedì prossimo.</div>';
   else{
-    h+='<div class="scroll"><table><thead><tr><th>Settimana</th><th>Media</th><th>vs prima</th><th>Pesate</th><th>Kcal ok</th></tr></thead><tbody>';
-    wk.forEach(function(w){var ws=adhStats(w.cur.sun,7);h+='<tr><td>'+dIt(w.cur.mon)+'</td><td class="n">'+(w.cur.avg==null?"–":fmt(w.cur.avg,1))+'</td><td class="n">'+(w.rate==null?"–":sgn(w.rate,2))+'</td><td class="n">'+w.cur.n+'/7</td><td class="n">'+(ws.n?Math.round(ws.score*100)+"%":"–")+'</td></tr>'});
-    h+='</tbody></table></div>';
+    var tot={pos:0,neg:0};
+    wk.forEach(function(k){reports[k].badges.forEach(function(b){tot[BADGE[b].k>0?"pos":"neg"]++})});
+    h+='<div class="gl" style="margin:0 0 6px"><span>Premi in bacheca: '+tot.pos+' 🏆 · malus: '+tot.neg+'</span><span>'+wk.length+(wk.length===1?" settimana":" settimane")+'</span></div>';
+    (showAllWeeks?wk:wk.slice(0,8)).forEach(function(k){
+      var r=reports[k],ic=r.badges.map(function(b){return BADGE[b].e}).join("");
+      h+='<button type="button" class="wrow" data-mon="'+k+'" aria-pressed="'+(k===openMon?"true":"false")+'"><span aria-hidden="true">'+(trendLabel({lv:r.st,dir:r.dir}).slice(0,2)||"⚪")+'</span>';
+      h+='<span class="wm"><b>'+dIt(r.mon)+' – '+dIt(r.sun)+'</b><small>'+fmt(r.avg,1)+' kg · '+(r.rate==null?"–":sgn(r.rate,2))+' · '+r.n+'/7'+(r.adh.n?' · kcal '+Math.round((r.adh.si+r.adh.circa*0.5)/r.adh.n*100)+'%':'')+(ic?' · '+ic:'')+'</small></span>';
+      h+='<span class="ws">⭐ '+r.stars+'</span></button>';
+    });
+    if(wk.length>8)h+='<div class="actions"><button class="btn ghost" id="wkAll" type="button">'+(showAllWeeks?"Mostra meno":"Mostra tutte ("+wk.length+")")+'</button></div>';
   }
   h+='</section>';
   box.innerHTML=h;
@@ -1112,7 +1223,7 @@ document.addEventListener("visibilitychange",function(){if(!document.hidden)sync
 window.addEventListener("focus",syncDates);
 
 /* ---------- boot ---------- */
-entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");
+entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");
 document.getElementById("kd").value=yesterdayIso();loadKDay();
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
