@@ -354,7 +354,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.4</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.5</p>
 </main>
 
 <script>
@@ -1033,7 +1033,7 @@ function renderGoals(list){
     var r=document.createElement("span");r.className="r";
     if(past){
       var endT=toT(d),a=avgWin(list2,endT,7);
-      if(a.n>=2){
+      if(a.n>=(i===0?1:2)){ // la partenza ha per forza una sola pesata
         var df=a.avg-p[1];
         r.textContent=fmt(a.avg,1)+" kg ("+(df>0?"+":"")+fmt(df,1)+")";
         dot.style.background=Math.abs(df)<=0.7?"var(--ok)":"var(--warn)";
