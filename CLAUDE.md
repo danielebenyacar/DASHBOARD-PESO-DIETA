@@ -9,13 +9,13 @@ Web app personale, mobile-first, per registrare il peso ogni mattina e seguire u
 - Dati salvati in `localStorage` (solo sul dispositivo):
   - `diario_peso` -> oggetto `{ "YYYY-MM-DD": { date, kg } }`
   - `diario_vita`  -> oggetto `{ "YYYY-MM-DD": { date, cm } }`
-  - `diario_meta`  -> oggetto `{ lastBackup: "YYYY-MM-DD", chartWaist: bool }` (impostazioni e promemoria, non dati di misura)
+  - `diario_meta`  -> oggetto `{ lastBackup: "YYYY-MM-DD", chartWaist: bool, weekSeen: "YYYY-MM-DD" }` (impostazioni e promemoria, non dati di misura)
 - **Non cambiare mai il formato di queste chiavi senza scrivere una migrazione**: l'utente ha dati reali. Backup/ripristino in JSON: `{ v, exported, weights, waists }`.
 - PWA: `manifest.webmanifest`, `sw.js` (network-first, fallback cache), icone `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`. Tutti i percorsi sono **relativi** (`./`) perche' il sito sta in una sottocartella di GitHub Pages.
 - Su iOS la PWA aggiunta alla Home ha uno storage separato da Safari: i dati inseriti in Safari non compaiono nell'icona. Usare solo l'icona, oppure passare i dati col backup.
 
 ## Struttura di index.html
-Tre tab: **Diario** (in cima `#todo`: card della pesata spostata li' se manca quella di oggi + avviso backup oltre 30 giorni; poi peso, grafico con vita attivabile, verdetto, vita nascosta in un `<details>`, ultime pesate, incolla pesate, backup), **Piano** (timeline colorata delle fasi, dettaglio kcal/macro), **Goals** (barre di avanzamento, vita, costanza, traguardi).
+Tre tab: **Diario** (in cima `#todo`: card della pesata spostata li' se manca quella di oggi + riepilogo della settimana precedente (lun-dom, da lunedi' finche' non premi "Ok, visto") + avviso backup oltre 30 giorni; poi peso, grafico con vita attivabile, verdetto, vita nascosta in un `<details>`, ultime pesate, incolla pesate, backup), **Piano** (timeline colorata delle fasi, dettaglio kcal/macro), **Goals** (barre di avanzamento, vita, costanza, storico settimane, traguardi).
 Nel JS: `PLAN` (punti di traiettoria peso), `PH` (fasi con kcal e macro), `GOALS`, `PLANLAB`, funzioni `verdict`, `render*`, `save/remove` (+`saveW/removeW` per la vita).
 
 ## Il piano (fonte di verita' in `PH` e `PLAN`)

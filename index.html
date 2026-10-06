@@ -152,6 +152,20 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .cbar .seg{margin-bottom:0}
 .tog{border:0;font:inherit;font-size:13.5px;font-weight:600;padding:0 10px;min-height:44px;border-radius:12px;background:var(--soft);color:var(--mute);cursor:pointer}
 .tog[aria-pressed="true"]{background:var(--c-cutfull);color:var(--on-cutfull)}
+.wkd{font-size:13.5px;color:var(--mute);margin:-6px 0 10px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wt{background:var(--soft);border-radius:14px;padding:10px 12px}
+.wt span{display:block;font-size:12.5px;color:var(--mute)}
+.wt b{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:26px;line-height:1.1}
+.wkn{font-size:14px;margin:10px 0 0}
+.wkl{font-size:12.5px;color:var(--mute);font-weight:600;margin:12px 0 4px}
+.wkv{padding:11px 13px;border-radius:12px;border-left:6px solid var(--mute);background:var(--soft)}
+.wkv.ok{background:var(--okbg);border-left-color:var(--ok)}
+.wkv.up{background:var(--upbg);border-left-color:var(--warn)}
+.wkv.down{background:var(--downbg);border-left-color:var(--bad)}
+.wkv b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:24px;line-height:1.1}
+.wkv.ok b{color:var(--ok)} .wkv.up b{color:var(--warn)} .wkv.down b{color:var(--bad)}
+.wkv p{margin:3px 0 0;font-size:14px;opacity:.85}
 </style>
 </head>
 <body>
@@ -168,6 +182,15 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
   <div id="t-diario" role="tabpanel">
 
   <div id="todo">
+    <section class="card" id="weekCard" hidden>
+      <h2><i class="hd" style="background:var(--blue)"></i>La tua settimana</h2>
+      <div class="wkd" id="wkDates"></div>
+      <div class="wgrid" id="wkGrid"></div>
+      <p class="wkn" id="wkNotes"></p>
+      <div class="wkl">Cosa fare questa settimana</div>
+      <div class="wkv" id="wkVerdict"><b id="wkVT"></b><p id="wkVX"></p></div>
+      <div class="actions"><button class="btn" id="wkOk" type="button">Ok, visto</button></div>
+    </section>
     <section class="card warnCard" id="bkWarn" hidden>
       <div class="wr">
         <div><b id="bkWarnT">💾 Fai un backup</b><p>I dati stanno solo su questo telefono.</p></div>
@@ -302,7 +325,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.1</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.2</p>
 </main>
 
 <script>
@@ -337,7 +360,7 @@ var selPh=null;
 
 var entries={};      // date -> {date,kg}
 var waists={};       // date -> {date,cm}
-var meta={};         // {lastBackup, chartWaist}
+var meta={};         // {lastBackup, chartWaist, weekSeen}
 var range="30";
 
 function pad(n){return n<10?"0"+n:""+n}
@@ -468,6 +491,45 @@ function renderTodo(list,last){
   document.getElementById("bkWarn").hidden=!warn;
   if(warn)setText("bkWarnT",ago==null?"💾 Non hai ancora fatto un backup":"💾 Ultimo backup "+ago+" giorni fa");
   setText("bkLast",lb?"Ultimo backup: "+dIt(lb)+(ago===0?" (oggi)":" ("+ago+(ago===1?" giorno fa)":" giorni fa)")):"Nessun backup fatto finora.");
+  renderWeek(today);
+}
+
+/* ---------- settimane (lunedi'-domenica) ---------- */
+function mondayOf(s){var t=toT(s);return iso(t-((new Date(t).getUTCDay()+6)%7)*DAY)}
+function weekStats(mon){
+  var t0=toT(mon),t6=t0+6*DAY,sum=0,n=0;
+  sorted().forEach(function(e){var t=toT(e.date);if(t>=t0&&t<=t6){sum+=e.kg;n++}});
+  return {mon:mon,sun:iso(t6),n:n,avg:n?sum/n:null};
+}
+function weekInfo(mon){
+  var cur=weekStats(mon),prev=weekStats(iso(toT(mon)-7*DAY));
+  var wIn=null,wBef=null;
+  sortedW().forEach(function(e){if(e.date<mon)wBef=e;else if(e.date<=cur.sun)wIn=e});
+  return {cur:cur,
+    rate:cur.n>=3&&prev.n>=3?cur.avg-prev.avg:null,
+    dv:cur.avg!=null?cur.avg-planAt(toT(mon)+3*DAY):null,
+    dw:wIn&&wBef?wIn.cm-wBef.cm:null};
+}
+function sgn(x,d){return (x>0?"+":"")+fmt(x,d)}
+function renderWeek(today){
+  var mon=iso(toT(mondayOf(today))-7*DAY),w=weekInfo(mon),card=document.getElementById("weekCard");
+  card.hidden=!(w.cur.n>0&&meta.weekSeen!==mon);
+  if(card.hidden)return;
+  card.setAttribute("data-mon",mon);
+  setText("wkDates",dIt(mon)+" – "+dIt(w.cur.sun));
+  function tile(l,v){return '<div class="wt"><span>'+l+'</span><b>'+v+'</b></div>'}
+  document.getElementById("wkGrid").innerHTML=
+    tile("Media",fmt(w.cur.avg,1)+" kg")+
+    tile("vs settimana prima",w.rate==null?"–":sgn(w.rate,2)+" kg")+
+    tile("vs piano",w.dv==null?"–":sgn(w.dv,1)+" kg")+
+    tile("Pesate",w.cur.n+" / 7");
+  var notes=[],ph=phaseAt(today);
+  if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
+  if(phaseAt(mon).id!==ph.id)notes.push("Nuova fase: "+ph.name+" · "+ph.kcal+" kcal");
+  var nt=document.getElementById("wkNotes");nt.textContent=notes.join(" · ");nt.hidden=!notes.length;
+  var v=verdict(ph,w.rate);
+  document.getElementById("wkVerdict").className="wkv "+v.c;
+  setText("wkVT",v.t);setText("wkVX",v.x);
 }
 
 function renderTrig(list,a){
@@ -689,6 +751,7 @@ Array.prototype.forEach.call(document.querySelectorAll(".seg button"),function(b
   });
 });
 document.getElementById("wTog").addEventListener("click",function(){meta.chartWaist=!meta.chartWaist;saveMeta();renderChart(sorted())});
+document.getElementById("wkOk").addEventListener("click",function(){meta.weekSeen=document.getElementById("weekCard").getAttribute("data-mon");saveMeta();render()});
 
 
 function curAvg(list){
@@ -798,6 +861,18 @@ function renderGoals(list){
   h+='<div class="gl"><span>Giorni con pesata</span><span>'+n14+' / 14</span></div>';
   h+='<div class="bar"><i style="width:'+n14/14*100+'%;background:var(--accent)"></i></div>';
   h+='<div class="st" style="margin-top:10px">Serie in corso: '+streak+(streak===1?" giorno":" giorni")+'</div></section>';
+
+  // settimane concluse, dalla piu' recente
+  var wk=[],first=list.length?mondayOf(list[0].date):null;
+  for(var m=iso(toT(mondayOf(today))-7*DAY);first&&m>=first&&wk.length<8;m=iso(toT(m)-7*DAY))wk.push(weekInfo(m));
+  h+='<section class="card"><div class="gh"><b>📅 Settimane</b><span>media lun–dom</span></div>';
+  if(!wk.length)h+='<div class="st" style="color:var(--mute)">Il primo riepilogo arriva lunedì prossimo.</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th>Settimana</th><th>Media</th><th>vs prima</th><th>Pesate</th></tr></thead><tbody>';
+    wk.forEach(function(w){h+='<tr><td>'+dIt(w.cur.mon)+'</td><td class="n">'+(w.cur.avg==null?"–":fmt(w.cur.avg,1))+'</td><td class="n">'+(w.rate==null?"–":sgn(w.rate,2))+'</td><td class="n">'+w.cur.n+'/7</td></tr>'});
+    h+='</tbody></table></div>';
+  }
+  h+='</section>';
   box.innerHTML=h;
 
   // traguardi
