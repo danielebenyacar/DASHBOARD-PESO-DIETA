@@ -533,7 +533,7 @@ body.noscroll{overflow:hidden}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.12</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.13</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1782,30 +1782,49 @@ function renderResults(){
     if(on&&on.q===q){
       h+='<div class="slab2">Online · Open Food Facts</div>';
       if(on.state==="loading")h+='<p class="note">Cerco…</p>';
-      else if(on.state==="err")h+='<p class="note">Non riesco a cercare online: controlla la connessione e riprova.</p>';
+      else if(on.state==="err")h+='<p class="note">Non riesco a cercare online: '+(navigator.onLine===false?'sei senza rete.':'Open Food Facts non risponde (è un servizio gratuito, a volte è lento o pieno di richieste).')+' Intanto puoi crearlo tu con il + in alto.</p><button type="button" class="lnk" data-online="1">↻ Riprova</button>';
       else if(!on.list.length)h+='<p class="note">Nessun prodotto trovato. Puoi crearlo tu con il + in alto.</p>';
       else h+=on.list.map(function(f,i){return foodRow(f,'data-off="'+i+'"','data-qoff="'+i+'"')}).join("");
     }else h+='<button type="button" class="lnk" data-online="1">🔍 Cerca "'+esc(q)+'" anche online</button>';
   }
   box.innerHTML=h;
 }
-// Open Food Facts: ricerca per nome e marca sul database italiano. Solo il testo cercato esce dal telefono.
-var OFF_URL="https://it.openfoodfacts.org/cgi/search.pl";
+// Open Food Facts: ricerca per nome e marca. Solo il testo cercato esce dal telefono.
+// Due motori in parallelo: il nuovo (veloce) e il vecchio (lento ma sul catalogo italiano). Vince il primo che trova qualcosa.
+var OFF_NEW="https://search.openfoodfacts.org/search",OFF_OLD="https://it.openfoodfacts.org/cgi/search.pl";
+var OFF_F="code,product_name,product_name_it,brands,nutriments,serving_quantity,product_quantity";
+function offTxt(v){
+  if(v==null)return "";
+  if(Array.isArray(v))return offTxt(v[0]);
+  if(typeof v==="object")return offTxt(v.it||v.main||v.en||v[Object.keys(v)[0]]);
+  return String(v).trim();
+}
 function offFood(p){
+  if(!p)return null;
   var n=p.nutriments||{},k=num(n["energy-kcal_100g"]);
   if(k==null&&n["energy-kj_100g"]!=null){var kj=num(n["energy-kj_100g"]);k=kj==null?null:kj/4.184}
-  var name=String(p.product_name_it||p.product_name||"").trim();
-  if(k==null||!name||!p.code)return null;
+  var name=offTxt(p.product_name_it)||offTxt(p.product_name),code=offTxt(p.code);
+  if(k==null||!name||!code)return null;
   var sq=num(p.serving_quantity),pq=num(p.product_quantity),u=null,u2=null;
   if(sq>0&&sq<2000)u={n:"porzione",g:r1(sq)};
   if(pq>0&&pq<3000&&(!u||Math.abs(pq-u.g)>0.5)){if(u)u2={n:"confezione",g:r1(pq)};else u={n:"confezione",g:r1(pq)}}
-  return {id:"o:"+p.code,n:name,b:String(p.brands||"").split(",")[0].trim(),k:Math.round(k),p:r1(num(n.proteins_100g)||0),c:r1(num(n.carbohydrates_100g)||0),g:r1(num(n.fat_100g)||0),u:u,u2:u2,src:"off"};
+  return {id:"o:"+code,n:name,b:offTxt(p.brands).split(",")[0].trim(),k:Math.round(k),p:r1(num(n.proteins_100g)||0),c:r1(num(n.carbohydrates_100g)||0),g:r1(num(n.fat_100g)||0),u:u,u2:u2,src:"off"};
+}
+function offList(arr){var seen={},out=[];(arr||[]).forEach(function(p){var f=offFood(p);if(f&&!seen[f.id]){seen[f.id]=1;out.push(f)}});return out}
+function offGet(url,ms){
+  var ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=ctl?setTimeout(function(){ctl.abort()},ms):0;
+  return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error("http "+r.status);return r.json()},function(e){clearTimeout(tm);throw e});
 }
 function offSearch(q){
-  var url=OFF_URL+"?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=24&fields=code,product_name,product_name_it,brands,nutriments,serving_quantity,product_quantity";
-  var ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=ctl?setTimeout(function(){ctl.abort()},12000):0;
-  return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error("http");return r.json()})
-    .then(function(j){return (j.products||[]).map(offFood).filter(Boolean)});
+  var e=encodeURIComponent(q);
+  var a=offGet(OFF_NEW+"?q="+e+"&langs=it&page_size=24&fields="+OFF_F,10000).then(function(j){return offList(j&&j.hits)});
+  var b=offGet(OFF_OLD+"?search_terms="+e+"&search_simple=1&action=process&json=1&page_size=24&fields="+OFF_F,25000).then(function(j){return offList(j&&j.products)});
+  return new Promise(function(ok,ko){
+    var left=2,empty=null;
+    function done(list){if(list.length){ok(list);return}empty=list;if(!--left)ok(empty)}
+    function fail(){if(!--left){if(empty)ok(empty);else ko(new Error("off"))}}
+    a.then(done,fail);b.then(done,fail);
+  });
 }
 function runOnline(q){
   sh.online={q:q,state:"loading",list:[]};renderResults();
