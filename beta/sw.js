@@ -1,5 +1,5 @@
 // Incrementa CACHE a ogni modifica di index.html o degli asset, cosi' l'app si aggiorna.
-const CACHE = "diario-peso-beta-v1.16";
+const CACHE = "diario-peso-beta-v1.17";
 // Il database dei prodotti (prodotti-it-*.txt) e' grande e cambia di rado: sta in una cache sua, che non si svuota a ogni versione.
 const DBCACHE = "diario-peso-beta-prodotti";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
