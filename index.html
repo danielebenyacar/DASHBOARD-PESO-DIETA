@@ -173,12 +173,9 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .wkv b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:24px;line-height:1.1}
 .wkv.ok b{color:var(--ok)} .wkv.up b{color:var(--warn)} .wkv.down b{color:var(--bad)}
 .wkv p{margin:3px 0 0;font-size:14px;opacity:.85}
-.kq{font-size:14.5px;font-weight:600;margin:12px 0 6px}
-.adh{display:flex;gap:8px}
-.adh button{flex:1;min-height:48px;border:0;border-radius:12px;background:var(--soft);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
-.adh button[data-a="si"][aria-pressed="true"]{background:var(--c-bulk);color:var(--on-bulk)}
-.adh button[data-a="circa"][aria-pressed="true"]{background:var(--c-trans);color:var(--on-trans)}
-.adh button[data-a="no"][aria-pressed="true"]{background:var(--c-cut);color:var(--on-cut)}
+.kq{font-size:14px;color:var(--mute);margin:10px 0}
+.kq b{color:var(--ink)}
+.why{margin:8px 0 0;font-size:14px;font-weight:600}
 .kdays{display:flex;gap:4px;margin-top:12px}
 .kday{flex:1;min-height:48px;border:0;border-radius:10px;background:transparent;color:var(--mute);font:inherit;font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:4px 0}
 .kday[aria-pressed="true"]{background:var(--soft);color:var(--ink)}
@@ -251,7 +248,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div class="vst" id="vStatus" hidden></div>
     <div class="v" id="vTitle">Servono più dati</div>
     <p id="vText">Registra il peso per qualche giorno: servono almeno 3 pesate nella settimana corrente e 3 in quella prima.</p>
-    <p id="vPlan" style="margin-top:8px;color:var(--ink);font-size:14px"></p>
+    <p class="why" id="vPlan"></p>
   </section>
 
   <section class="card">
@@ -290,17 +287,15 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
   </section>
 
   <section class="card" id="kcalCard">
-    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Kcal e aderenza</span></h2>
-    <div class="fields">
-      <div><label for="kd">Giorno</label><input id="kd" type="date"></div>
-      <div><label for="kk">Kcal (facoltativo)</label><input id="kk" type="text" inputmode="numeric" placeholder="1900" autocomplete="off"></div>
-    </div>
-    <div class="kq">Hai rispettato le kcal del piano?</div>
-    <div class="adh" role="group" aria-label="Aderenza alle kcal">
-      <button type="button" data-a="si" aria-pressed="false">Sì</button>
-      <button type="button" data-a="circa" aria-pressed="false">Circa</button>
-      <button type="button" data-a="no" aria-pressed="false">No</button>
-    </div>
+    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Kcal mangiate</span></h2>
+    <form id="fk" autocomplete="off">
+      <div class="fields">
+        <div><label for="kd">Giorno</label><input id="kd" type="date"></div>
+        <div><label for="kk">Kcal mangiate</label><input id="kk" type="text" inputmode="numeric" placeholder="1900"></div>
+      </div>
+      <p class="kq" id="kGoal"></p>
+      <div class="actions" style="margin-top:0"><button class="btn" type="submit">Salva</button></div>
+    </form>
     <div class="kdays" id="kDays"></div>
     <div class="msg" id="kmsg" role="status"></div>
   </section>
@@ -386,7 +381,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.9</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.10</p>
 </main>
 
 <script>
@@ -426,6 +421,7 @@ var waists={};       // date -> {date,cm}
 var meta={};         // {lastBackup, chartWaist, weekSeen}
 var kcalLog={};      // date -> {date,adh:"si"|"circa"|"no",kcal?}
 var ADH={si:"sì",circa:"circa",no:"no"};
+var ADHL={si:function(){return "rispettate"},circa:function(){return "vicino"},no:function(d){return d==null?"non rispettate":d>0?"sopra":"sotto"}};
 var reports={};      // lunedi' -> report salvato della settimana (vedi buildReport)
 var adj=[];          // correzioni kcal accettate: {date,ph,dk,mon}; valgono dalla data, solo nella loro fase
 var ADJ_OK={cut:1,bulk:1,cutsoft:1,cutfull:1}; // fasi in cui il report puo' proporre correzioni
@@ -480,18 +476,47 @@ function sortedW(){return Object.keys(waists).sort().map(function(k){return wais
 function yesterdayIso(){return iso(toT(todayIso())-DAY)}
 // Aderenza dei "days" giorni che finiscono in endIso (incluso). score: si=1, circa=0,5, no=0.
 function adhStats(endIso,days){
-  var o={n:0,si:0,circa:0,no:0,kn:0,kSum:0,tSum:0};
+  var o={n:0,si:0,circa:0,no:0,noUp:0,noDown:0,noUnk:0,kn:0,kSum:0,tSum:0,dSum:0,over:0,under:0};
   for(var i=0;i<days;i++){
     var d=iso(toT(endIso)-i*DAY),e=kcalLog[d];
     if(!e)continue;
-    o.n++;o[e.adh]++;
-    if(typeof e.kcal==="number"){o.kn++;o.kSum+=e.kcal;o.tSum+=target(d).kcal}
+    var a=adhOf(e),df=kdiff(e);
+    o.n++;o[a]++;
+    if(a==="no")o[df==null?"noUnk":df>0?"noUp":"noDown"]++;
+    if(df!=null){o.kn++;o.kSum+=e.kcal;o.tSum+=target(d).kcal;o.dSum+=df;if(df>KTOL)o.over++;if(df<-KTOL)o.under++}
   }
+  o.avgDiff=o.kn?o.dSum/o.kn:null;
   o.score=o.n?(o.si+o.circa*0.5)/o.n:null;
   o.kAvg=o.kn?o.kSum/o.kn:null;o.tAvg=o.kn?o.tSum/o.kn:null;
   return o;
 }
 function lowAdh(as,min){return as.n>=min&&as.score<0.7}
+// Le kcal scritte decidono l'aderenza: entro 100 dall'obiettivo = rispettate, entro 250 = vicino, oltre = fuori (sopra/sotto).
+// Le voci vecchie senza kcal tengono il loro adh (si'/circa/no).
+var KTOL=100,KNEAR=250;
+function kdiff(e){return typeof e.kcal==="number"?e.kcal-target(e.date).kcal:null}
+function adhOf(e){var d=kdiff(e);if(d==null)return e.adh;var a=Math.abs(d);return a<=KTOL?"si":a<=KNEAR?"circa":"no"}
+// Perche' il peso e' fuori fascia: "you" = colpa di quanto mangi, "plan" = rispetti le kcal ma non sono giuste, "unk" = mancano i dati.
+function cause(t,as,min){
+  if(t.lv!=="warn"&&t.lv!=="bad")return null;
+  if(as.kn>=min)return {k:(t.dir>0?as.avgDiff>KTOL:as.avgDiff<-KTOL)?"you":"plan",d:as.avgDiff,dir:t.dir};
+  if(as.n>=min)return {k:as.score<0.7?"you":"plan",d:null,dir:t.dir,sc:as.score};
+  return {k:"unk",dir:t.dir};
+}
+// Se la colpa e' di quanto mangi, il verdetto non deve dire di cambiare le kcal.
+function keepPlan(v,kcal){return {c:v.c,t:"Rispetta le kcal",x:"Il piano non va cambiato: torna a mangiare le "+kcal+" kcal previste e il peso rientrerà nella fascia."}}
+function whyText(c,when){
+  if(!c)return "";
+  var up=c.dir>0;
+  if(c.k==="unk")return "❓ Perché? Non posso saperlo: segna ogni giorno le kcal mangiate.";
+  if(c.k==="you"){
+    if(c.d==null)return (up?"🍕":"🍽️")+" Perché? Non è il piano: "+when+(c.sc===0?" non hai mai rispettato le kcal":" hai rispettato le kcal solo nel "+Math.round(c.sc*100)+"% dei giorni")+". Prima di cambiarle, rispettale per una settimana.";
+    return up?"🍕 Perché? Sono gli sgarri, non il piano: "+when+" hai mangiato in media "+sgn(c.d,0)+" kcal sopra l'obiettivo. Prima di cambiare le kcal, rispettale per una settimana."
+             :"🍽️ Perché? Non è il piano, stai mangiando meno: "+when+" in media "+sgn(c.d,0)+" kcal sotto l'obiettivo. Prima di cambiare le kcal, mangia quelle previste.";
+  }
+  if(c.d!=null&&(up?c.d<-KTOL:c.d>KTOL))return "🧮 Perché? È il piano: mangi già "+(up?"meno":"più")+" dell'obiettivo ("+sgn(c.d,0)+" kcal) e "+(up?"sali":"scendi")+" comunque troppo, quindi le kcal non sono giuste per te.";
+  return "🧮 Perché? È il piano: le kcal le stai rispettando ("+(c.d!=null?"in media "+sgn(c.d,0)+" sull'obiettivo":Math.round(c.sc*100)+"% dei giorni")+"), quindi non sono giuste per te.";
+}
 
 /* ---------- verdict ---------- */
 function waistFlag(ph,rate){
@@ -584,13 +609,15 @@ function render(){
   }else{pill("nessuna pesata")}
 
   var v=verdict(ph,rate,list);
+  var as=adhStats(yesterdayIso(),14);
+  var cz=cause(tr,as,5),why=whyText(cz,"negli ultimi 14 giorni");
+  if(cz&&cz.k==="you")v=keepPlan(v,T.kcal);
   var vc=document.getElementById("verdictCard");
   vc.className="card verdict "+(STC[tr.lv]||v.c);
   var vs=document.getElementById("vStatus");vs.textContent=tl;vs.hidden=!tl;
   setText("vTitle",v.t);setText("vText",v.x);
-  var as=adhStats(yesterdayIso(),14);
-  setText("vPlan",v.c!=="ok"&&rate!=null&&lowAdh(as,5)?"⚠️ Negli ultimi 14 giorni hai rispettato le kcal nel "+Math.round(as.score*100)+"% dei giorni registrati: prima di cambiare le kcal, prova a rispettarle per una settimana.":
-    tr.lv==="bad"&&ADJ_OK[ph.id]?"📅 Se il trend resta così, lunedì nel report ti propongo di correggere le kcal: decidi tu se applicarla.":"");
+  if(cz&&cz.k==="plan"&&ADJ_OK[ph.id])why+=tr.lv==="bad"?" Lunedì nel report ti propongo la correzione: decidi tu se applicarla.":" Se continua così, il report del lunedì ti proporrà una correzione.";
+  setText("vPlan",why);
 
   renderTodo(list,last);
   renderTrig(list,a);
@@ -621,7 +648,7 @@ function renderTodo(list,last){
   if(kdue&&kcalCard.parentNode!==todo)todo.insertBefore(kcalCard,weighCard.parentNode===todo?weighCard.nextSibling:todo.firstChild);
   if(!kdue&&kcalCard.parentNode===todo)kcalHome.parentNode.insertBefore(kcalCard,kcalHome.nextSibling);
   kcalCard.classList.toggle("due",kdue);
-  setText("kTitle",kdue?"Com'è andata ieri?":"Kcal e aderenza");
+  setText("kTitle",kdue?"Quante kcal hai mangiato ieri?":"Kcal mangiate");
   renderKcal();
 
   var lb=meta.lastBackup,ago=lb?Math.max(0,daysBetween(lb,today)):null;
@@ -636,12 +663,19 @@ function renderTodo(list,last){
 var DL=["D","L","M","M","G","V","S"];
 function renderKcal(){
   var kd=document.getElementById("kd"),d=kd.value,e=kcalLog[d];
-  document.getElementById("kk").placeholder=d?String(target(d).kcal):"";
-  Array.prototype.forEach.call(document.querySelectorAll(".adh button"),function(b){b.setAttribute("aria-pressed",e&&e.adh===b.getAttribute("data-a")?"true":"false")});
+  var tk=d?target(d).kcal:null,g="";
+  document.getElementById("kk").placeholder=tk?String(tk):"";
+  if(tk){
+    g='Obiettivo: <b>'+tk+' kcal</b> · rispettate tra '+(tk-KTOL)+' e '+(tk+KTOL)+'.';
+    if(e&&typeof e.kcal==="number"){var df=kdiff(e);g+=' Hai segnato <b>'+e.kcal+'</b> ('+sgn(df,0)+'): '+ADHL[adhOf(e)](df)+'.'}
+    else if(e)g+=' Segnato: '+ADH[e.adh]+' (senza kcal).';
+  }
+  document.getElementById("kGoal").innerHTML=g;
   var h="",y=yesterdayIso();
   for(var i=6;i>=0;i--){
     var dd=iso(toT(y)-i*DAY),x=kcalLog[dd];
-    h+='<button type="button" class="kday" data-d="'+dd+'" aria-pressed="'+(dd===d?"true":"false")+'" aria-label="'+dIt(dd)+': '+(x?ADH[x.adh]:"non registrato")+'"><i class="'+(x?x.adh:"")+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
+    var xa=x?adhOf(x):"";
+    h+='<button type="button" class="kday" data-d="'+dd+'" aria-pressed="'+(dd===d?"true":"false")+'" aria-label="'+dIt(dd)+': '+(x?(typeof x.kcal==="number"?x.kcal+" kcal, ":"")+ADHL[xa](kdiff(x)):"non segnato")+'"><i class="'+xa+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
   }
   document.getElementById("kDays").innerHTML=h;
 }
@@ -673,6 +707,7 @@ var BADGE={
   serie:{e:"🔥",t:"In serie",k:1},
   saltate:{e:"😴",t:"Pesate saltate",k:-1},
   sgarri:{e:"🍕",t:"Troppi sgarri",k:-1},
+  sotto:{e:"🍽️",t:"Sotto le kcal",k:-1},
   giri:{e:"🚀",t:"Fuori giri",k:-1},
   secco:{e:"🪫",t:"Serbatoio vuoto",k:-1},
   vita:{e:"📏",t:"Vita in salita",k:-1}
@@ -683,15 +718,15 @@ function weekTrend(mon){
   return trend(phaseAt(iso(toT(mon)+3*DAY)),w.rate,weekInfo(iso(toT(mon)-7*DAY)).rate);
 }
 // Proposta di correzione per la settimana appena chiusa (solo per il report "vivo").
-function proposal(mon,t,as){
+function proposal(mon,t,as,cz){
   var phw=phaseAt(iso(toT(mon)+3*DAY)),phn=phaseAt(iso(toT(mon)+7*DAY)),today=todayIso();
   if(phn.id!==phw.id||!ADJ_OK[phn.id]||t.lv!=="bad")return null;
   var dk=t.dir>0?-ADJ_STEP:ADJ_STEP,tot=0,recent=false;
   adj.forEach(function(a){if(a.ph===phn.id){tot+=a.dk;if(daysBetween(a.date,today)<14)recent=true}});
   var P={ph:phn.id,dk:dk};
   if(recent)P.state="wait";
-  else if(as.n<4)P.state="need";
-  else if(as.score<0.7)P.state="adh";
+  else if(!cz||cz.k==="unk")P.state="need";
+  else if(cz.k==="you")P.state="adh";
   else if(Math.abs(tot+dk)>ADJ_MAX)P.state="cap";
   else P.state="ask";
   return P;
@@ -702,9 +737,9 @@ function buildReport(mon,live){
   var notes=[];
   if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
   if(phaseAt(mon).id!==phn.id)notes.push("Nuova fase: "+phn.name+" · "+phn.kcal+" kcal");
-  if(as.n)notes.push("Kcal rispettate: "+as.si+" sì, "+as.circa+" circa, "+as.no+" no"+(as.kAvg!=null?" (media "+Math.round(as.kAvg)+" kcal)":""));
-  var v=verdict(phn,w.rate);
-  if(v.c!=="ok"&&w.rate!=null&&lowAdh(as,4))v={c:v.c,t:v.t,x:v.x+" Però la settimana scorsa le kcal le hai rispettate poco: prima di cambiarle, prova a rispettarle per una settimana."};
+  if(as.n)notes.push(kcalNote(as));
+  var v=verdict(phn,w.rate),cz=cause(t,as,4);
+  if(cz&&cz.k==="you")v=keepPlan(v,target(iso(toT(mon)+7*DAY)).kcal);
   var b=[],streak=0;
   if(w.cur.n===7)b.push("perfetta");
   if(as.n>=5&&as.score>=0.9)b.push("cecchino");
@@ -713,7 +748,7 @@ function buildReport(mon,live){
   if(t.lv==="ok"){for(var m=mon;streak<52&&weekTrend(m).lv==="ok";m=iso(toT(m)-7*DAY))streak++}
   if(streak>=3)b.push("serie");
   if(w.cur.n<=3)b.push("saltate");
-  if(as.n>=4&&as.score<0.6)b.push("sgarri");
+  if(as.n>=4&&as.score<0.6)b.push(as.noDown+as.under>as.noUp+as.over?"sotto":"sgarri");
   if(t.lv==="bad")b.push(t.dir>0?"giri":"secco");
   if(w.dw!=null&&w.dw>=1)b.push("vita");
   var pts=3;b.forEach(function(k){pts+=BADGE[k].k});
@@ -721,7 +756,18 @@ function buildReport(mon,live){
     adh:{n:as.n,si:as.si,circa:as.circa,no:as.no,kAvg:as.kAvg},
     ph:phw.id,st:t.lv,dir:t.dir,two:t.two,streak:streak,badges:b,stars:clamp(pts,1,5),
     notes:notes.join(" · "),vc:v.c,vt:v.t,vx:v.x,seen:false,made:todayIso(),
-    prop:live?proposal(mon,t,as):null};
+    cause:cz?cz.k:null,why:whyText(cz,"la settimana scorsa"),
+    prop:live?proposal(mon,t,as,cz):null};
+}
+// Riassunto delle kcal di un periodo: media sull'obiettivo e giorni rispettati/vicini/sopra/sotto.
+function kcalNote(as){
+  var parts=[];
+  if(as.si)parts.push(as.si+" rispettat"+(as.si===1?"o":"i"));
+  if(as.circa)parts.push(as.circa+" vicin"+(as.circa===1?"o":"i"));
+  if(as.noUp)parts.push(as.noUp+" sopra");
+  if(as.noDown)parts.push(as.noDown+" sotto");
+  if(as.noUnk)parts.push(as.noUnk+" fuori");
+  return "Kcal: "+as.n+(as.n===1?" giorno segnato":" giorni segnati")+(as.kAvg!=null?", media "+Math.round(as.kAvg)+" su "+Math.round(as.tAvg):"")+" · "+parts.join(", ");
 }
 // Crea i report delle settimane concluse che mancano. L'ultima resta "viva" (si ricalcola) finche' non premi Ok, visto.
 function ensureReports(today){
@@ -748,7 +794,7 @@ function validReport(r,k){
     !!r.adh&&["n","si","circa","no"].every(function(f){return typeof r.adh[f]==="number"})&&nn(r.adh.kAvg)&&
     (r.st in STC||r.st==="none")&&typeof r.stars==="number"&&r.stars%1===0&&r.stars>=1&&r.stars<=5&&
     Array.isArray(r.badges)&&r.badges.every(function(b){return BADGE.hasOwnProperty(b)})&&
-    ["notes","vt","vx","vc"].every(function(f){return typeof r[f]==="string"})&&validProp(r.prop);
+    ["notes","vt","vx","vc"].every(function(f){return typeof r[f]==="string"})&&validProp(r.prop)&&(r.why==null||typeof r.why==="string");
 }
 function validProp(P){
   var D=/^\d{4}-\d{2}-\d{2}$/;
@@ -767,7 +813,7 @@ function reportHTML(r,pre){
   h+='<p class="wkn" id="'+pre+'Notes"'+(r.notes?'':' hidden')+'>'+esc(r.notes)+'</p>';
   var tl=trendLabel({lv:r.st,dir:r.dir,two:r.two});
   h+='<div class="wkl">Cosa fare la settimana dopo</div>';
-  h+='<div class="wkv '+(STC[r.st]||esc(r.vc))+'" id="'+pre+'Verdict"><div class="vst" id="'+pre+'VS"'+(tl?'':' hidden')+'>'+tl+'</div><b id="'+pre+'VT">'+esc(r.vt)+'</b><p id="'+pre+'VX">'+esc(r.vx)+'</p></div>';
+  h+='<div class="wkv '+(STC[r.st]||esc(r.vc))+'" id="'+pre+'Verdict"><div class="vst" id="'+pre+'VS"'+(tl?'':' hidden')+'>'+tl+'</div><b id="'+pre+'VT">'+esc(r.vt)+'</b><p id="'+pre+'VX">'+esc(r.vx)+'</p>'+(r.why?'<p class="why" id="'+pre+'Why">'+esc(r.why)+'</p>':'')+'</div>';
   if(r.prop)h+='<div class="prop" id="'+pre+'Prop">'+propHTML(r,pre==="wk")+'</div>';
   return h;
 }
@@ -783,8 +829,8 @@ function propHTML(r,canAct){
   if(P.state==="applied")return '✅ Correzione applicata dal '+dIt(P.date)+': '+ch+' → '+P.kcal+' kcal, '+P.c+' g di carboidrati.';
   if(P.state==="declined")return '👌 Proposta '+ch+' lasciata stare: kcal invariate.';
   if(P.state==="undone")return '↩️ Correzione '+ch+' annullata il '+dIt(P.undone)+'.';
-  if(P.state==="need")return '📝 Per proporti una correzione mi servono almeno 4 giorni segnati in "Com\'è andata ieri?".';
-  if(P.state==="adh")return '✋ Non ti propongo di cambiare le kcal: prima rispettale per una settimana.';
+  if(P.state==="need")return '📝 Per proporti una correzione mi servono le kcal mangiate di almeno 4 giorni della settimana.';
+  if(P.state==="adh")return '✋ Non ti propongo di cambiare le kcal: il problema è quanto hai mangiato, non il piano.';
   if(P.state==="cap")return '🩺 In questa fase hai già corretto di '+ADJ_MAX+' kcal: se serve ancora, parlane con il nutrizionista.';
   if(P.state==="wait")return '⏳ Hai corretto le kcal da meno di 2 settimane: aspetto un\'altra settimana per vederne l\'effetto.';
   return '';
@@ -939,21 +985,23 @@ document.getElementById("kDays").addEventListener("click",function(ev){
   var b=ev.target.closest(".kday");if(!b)return;
   document.getElementById("kd").value=b.getAttribute("data-d");msg("kmsg","");loadKDay();
 });
-Array.prototype.forEach.call(document.querySelectorAll(".adh button"),function(b){
-  b.addEventListener("click",function(){
-    var d=document.getElementById("kd").value,a=b.getAttribute("data-a"),raw=document.getElementById("kk").value.trim();
-    if(!d||d>todayIso()){msg("kmsg","Scegli un giorno fino a oggi.");return}
-    var k=raw?num(raw):null;
-    if(raw&&(k==null||k<500||k>8000)){msg("kmsg","Controlla le kcal.");return}
-    var old=kcalLog[d];
-    if(old&&old.adh===a&&(k==null?old.kcal==null:old.kcal===Math.round(k))){
-      delete kcalLog[d];saveK();msg("kmsg","Tolto il "+dIt(d)+".");render();return;
-    }
-    var e={date:d,adh:a};if(k!=null)e.kcal=Math.round(k);
-    kcalLog[d]=e;saveK();
-    msg("kmsg","Salvato: "+dIt(d)+" · "+ADH[a]+(e.kcal!=null?" · "+e.kcal+" kcal":"")+".");
-    render();
-  });
+document.getElementById("fk").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var d=document.getElementById("kd").value,raw=document.getElementById("kk").value.trim();
+  if(!d||d>todayIso()){msg("kmsg","Scegli un giorno fino a oggi.");return}
+  if(!raw){
+    if(kcalLog[d]){delete kcalLog[d];saveK();msg("kmsg","Tolto il "+dIt(d)+".");render()}
+    else msg("kmsg","Scrivi le kcal che hai mangiato.");
+    return;
+  }
+  var k=num(raw);
+  if(k==null||k<500||k>8000){msg("kmsg","Controlla le kcal.");return}
+  var e={date:d,kcal:Math.round(k)};
+  e.adh=adhOf(e); // salvato anche l'esito, cosi' il formato resta {date,adh,kcal}
+  kcalLog[d]=e;saveK();
+  var df=kdiff(e);
+  msg("kmsg","Salvato: "+e.kcal+" kcal il "+dIt(d)+" ("+sgn(df,0)+" sull'obiettivo: "+ADHL[e.adh](df)+").");
+  render();
 });
 document.getElementById("fw").addEventListener("submit",function(ev){
   ev.preventDefault();
@@ -1175,7 +1223,7 @@ function renderTdee(){
   var o=tdee(),T=target(todayIso()),ph={name:T.ph.name,kcal:T.kcal};
   var h='<h2><i class="hd" style="background:var(--c-cut)"></i>Mantenimento reale</h2>';
   if(!o.ok){
-    h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Servono, nelle ultime 4 settimane, almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal le scrivi nel Diario, in "Com\'è andata ieri?".</p>';
+    h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Servono, nelle ultime 4 settimane, almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal le scrivi nel Diario, nella card delle kcal mangiate.</p>';
   }else{
     var diff=ph.kcal-o.est,kgw=diff*7/7700;
     h+='<div class="kc">~'+o.est+'<small>kcal al giorno</small></div>';
@@ -1243,13 +1291,13 @@ function renderGoals(list){
   // aderenza alle kcal
   var as=adhStats(yesterdayIso(),14);
   h+='<section class="card"><div class="gh"><b>🍽️ Kcal rispettate</b><span>ultimi 14 giorni</span></div>';
-  if(!as.n)h+='<div class="st" style="color:var(--mute)">Nessun dato: rispondi a "Com\'è andata ieri?" nel Diario.</div>';
+  if(!as.n)h+='<div class="st" style="color:var(--mute)">Nessun dato: scrivi nel Diario le kcal che mangi ogni giorno.</div>';
   else{
     var ac=as.score>=0.85?"var(--ok)":as.score>=0.7?"var(--warn)":"var(--bad)";
-    h+='<div class="gl"><span>Aderenza ('+as.n+'/14 giorni registrati)</span><span>'+Math.round(as.score*100)+'%</span></div>';
+    h+='<div class="gl"><span>Aderenza ('+as.n+'/14 giorni segnati)</span><span>'+Math.round(as.score*100)+'%</span></div>';
     h+='<div class="bar"><i style="width:'+as.score*100+'%;background:'+ac+'"></i></div>';
-    h+='<div class="st" style="margin-top:10px;color:'+ac+'">'+as.si+' sì · '+as.circa+' circa · '+as.no+' no</div>';
-    if(as.kAvg!=null)h+='<div class="gl" style="margin:8px 0 0"><span>Media kcal ('+as.kn+' giorni)</span><span>'+Math.round(as.kAvg)+' / piano '+Math.round(as.tAvg)+'</span></div>';
+    h+='<div class="st" style="margin-top:10px;color:'+ac+'">✅ '+as.si+' rispettati · 〰️ '+as.circa+' vicini · ⬆️ '+as.noUp+' sopra · ⬇️ '+as.noDown+' sotto'+(as.noUnk?' · '+as.noUnk+' fuori':'')+'</div>';
+    if(as.kAvg!=null)h+='<div class="gl" style="margin:8px 0 0"><span>Media kcal ('+as.kn+' giorni)</span><span>'+Math.round(as.kAvg)+' / obiettivo '+Math.round(as.tAvg)+' ('+sgn(as.avgDiff,0)+')</span></div>';
   }
   h+='</section>';
 
