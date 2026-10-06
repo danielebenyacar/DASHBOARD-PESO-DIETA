@@ -201,6 +201,12 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .wrow .wm small{display:block;font-size:12.5px;color:var(--mute)}
 .wrow .ws{font-size:13px;font-weight:700;white-space:nowrap}
 .wrow[aria-pressed="true"]{background:var(--soft);border-radius:12px}
+.prop{margin-top:12px;padding:12px 13px;border-radius:12px;background:var(--soft);font-size:14.5px}
+.prop .actions{margin-top:10px}
+.adjr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.adjr:last-child{border-bottom:0}
+.adjr span{flex:1}
+.adjr small{display:block;color:var(--mute);font-size:12.5px}
 </style>
 </head>
 <body>
@@ -368,6 +374,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     </section>
     <section class="card" id="pdetail"></section>
     <section class="card" id="tdeeCard"></section>
+    <section class="card" id="adjCard"></section>
   </div>
 
   <div id="t-goals" role="tabpanel" hidden>
@@ -379,7 +386,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
     <div id="goalsBox"></div>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.8</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.9</p>
 </main>
 
 <script>
@@ -420,6 +427,9 @@ var meta={};         // {lastBackup, chartWaist, weekSeen}
 var kcalLog={};      // date -> {date,adh:"si"|"circa"|"no",kcal?}
 var ADH={si:"sì",circa:"circa",no:"no"};
 var reports={};      // lunedi' -> report salvato della settimana (vedi buildReport)
+var adj=[];          // correzioni kcal accettate: {date,ph,dk,mon}; valgono dalla data, solo nella loro fase
+var ADJ_OK={cut:1,bulk:1,cutsoft:1,cutfull:1}; // fasi in cui il report puo' proporre correzioni
+var ADJ_STEP=150,ADJ_MAX=300;
 var showAllWeeks=false;
 var range="30";
 
@@ -454,6 +464,14 @@ function lsSet(){try{localStorage.setItem("diario_peso",JSON.stringify(entries))
 function saveMeta(){try{localStorage.setItem("diario_meta",JSON.stringify(meta))}catch(e){}}
 function saveK(){try{localStorage.setItem("diario_kcal",JSON.stringify(kcalLog))}catch(e){}}
 function saveR(){try{localStorage.setItem("diario_report",JSON.stringify(reports))}catch(e){}}
+function saveA(){try{localStorage.setItem("diario_adj",JSON.stringify(adj))}catch(e){}}
+// Obiettivo del giorno: fase del piano + correzioni accettate in quella fase (la differenza va tutta sui carboidrati).
+function target(d){
+  var ph=phaseAt(d),dk=0;
+  adj.forEach(function(a){if(a.ph===ph.id&&a.date<=d)dk+=a.dk});
+  var dc=(dk<0?-1:1)*Math.round(Math.abs(dk)/4);
+  return {ph:ph,kcal:ph.kcal+dk,p:ph.p,c:Math.max(0,ph.c+dc),g:ph.g,dk:dk};
+}
 function save(e){entries[e.date]=e;lsSet();return Promise.resolve()}
 function remove(date){delete entries[date];lsSet();return Promise.resolve()}
 function saveW(e){waists[e.date]=e;lsSet();return Promise.resolve()}
@@ -467,7 +485,7 @@ function adhStats(endIso,days){
     var d=iso(toT(endIso)-i*DAY),e=kcalLog[d];
     if(!e)continue;
     o.n++;o[e.adh]++;
-    if(typeof e.kcal==="number"){o.kn++;o.kSum+=e.kcal;o.tSum+=phaseAt(d).kcal}
+    if(typeof e.kcal==="number"){o.kn++;o.kSum+=e.kcal;o.tSum+=target(d).kcal}
   }
   o.score=o.n?(o.si+o.circa*0.5)/o.n:null;
   o.kAvg=o.kn?o.kSum/o.kn:null;o.tAvg=o.kn?o.tSum/o.kn:null;
@@ -534,7 +552,8 @@ function render(){
   var last=list.length?list[list.length-1]:null;
   var refDate=last?last.date:today;
   var ph=phaseAt(today);
-  setText("phaseLine",ph.name+" · "+ph.kcal+" kcal · "+ph.p+"/"+ph.c+"/"+ph.g);
+  var T=target(today);
+  setText("phaseLine",ph.name+" · "+T.kcal+" kcal"+(T.dk?" ("+sgn(T.dk,0)+")":"")+" · "+T.p+"/"+T.c+"/"+T.g);
   var hc=document.getElementById("heroCard");hc.style.background="var(--c-"+ph.id+")";hc.style.color="var(--on-"+ph.id+")";
   var pc0=document.getElementById("phaseLine");pc0.style.background="var(--c-"+ph.id+")";pc0.style.color="var(--on-"+ph.id+")";
 
@@ -570,7 +589,8 @@ function render(){
   var vs=document.getElementById("vStatus");vs.textContent=tl;vs.hidden=!tl;
   setText("vTitle",v.t);setText("vText",v.x);
   var as=adhStats(yesterdayIso(),14);
-  setText("vPlan",v.c!=="ok"&&rate!=null&&lowAdh(as,5)?"⚠️ Negli ultimi 14 giorni hai rispettato le kcal nel "+Math.round(as.score*100)+"% dei giorni registrati: prima di cambiare le kcal, prova a rispettarle per una settimana.":"");
+  setText("vPlan",v.c!=="ok"&&rate!=null&&lowAdh(as,5)?"⚠️ Negli ultimi 14 giorni hai rispettato le kcal nel "+Math.round(as.score*100)+"% dei giorni registrati: prima di cambiare le kcal, prova a rispettarle per una settimana.":
+    tr.lv==="bad"&&ADJ_OK[ph.id]?"📅 Se il trend resta così, lunedì nel report ti propongo di correggere le kcal: decidi tu se applicarla.":"");
 
   renderTodo(list,last);
   renderTrig(list,a);
@@ -616,7 +636,7 @@ function renderTodo(list,last){
 var DL=["D","L","M","M","G","V","S"];
 function renderKcal(){
   var kd=document.getElementById("kd"),d=kd.value,e=kcalLog[d];
-  document.getElementById("kk").placeholder=d?String(phaseAt(d).kcal):"";
+  document.getElementById("kk").placeholder=d?String(target(d).kcal):"";
   Array.prototype.forEach.call(document.querySelectorAll(".adh button"),function(b){b.setAttribute("aria-pressed",e&&e.adh===b.getAttribute("data-a")?"true":"false")});
   var h="",y=yesterdayIso();
   for(var i=6;i>=0;i--){
@@ -662,7 +682,21 @@ function weekTrend(mon){
   var w=weekInfo(mon);
   return trend(phaseAt(iso(toT(mon)+3*DAY)),w.rate,weekInfo(iso(toT(mon)-7*DAY)).rate);
 }
-function buildReport(mon){
+// Proposta di correzione per la settimana appena chiusa (solo per il report "vivo").
+function proposal(mon,t,as){
+  var phw=phaseAt(iso(toT(mon)+3*DAY)),phn=phaseAt(iso(toT(mon)+7*DAY)),today=todayIso();
+  if(phn.id!==phw.id||!ADJ_OK[phn.id]||t.lv!=="bad")return null;
+  var dk=t.dir>0?-ADJ_STEP:ADJ_STEP,tot=0,recent=false;
+  adj.forEach(function(a){if(a.ph===phn.id){tot+=a.dk;if(daysBetween(a.date,today)<14)recent=true}});
+  var P={ph:phn.id,dk:dk};
+  if(recent)P.state="wait";
+  else if(as.n<4)P.state="need";
+  else if(as.score<0.7)P.state="adh";
+  else if(Math.abs(tot+dk)>ADJ_MAX)P.state="cap";
+  else P.state="ask";
+  return P;
+}
+function buildReport(mon,live){
   var w=weekInfo(mon),phw=phaseAt(iso(toT(mon)+3*DAY)),phn=phaseAt(iso(toT(mon)+7*DAY));
   var t=weekTrend(mon),as=adhStats(w.cur.sun,7);
   var notes=[];
@@ -686,7 +720,8 @@ function buildReport(mon){
   return {mon:mon,sun:w.cur.sun,n:w.cur.n,avg:w.cur.avg,rate:w.rate,dv:w.dv,dw:w.dw,
     adh:{n:as.n,si:as.si,circa:as.circa,no:as.no,kAvg:as.kAvg},
     ph:phw.id,st:t.lv,dir:t.dir,two:t.two,streak:streak,badges:b,stars:clamp(pts,1,5),
-    notes:notes.join(" · "),vc:v.c,vt:v.t,vx:v.x,seen:false,made:todayIso()};
+    notes:notes.join(" · "),vc:v.c,vt:v.t,vx:v.x,seen:false,made:todayIso(),
+    prop:live?proposal(mon,t,as):null};
 }
 // Crea i report delle settimane concluse che mancano. L'ultima resta "viva" (si ricalcola) finche' non premi Ok, visto.
 function ensureReports(today){
@@ -696,8 +731,9 @@ function ensureReports(today){
     var r=reports[m];
     if(r&&(r.seen||m!==last))continue;
     if(!weekStats(m).n)continue;
-    var nr=buildReport(m);
+    var nr=buildReport(m,m===last);
     nr.seen=m!==last||meta.weekSeen===m;
+    if(r&&r.prop&&/applied|declined|undone/.test(r.prop.state))nr.prop=r.prop; // la tua scelta resta
     reports[m]=nr;changed=true;
   }
   if(changed)saveR();
@@ -712,7 +748,14 @@ function validReport(r,k){
     !!r.adh&&["n","si","circa","no"].every(function(f){return typeof r.adh[f]==="number"})&&nn(r.adh.kAvg)&&
     (r.st in STC||r.st==="none")&&typeof r.stars==="number"&&r.stars%1===0&&r.stars>=1&&r.stars<=5&&
     Array.isArray(r.badges)&&r.badges.every(function(b){return BADGE.hasOwnProperty(b)})&&
-    ["notes","vt","vx","vc"].every(function(f){return typeof r[f]==="string"});
+    ["notes","vt","vx","vc"].every(function(f){return typeof r[f]==="string"})&&validProp(r.prop);
+}
+function validProp(P){
+  var D=/^\d{4}-\d{2}-\d{2}$/;
+  if(P==null)return true;
+  if(!ADJ_OK[P.ph]||typeof P.dk!=="number"||Math.abs(P.dk)>ADJ_MAX||!/^(ask|applied|declined|undone|need|adh|cap|wait)$/.test(P.state))return false;
+  if(P.state==="applied"||P.state==="undone")return D.test(P.date)&&typeof P.kcal==="number"&&typeof P.c==="number"&&(P.state!=="undone"||D.test(P.undone));
+  return true;
 }
 function reportHTML(r,pre){
   var ph=PH.filter(function(p){return p.id===r.ph})[0];
@@ -725,7 +768,26 @@ function reportHTML(r,pre){
   var tl=trendLabel({lv:r.st,dir:r.dir,two:r.two});
   h+='<div class="wkl">Cosa fare la settimana dopo</div>';
   h+='<div class="wkv '+(STC[r.st]||esc(r.vc))+'" id="'+pre+'Verdict"><div class="vst" id="'+pre+'VS"'+(tl?'':' hidden')+'>'+tl+'</div><b id="'+pre+'VT">'+esc(r.vt)+'</b><p id="'+pre+'VX">'+esc(r.vx)+'</p></div>';
+  if(r.prop)h+='<div class="prop" id="'+pre+'Prop">'+propHTML(r,pre==="wk")+'</div>';
   return h;
+}
+function propHTML(r,canAct){
+  var P=r.prop,dc=Math.round(Math.abs(P.dk)/4),ch=(P.dk>0?"+":"−")+Math.abs(P.dk)+" kcal ("+(P.dk>0?"+":"−")+dc+" g di carboidrati)";
+  if(P.state==="ask"){
+    var t=target(todayIso()),nk=t.kcal+P.dk,nc=Math.max(0,t.c+(P.dk>0?dc:-dc));
+    var h='💡 <b>Proposta: '+ch+'</b> → '+nk+' kcal · '+t.p+'/'+nc+'/'+t.g+'. Proteine e grassi restano uguali.';
+    if(canAct)h+='<div class="actions"><button class="btn" type="button" data-adj="apply">Applica</button><button class="btn ghost" type="button" data-adj="no">No, lascia così</button></div>';
+    else h+=' <span style="color:var(--mute)">(non applicata)</span>';
+    return h;
+  }
+  if(P.state==="applied")return '✅ Correzione applicata dal '+dIt(P.date)+': '+ch+' → '+P.kcal+' kcal, '+P.c+' g di carboidrati.';
+  if(P.state==="declined")return '👌 Proposta '+ch+' lasciata stare: kcal invariate.';
+  if(P.state==="undone")return '↩️ Correzione '+ch+' annullata il '+dIt(P.undone)+'.';
+  if(P.state==="need")return '📝 Per proporti una correzione mi servono almeno 4 giorni segnati in "Com\'è andata ieri?".';
+  if(P.state==="adh")return '✋ Non ti propongo di cambiare le kcal: prima rispettale per una settimana.';
+  if(P.state==="cap")return '🩺 In questa fase hai già corretto di '+ADJ_MAX+' kcal: se serve ancora, parlane con il nutrizionista.';
+  if(P.state==="wait")return '⏳ Hai corretto le kcal da meno di 2 settimane: aspetto un\'altra settimana per vederne l\'effetto.';
+  return '';
 }
 function renderWeek(today){
   ensureReports(today);
@@ -945,7 +1007,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){return JSON.stringify({v:3,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports})}
+function backupText(){return JSON.stringify({v:3,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj})}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -969,8 +1031,15 @@ document.getElementById("bkGo").addEventListener("click",function(){
     // v3: anche i report settimanali salvati
     var rl=o.reports||{},nr=0;
     Object.keys(rl).forEach(function(k){var r=rl[k];if(validReport(r,k)){reports[k]=r;nr++}});
-    lsSet();saveK();saveR();render();loadKDay();
-    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+".");
+    // correzioni kcal (aggiunte nella v1.9 del formato 3)
+    var na=0,D=/^\d{4}-\d{2}-\d{2}$/;
+    (Array.isArray(o.adj)?o.adj:[]).forEach(function(a){
+      if(!a||!D.test(a.date)||!D.test(a.mon)||!ADJ_OK[a.ph]||typeof a.dk!=="number"||Math.abs(a.dk)>ADJ_MAX)return;
+      if(adj.some(function(x){return x.date===a.date&&x.ph===a.ph&&x.dk===a.dk}))return;
+      adj.push({date:a.date,ph:a.ph,dk:a.dk,mon:a.mon});na++;
+    });
+    lsSet();saveK();saveR();saveA();render();loadKDay();
+    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+".");
     document.getElementById("bk").value="";
   }catch(e){msg("bkMsg","Testo non valido.")}
 });
@@ -982,9 +1051,31 @@ Array.prototype.forEach.call(document.querySelectorAll(".seg button"),function(b
   });
 });
 document.getElementById("wTog").addEventListener("click",function(){meta.chartWaist=!meta.chartWaist;saveMeta();renderChart(sorted())});
+function applyProp(m){
+  var r=reports[m];if(!r||!r.prop||r.prop.state!=="ask")return;
+  var P=r.prop,today=todayIso();
+  adj.push({date:today,ph:P.ph,dk:P.dk,mon:m});saveA();
+  var t=target(today);P.state="applied";P.date=today;P.kcal=t.kcal;P.c=t.c;saveR();
+}
+document.getElementById("wkBody").addEventListener("click",function(ev){
+  var b=ev.target.closest("[data-adj]");if(!b)return;
+  var m=document.getElementById("weekCard").getAttribute("data-mon"),r=reports[m];
+  if(!r||!r.prop||r.prop.state!=="ask")return;
+  if(b.getAttribute("data-adj")==="apply")applyProp(m);
+  else{r.prop.state="declined";saveR()}
+  render();
+});
+document.getElementById("adjCard").addEventListener("click",function(ev){
+  var b=ev.target.closest("[data-undo]");if(!b)return;
+  var a=adj[+b.getAttribute("data-undo")];if(!a)return;
+  adj.splice(+b.getAttribute("data-undo"),1);saveA();
+  var r=reports[a.mon];
+  if(r&&r.prop&&r.prop.state==="applied"&&r.prop.date===a.date){r.prop.state="undone";r.prop.undone=todayIso();saveR()}
+  render();
+});
 document.getElementById("wkOk").addEventListener("click",function(){
   var m=document.getElementById("weekCard").getAttribute("data-mon");
-  if(reports[m]){reports[m].seen=true;saveR()}
+  if(reports[m]){reports[m].seen=true;if(reports[m].prop&&reports[m].prop.state==="ask")reports[m].prop.state="declined";saveR()}
   meta.weekSeen=m;saveMeta();render();
 });
 document.getElementById("rvClose").addEventListener("click",function(){document.getElementById("repView").hidden=true;renderGoals(sorted())});
@@ -1035,23 +1126,24 @@ function renderPiano(list){
   PH.forEach(function(p){
     var b=document.createElement("button");b.type="button";b.className="pr";
     b.setAttribute("aria-pressed",p.id===sel.id?"true":"false");
-    b.innerHTML='<span class="sw" style="background:var(--c-'+p.id+')"></span><span><b>'+p.name+'</b>'+(p.id===cur.id?' <span class="pill" style="margin-left:6px">ora</span>':'')+'</span><span class="m">'+dIt(p.from)+' – '+dIt(p.to)+'<br>'+p.kcal+' kcal</span>';
+    b.innerHTML='<span class="sw" style="background:var(--c-'+p.id+')"></span><span><b>'+p.name+'</b>'+(p.id===cur.id?' <span class="pill" style="margin-left:6px">ora</span>':'')+'</span><span class="m">'+dIt(p.from)+' – '+dIt(p.to)+'<br>'+target(p.id===cur.id?today:p.to).kcal+' kcal</span>';
     b.onclick=function(){selPh=p.id;renderPiano(sorted());document.getElementById("pdetail").scrollIntoView({behavior:"smooth",block:"start"})};
     pl.appendChild(b);
   });
 
-  var w=curAvg(list)||PLAN[0][1];
-  var kP=sel.p*4,kC=sel.c*4,kG=sel.g*9,kT=kP+kC+kG;
+  var w=curAvg(list)||PLAN[0][1],T=target(sel.id===cur.id?today:sel.to);
+  var kP=T.p*4,kC=T.c*4,kG=T.g*9,kT=kP+kC+kG;
   function pc(x){return Math.round(x/kT*100)}
   var endKg=planAt(toT(sel.to));
   var h='';
   h+='<span class="tag" style="background:var(--c-'+sel.id+');color:var(--on-'+sel.id+')">'+(sel.id===cur.id?"Fase attuale":"Fase")+' · '+dIt(sel.from)+' – '+dIt(sel.to)+'</span>';
   h+='<h2 style="font-size:20px;margin:0 0 8px">'+sel.name+'</h2>';
-  h+='<div class="kc">'+sel.kcal+'<small>kcal al giorno</small></div>';
+  h+='<div class="kc">'+T.kcal+'<small>kcal al giorno</small></div>';
+  if(T.dk)h+='<p class="note" style="margin:6px 0 0">Piano: '+sel.kcal+' kcal · correzioni: '+sgn(T.dk,0)+' kcal sui carboidrati.</p>';
   h+='<div class="mac">';
-  h+='<div class="mt" style="background:var(--mpb);border-bottom-color:var(--mp)"><b>'+sel.p+' g</b><span>Proteine · '+fmt(sel.p/w,1)+' g/kg</span></div>';
-  h+='<div class="mt" style="background:var(--mcb);border-bottom-color:var(--mc)"><b>'+sel.c+' g</b><span>Carboidrati · '+fmt(sel.c/w,1)+' g/kg</span></div>';
-  h+='<div class="mt" style="background:var(--mgb);border-bottom-color:var(--mg)"><b>'+sel.g+' g</b><span>Grassi · '+fmt(sel.g/w,2)+' g/kg</span></div>';
+  h+='<div class="mt" style="background:var(--mpb);border-bottom-color:var(--mp)"><b>'+T.p+' g</b><span>Proteine · '+fmt(T.p/w,1)+' g/kg</span></div>';
+  h+='<div class="mt" style="background:var(--mcb);border-bottom-color:var(--mc)"><b>'+T.c+' g</b><span>Carboidrati · '+fmt(T.c/w,1)+' g/kg</span></div>';
+  h+='<div class="mt" style="background:var(--mgb);border-bottom-color:var(--mg)"><b>'+T.g+' g</b><span>Grassi · '+fmt(T.g/w,2)+' g/kg</span></div>';
   h+='</div>';
   h+='<div class="stack" aria-hidden="true"><i style="width:'+kP/kT*100+'%;background:var(--mp)"></i><i style="width:'+kC/kT*100+'%;background:var(--mc)"></i><i style="width:'+kG/kT*100+'%;background:var(--mg)"></i></div>';
   h+='<div class="leg"><span>Proteine '+pc(kP)+'%</span><span>Carboidrati '+pc(kC)+'%</span><span>Grassi '+pc(kG)+'%</span></div>';
@@ -1080,7 +1172,7 @@ function tdee(){
   return o;
 }
 function renderTdee(){
-  var o=tdee(),ph=phaseAt(todayIso());
+  var o=tdee(),T=target(todayIso()),ph={name:T.ph.name,kcal:T.kcal};
   var h='<h2><i class="hd" style="background:var(--c-cut)"></i>Mantenimento reale</h2>';
   if(!o.ok){
     h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Servono, nelle ultime 4 settimane, almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal le scrivi nel Diario, in "Com\'è andata ieri?".</p>';
@@ -1092,6 +1184,14 @@ function renderTdee(){
     h+='<p class="note">È una stima: acqua, sale e glicogeno la fanno oscillare, soprattutto nei cambi di fase. Usala insieme al verdetto, non al suo posto.</p>';
   }
   document.getElementById("tdeeCard").innerHTML=h;
+  // correzioni accettate
+  var c='<h2><i class="hd" style="background:var(--c-trans)"></i>Correzioni delle kcal</h2>';
+  if(!adj.length)c+='<p style="margin:0;color:var(--mute);font-size:14.5px">Nessuna correzione. Se il peso va fuori rotta (2 settimane di fila, o 1 molto fuori) e hai rispettato le kcal, il lunedì il report ti propone ±'+ADJ_STEP+' kcal sui carboidrati: decidi tu se applicarla.</p>';
+  else adj.map(function(a,i){return {a:a,i:i}}).reverse().forEach(function(x){
+    var p=PH.filter(function(q){return q.id===x.a.ph})[0];
+    c+='<div class="adjr"><span><b>'+sgn(x.a.dk,0)+' kcal</b> · '+(p?p.name:x.a.ph)+'<small>dal '+dIt(x.a.date)+', dal report del '+dIt(x.a.mon)+'</small></span><button class="btn ghost" type="button" data-undo="'+x.i+'">Annulla</button></div>';
+  });
+  document.getElementById("adjCard").innerHTML=c;
 }
 
 function renderGoals(list){
@@ -1223,7 +1323,7 @@ document.addEventListener("visibilitychange",function(){if(!document.hidden)sync
 window.addEventListener("focus",syncDates);
 
 /* ---------- boot ---------- */
-entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");
+entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];
 document.getElementById("kd").value=yesterdayIso();loadKDay();
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
