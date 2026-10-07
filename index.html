@@ -111,6 +111,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .tabs button[data-tab="diario"][aria-selected="true"]{background:var(--accent)}
 .tabs button[data-tab="piano"][aria-selected="true"]{background:var(--c-bulk);color:var(--on-bulk)}
 .tabs button[data-tab="goals"][aria-selected="true"]{background:var(--c-cutsoft);color:var(--on-cutsoft)}
+.tabs button[data-tab="dati"][aria-selected="true"]{background:var(--blue);color:var(--onsel)}
 .tl{display:flex;height:46px;border-radius:12px;overflow:hidden;gap:3px;position:relative}
 .tl button{border:0;padding:0;min-width:7px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;overflow:hidden;white-space:nowrap;opacity:.5}
 .tl button[aria-pressed="true"]{opacity:1}
@@ -136,6 +137,37 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .rules{margin:12px 0 0;padding-left:18px;font-size:14.5px}
 .rules li{margin-bottom:5px}
 .spec{margin-top:10px;padding:11px 13px;border-radius:12px;background:var(--upbg);font-size:14px}
+.gpseg{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 8px}
+.gpseg button{min-height:44px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer}
+.gphd{font-size:14px;color:var(--mute);margin:4px 0 2px}
+.gpk{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:26px;font-weight:700}
+.gprow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.gprow b{display:block;font-size:15px}
+.gprow small{display:block;color:var(--mute);font-size:13px;line-height:1.3}
+.gprow .gk{flex:none;text-align:right;font-weight:700;font-size:15px;white-space:nowrap}
+.gprow .gk small{font-weight:500}
+.gptot{display:flex;justify-content:space-between;gap:10px;padding:10px 0 2px;font-size:14.5px}
+.gptips{margin:10px 0 0;padding-left:18px;font-size:14px;color:var(--mute)}
+.gptips li{margin:4px 0}
+.ckm{margin-top:14px}
+.ckm h3{font-size:16px;margin:0 0 8px}
+.ckm h3 small{font-weight:500;color:var(--mute);font-size:13.5px}
+.ckgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.ckc small{display:block;color:var(--mute);font-size:12.5px;line-height:1.25}
+.ckc b{font-size:17px}
+.ckc i{font-style:normal;color:var(--mute);font-size:13px;margin-left:4px}
+.ckdelta{font-size:13.5px;color:var(--mute);margin:8px 0 0}
+.ckbell{background:var(--upbg);border-radius:12px;padding:9px 12px;font-size:14px;margin:8px 0 0}
+.ckrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ckrow span{flex:1;min-width:0}
+.ckrow small{display:block;color:var(--mute);font-size:12.5px}
+.ckform{margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
+.ckout{border-radius:14px;padding:11px 13px;margin:12px 0 0;font-size:14px;background:var(--soft)}
+.ckout.ok{background:var(--okbg)} .ckout.warn{background:var(--upbg)} .ckout.bad{background:var(--downbg)}
+.ckout b{font-size:15.5px}
+.ckout p{margin:5px 0 0}
+.ckprop{border-top:1px solid var(--line);padding-top:7px;margin-top:8px!important}
+.cklast{margin:14px 0 0;font-size:15px}
 .bar{height:16px;border-radius:99px;background:var(--soft);overflow:hidden}
 .bar i{display:block;height:100%;border-radius:99px;min-width:0}
 .gh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
@@ -173,14 +205,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .wkv b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:24px;line-height:1.1}
 .wkv.ok b{color:var(--ok)} .wkv.up b{color:var(--warn)} .wkv.down b{color:var(--bad)}
 .wkv p{margin:3px 0 0;font-size:14px;opacity:.85}
-.kq{font-size:14px;color:var(--mute);margin:10px 0}
-.kq b{color:var(--ink)}
 .why{margin:8px 0 0;font-size:14px;font-weight:600}
-.kdays{display:flex;gap:4px;margin-top:12px}
-.kday{flex:1;min-height:48px;border:0;border-radius:10px;background:transparent;color:var(--mute);font:inherit;font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:4px 0}
-.kday[aria-pressed="true"]{background:var(--soft);color:var(--ink)}
-.kday i{display:block;width:14px;height:14px;border-radius:50%;background:var(--line)}
-.kday i.si{background:var(--c-bulk)} .kday i.circa{background:var(--c-trans)} .kday i.no{background:var(--c-cut)}
 .note{margin:12px 0 0;color:var(--mute);font-size:13.5px}
 .betabar{background:var(--warn);color:var(--onsel);font-weight:700;font-size:13.5px;text-align:center;border-radius:12px;padding:8px 10px;margin:0 0 12px}
 .rhead{border-radius:16px;padding:14px 14px 12px;margin-bottom:12px;background:var(--soft)}
@@ -343,8 +368,6 @@ body.noscroll{overflow:hidden}
 .qsrc{font-size:14px;color:var(--mute);margin:14px 2px 6px}
 .qsrc b{color:var(--ink)}
 .bigbtn{display:block;width:100%;min-height:54px;border-radius:999px;margin-top:14px;font-size:17px}
-.kbig{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:30px}
-.ka.si{color:var(--ok)} .ka.circa{color:var(--warn)} .ka.no{color:var(--bad)}
 .pu{color:var(--mute);font-weight:600;margin-left:-4px}
 </style>
 </head>
@@ -359,6 +382,7 @@ body.noscroll{overflow:hidden}
     <button type="button" role="tab" id="tb-pasti" data-tab="pasti" aria-selected="false">Pasti</button>
     <button type="button" role="tab" id="tb-piano" data-tab="piano" aria-selected="false">Piano</button>
     <button type="button" role="tab" id="tb-goals" data-tab="goals" aria-selected="false">Goals</button>
+    <button type="button" role="tab" id="tb-dati" data-tab="dati" aria-selected="false">Dati</button>
   </div>
 
   <div id="t-diario" role="tabpanel">
@@ -430,72 +454,11 @@ body.noscroll{overflow:hidden}
     </form>
   </section>
 
-  <section class="card" id="kcalCard">
-    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Pasti di ieri</span></h2>
-    <div id="kBody"></div>
-    <div class="kdays" id="kDays"></div>
-    <div class="actions" style="margin-top:8px"><button class="btn" id="kGo" type="button">Segna i pasti di ieri</button></div>
-  </section>
-
   <section class="card">
     <h2><i class="hd" style="background:var(--c-cutsoft)"></i>Soglie per anticipare il cut</h2>
     <div id="trig"></div>
   </section>
 
-  <section class="card">
-    <h2><i class="hd" style="background:var(--c-bulk)"></i>Ultime pesate</h2>
-    <div class="scroll"><table>
-      <thead><tr><th>Data</th><th>Peso</th><th>Media 7g</th><th></th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table></div>
-    <div class="actions"><button class="btn ghost" id="exp" type="button">Esporta CSV</button></div>
-  </section>
-
-  <section class="card">
-    <details id="waistBox">
-      <summary>📏 Vita (facoltativa)</summary>
-      <form id="fw" autocomplete="off" style="margin-top:10px">
-        <div class="fields">
-          <div><label for="wd">Data</label><input id="wd" type="date" required></div>
-          <div><label for="wc">Vita (cm)</label><input id="wc" type="text" inputmode="decimal" placeholder="83" required></div>
-        </div>
-        <div class="actions"><button class="btn" type="submit">Salva vita</button></div>
-        <div class="msg" id="wmsg" role="status"></div>
-      </form>
-      <div class="scroll" style="margin-top:6px"><table>
-        <thead><tr><th>Data</th><th>Vita</th><th></th></tr></thead>
-        <tbody id="wrows"></tbody>
-      </table></div>
-    </details>
-  </section>
-
-  <section class="card">
-    <details>
-      <summary>📋 Incolla più pesate</summary>
-      <p style="color:var(--mute);font-size:14px;margin:8px 0">Una per riga: data e peso, es. <code>2026-10-06 78,4</code> o <code>06/10/2026 78.4</code>.</p>
-      <textarea id="bulk" aria-label="Pesate da incollare"></textarea>
-      <div class="actions"><button class="btn" id="bulkGo" type="button">Importa</button></div>
-      <div class="msg" id="bulkMsg" role="status"></div>
-    </details>
-  </section>
-
-  <section class="card">
-    <h2><i class="hd" style="background:var(--c-out)"></i>Backup</h2>
-    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">I dati stanno solo su questo telefono. Se cambi telefono o cancelli i dati del sito li perdi: fai ogni tanto un backup.</p>
-    <div class="actions" style="margin-top:0">
-      <button class="btn" id="bkShare" type="button">Salva file backup</button>
-      <button class="btn ghost" id="bkCopy" type="button">Copia backup</button>
-    </div>
-    <details style="margin-top:12px">
-      <summary>Ripristina da backup</summary>
-      <p style="color:var(--mute);font-size:14px;margin:8px 0">Incolla qui il testo del backup (JSON) e premi Ripristina. I dati si uniscono a quelli già presenti.</p>
-      <textarea id="bk" aria-label="Testo del backup"></textarea>
-      <div class="actions"><button class="btn" id="bkGo" type="button">Ripristina</button></div>
-      <div class="msg" id="bkMsg" role="status"></div>
-    </details>
-    <div class="msg" id="bkInfo" role="status"></div>
-    <div class="msg" id="bkLast" style="margin-top:2px"></div>
-  </section>
   </div>
 
   <div id="t-pasti" role="tabpanel" hidden>
@@ -522,6 +485,12 @@ body.noscroll{overflow:hidden}
       <div class="plist" id="plist" style="margin-top:8px"></div>
     </section>
     <section class="card" id="pdetail"></section>
+    <section class="card" id="gpCard">
+      <details id="gpBox">
+        <summary>⚽ Domenica partita: cosa mangiare</summary>
+        <div id="gpBody"></div>
+      </details>
+    </section>
     <section class="card" id="tdeeCard"></section>
     <section class="card" id="adjCard"></section>
   </div>
@@ -533,9 +502,83 @@ body.noscroll{overflow:hidden}
       <div class="actions"><button class="btn ghost" id="rvClose" type="button">Chiudi</button></div>
     </section>
     <div id="goalsBox"></div>
+    <section class="card" id="ckCard"></section>
+    <input type="file" id="ckPdf" accept="application/pdf,.pdf" hidden>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.17</p>
+
+  <div id="t-dati" role="tabpanel" hidden>
+  <section class="card" id="kqCard">
+    <h2><i class="hd" style="background:var(--c-bulk)"></i>🍽️ Kcal di un giorno senza pasti</h2>
+    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">Se un giorno non segni i pasti, scrivi qui il totale: conta per gli avvisi sul peso e i report come i pasti. Se poi segni i pasti di quel giorno, vale il totale dei pasti.</p>
+    <form id="fkq" autocomplete="off" novalidate>
+      <div class="fields">
+        <div><label for="kqd">Giorno</label><input id="kqd" type="date" required></div>
+        <div><label for="kqk">Kcal</label><input id="kqk" type="text" inputmode="numeric" placeholder="1900"></div>
+      </div>
+      <p class="note" id="kqInfo" style="margin:8px 0 0"></p>
+      <div class="actions"><button class="btn" type="submit">Salva</button></div>
+      <div class="msg" id="kqMsg" role="status"></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2><i class="hd" style="background:var(--c-bulk)"></i>Ultime pesate</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Data</th><th>Peso</th><th>Media 7g</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <div class="actions"><button class="btn ghost" id="exp" type="button">Esporta CSV</button></div>
+  </section>
+
+    <section class="card">
+    <details id="waistBox">
+      <summary>📏 Vita (facoltativa)</summary>
+      <form id="fw" autocomplete="off" style="margin-top:10px">
+        <div class="fields">
+          <div><label for="wd">Data</label><input id="wd" type="date" required></div>
+          <div><label for="wc">Vita (cm)</label><input id="wc" type="text" inputmode="decimal" placeholder="83" required></div>
+        </div>
+        <div class="actions"><button class="btn" type="submit">Salva vita</button></div>
+        <div class="msg" id="wmsg" role="status"></div>
+      </form>
+      <div class="scroll" style="margin-top:6px"><table>
+        <thead><tr><th>Data</th><th>Vita</th><th></th></tr></thead>
+        <tbody id="wrows"></tbody>
+      </table></div>
+    </details>
+  </section>
+
+    <section class="card">
+    <details>
+      <summary>📋 Incolla più pesate</summary>
+      <p style="color:var(--mute);font-size:14px;margin:8px 0">Una per riga: data e peso, es. <code>2026-10-06 78,4</code> o <code>06/10/2026 78.4</code>.</p>
+      <textarea id="bulk" aria-label="Pesate da incollare"></textarea>
+      <div class="actions"><button class="btn" id="bulkGo" type="button">Importa</button></div>
+      <div class="msg" id="bulkMsg" role="status"></div>
+    </details>
+  </section>
+
+    <section class="card">
+    <h2><i class="hd" style="background:var(--c-out)"></i>Backup</h2>
+    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">I dati stanno solo su questo telefono. Se cambi telefono o cancelli i dati del sito li perdi: fai ogni tanto un backup.</p>
+    <div class="actions" style="margin-top:0">
+      <button class="btn" id="bkShare" type="button">Salva file backup</button>
+      <button class="btn ghost" id="bkCopy" type="button">Copia backup</button>
+    </div>
+    <details style="margin-top:12px">
+      <summary>Ripristina da backup</summary>
+      <p style="color:var(--mute);font-size:14px;margin:8px 0">Incolla qui il testo del backup (JSON) e premi Ripristina. I dati si uniscono a quelli già presenti.</p>
+      <textarea id="bk" aria-label="Testo del backup"></textarea>
+      <div class="actions"><button class="btn" id="bkGo" type="button">Ripristina</button></div>
+      <div class="msg" id="bkMsg" role="status"></div>
+    </details>
+    <div class="msg" id="bkInfo" role="status"></div>
+    <div class="msg" id="bkLast" style="margin-top:2px"></div>
+  </section>
+  </div>
+
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.24</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -557,7 +600,7 @@ var PH=[
    rules:["Obiettivo: +0,15 / +0,25 kg a settimana (media settimanale).","Niente cheat day: 1 pasto libero a settimana dentro le kcal.","Carboidrati concentrati prima e dopo partita e allenamenti pesanti.","Verso gennaio il mantenimento sale: probabile ritocco a ~2600 kcal (+25 g di carbo)."]},
   {id:"cutsoft",name:"Cut soft",from:"2027-04-05",to:"2027-04-25",kcal:2250,p:170,c:270,g:55,
    rules:["Stagione ancora in corso: deficit moderato, circa -0,3 kg a settimana.","Proteine alte e carboidrati attorno a partite e allenamenti pesanti."],
-   spec:"Giorno partita: mantenimento, ~2500 kcal con più carboidrati."},
+   spec:"Giorno partita: mantenimento, ~2500 kcal con più carboidrati.",gp:250},
   {id:"cutfull",name:"Cut pieno",from:"2027-04-26",to:"2027-06-14",kcal:2100,p:170,c:245,g:50,
    rules:["Circa -0,4 / -0,5 kg a settimana per 6-8 settimane.","Dalla settimana 5-6 puoi fare 1 settimana a mantenimento (diet break) se sei scarico."]},
   {id:"out",name:"Uscita",from:"2027-06-15",to:"2027-06-28",kcal:2300,p:160,c:290,g:55,
@@ -794,8 +837,6 @@ function render(){
 /* in cima al Diario: pesata mancante e promemoria backup */
 var weighCard=document.getElementById("weighCard"),weighHome=document.createComment("pesata");
 weighCard.parentNode.insertBefore(weighHome,weighCard);
-var kcalCard=document.getElementById("kcalCard"),kcalHome=document.createComment("kcal");
-kcalCard.parentNode.insertBefore(kcalHome,kcalCard);
 function renderTodo(list,last){
   var today=todayIso(),todo=document.getElementById("todo");
   var due=!entries[today];
@@ -806,12 +847,7 @@ function renderTodo(list,last){
   var kg=document.getElementById("kg");
   if(due&&last&&!kg.value&&document.activeElement!==kg)kg.value=fmt(last.kg,1);
 
-  var kdue=!kcalLog[yesterdayIso()];
-  if(kdue&&kcalCard.parentNode!==todo)todo.insertBefore(kcalCard,weighCard.parentNode===todo?weighCard.nextSibling:todo.firstChild);
-  if(!kdue&&kcalCard.parentNode===todo)kcalHome.parentNode.insertBefore(kcalCard,kcalHome.nextSibling);
-  kcalCard.classList.toggle("due",kdue);
-  setText("kTitle",kdue?"Non hai segnato i pasti di ieri":"Pasti di ieri");
-  renderKcal();
+  renderKq();
 
   var lb=meta.lastBackup,ago=lb?Math.max(0,daysBetween(lb,today)):null;
   var warn=list.length>=7&&(ago==null||ago>=30);
@@ -823,26 +859,36 @@ function renderTodo(list,last){
 
 /* ---------- kcal e aderenza ---------- */
 var DL=["D","L","M","M","G","V","S"];
-// Card "Pasti di ieri" del Diario: riassume quello che hai segnato nel tab Pasti e ti porta li'.
-function renderKcal(){
-  var y=yesterdayIso(),e=kcalLog[y],T=target(y),t=dayTot(y),h;
-  if(e&&typeof e.kcal==="number"){
-    var df=kdiff(e),a=adhOf(e);
-    h='<p class="kq"><b class="kbig">'+e.kcal+'</b> kcal su '+T.kcal+' ('+sgn(df,0)+'): <b class="ka '+a+'">'+ADHL[a](df)+'</b></p>';
-    if(t.n)h+='<p class="note" style="margin:0">P '+Math.round(t.p)+' / '+T.p+' g · C '+Math.round(t.c)+' / '+T.c+' g · G '+Math.round(t.g)+' / '+T.g+' g</p>';
-    else h+='<p class="note" style="margin:0">Totale scritto a mano (prima del diario dei pasti).</p>';
-  }else if(e)h='<p class="kq">Segnato: '+ADH[e.adh]+' (senza kcal).</p>';
-  else h='<p class="kq">Non hai ancora segnato cosa hai mangiato ieri. Servono per capire se il piano è giusto per te.</p>';
-  document.getElementById("kBody").innerHTML=h;
-  setText("kGo",t.n?"Vedi i pasti di ieri":"Segna i pasti di ieri");
-  var dh="";
-  for(var i=6;i>=0;i--){
-    var dd=iso(toT(y)-i*DAY),x=kcalLog[dd],xa=x?adhOf(x):"";
-    dh+='<button type="button" class="kday" data-d="'+dd+'" aria-label="'+dIt(dd)+': '+(x?(typeof x.kcal==="number"?x.kcal+" kcal, ":"")+ADHL[xa](kdiff(x)):"non segnato")+'"><i class="'+xa+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
-  }
-  document.getElementById("kDays").innerHTML=dh;
+// Tab Dati: kcal di un giorno senza pasti. Va in diario_kcal senza src (come le kcal scritte a mano prima della v1.17);
+// se quel giorno segni i pasti, vince il totale dei pasti (syncDayKcal).
+function kqLoad(){
+  var d=document.getElementById("kqd").value,e=kcalLog[d],t=D_RE.test(d)?dayTot(d):{n:0},k=document.getElementById("kqk");
+  if(!D_RE.test(d)){setText("kqInfo","");return}
+  k.placeholder=String(target(d).kcal);
+  if(t.n){k.value="";k.disabled=true;setText("kqInfo","Il "+dIt(d)+" hai segnato i pasti: "+Math.round(t.k)+" kcal. Le kcal arrivano da lì, cambiale nei Pasti.");return}
+  k.disabled=false;
+  if(e&&typeof e.kcal==="number"&&e.src!=="pasti"){if(document.activeElement!==k)k.value=String(e.kcal);var df=kdiff(e),a=adhOf(e);setText("kqInfo","Scritto a mano: "+e.kcal+" kcal su "+target(d).kcal+" ("+sgn(df,0)+"): "+ADHL[a](df)+". Svuota e salva per toglierlo.")}
+  else{if(document.activeElement!==k)k.value="";setText("kqInfo","Obiettivo del "+dIt(d)+": "+target(d).kcal+" kcal.")}
 }
-function loadKDay(){renderKcal()}
+function renderKq(){
+  var d=document.getElementById("kqd");
+  d.max=todayIso();if(!d.value)d.value=yesterdayIso();
+  kqLoad();
+}
+var D_RE=/^\d{4}-\d{2}-\d{2}$/;
+document.getElementById("kqd").addEventListener("change",function(){msg("kqMsg","");document.getElementById("kqk").value="";kqLoad()});
+document.getElementById("fkq").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var d=document.getElementById("kqd").value,v=document.getElementById("kqk").value.trim(),e=kcalLog[d];
+  if(!D_RE.test(d)||d>todayIso()){msg("kqMsg","Scegli un giorno fino a oggi.");return}
+  if(dayTot(d).n){msg("kqMsg","Quel giorno hai segnato i pasti: cambia le kcal nei Pasti.");return}
+  if(!v){if(e&&e.src!=="pasti"){delete kcalLog[d];saveK();render();msg("kqMsg","Tolto il "+dIt(d)+".")}else msg("kqMsg","Scrivi le kcal.");return}
+  var k=num(v);
+  if(k==null||k<=0||k>9000||Math.round(k)!==k){msg("kqMsg","Scrivi le kcal come numero intero, es. 1900.");return}
+  var n={date:d,kcal:k};n.adh=adhOf(n);kcalLog[d]=n;saveK();render();
+  msg("kqMsg","Salvato: "+k+" kcal il "+dIt(d)+" ("+ADHL[n.adh](kdiff(n))+").");
+});
+function loadKDay(){renderKq()}
 
 /* ---------- settimane (lunedi'-domenica) ---------- */
 function mondayOf(s){var t=toT(s);return iso(t-((new Date(t).getUTCDay()+6)%7)*DAY)}
@@ -1021,6 +1067,8 @@ function renderTrig(list,a){
   item("Vita sotto 87 cm",wl?fmt(wl.cm,1)+" cm":"nessun dato",wl&&wl.cm>=87,!wl);
   var av=a&&a.avg!=null?a.avg:null;
   item("Peso medio sotto 83 kg",av!=null?fmt(av,1)+" kg":"nessun dato",av!=null&&av>=83,av==null);
+  var fr=ckFatRise();
+  item("Grasso: meno di +4 punti dall'inizio del bulk",fr?sgn(fr.d,1)+" punti ("+(fr.m==="pli"?"pliche":"BIA")+")":"nessun check",fr&&fr.d>=4,!fr);
 }
 
 function renderRows(list){
@@ -1143,8 +1191,6 @@ Array.prototype.forEach.call(document.querySelectorAll(".step"),function(b){
   });
 });
 document.getElementById("wd").value=todayIso();
-document.getElementById("kGo").addEventListener("click",function(){goPasti(yesterdayIso())});
-document.getElementById("kDays").addEventListener("click",function(ev){var b=ev.target.closest(".kday");if(b)goPasti(b.getAttribute("data-d"))});
 document.getElementById("fw").addEventListener("submit",function(ev){
   ev.preventDefault();
   var d=document.getElementById("wd").value,c=num(document.getElementById("wc").value);
@@ -1197,7 +1243,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){return JSON.stringify({v:4,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals})}
+function backupText(){return JSON.stringify({v:6,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals,checks:checks})}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -1226,14 +1272,17 @@ document.getElementById("bkGo").addEventListener("click",function(){
     (Array.isArray(o.adj)?o.adj:[]).forEach(function(a){
       if(!a||!D.test(a.date)||!D.test(a.mon)||!ADJ_OK[a.ph]||typeof a.dk!=="number"||Math.abs(a.dk)>ADJ_MAX)return;
       if(adj.some(function(x){return x.date===a.date&&x.ph===a.ph&&x.dk===a.dk}))return;
-      adj.push({date:a.date,ph:a.ph,dk:a.dk,mon:a.mon});na++;
+      var na1={date:a.date,ph:a.ph,dk:a.dk,mon:a.mon};if(a.src==="check")na1.src="check";adj.push(na1);na++;
     });
     // v4: cibi tuoi e diario dei pasti
     var nf=0,nm=0;
-    Object.keys(o.foods||{}).forEach(function(k){var f=o.foods[k];if(validFood(f,k)){foods[k]={id:k,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,src:f.src};nf++}});
+    Object.keys(o.foods||{}).forEach(function(k){var f=o.foods[k];if(validFood(f,k)){foods[k]={id:k,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,u2:f.u2||null,src:f.src};nf++}});
     Object.keys(o.meals||{}).forEach(function(d){var day=cleanDay(d,o.meals[d]);if(day){meals[d]=day;syncDayKcal(d);nm++}});
-    lsSet();saveK();saveR();saveA();saveF();saveP();render();loadKDay();
-    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+".");
+    // v5/v6: check dal nutrizionista (v5 aveva BIA e pliche separate: si uniscono per giorno)
+    var nc5=0,oc=ckMigrate(o.checks||{});
+    Object.keys(oc).forEach(function(d){var e=validCheck(d,oc[d]);if(e){checks[d]=e;nc5++}});
+    lsSet();saveK();saveR();saveA();saveF();saveP();saveC();render();loadKDay();
+    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+(nc5?", "+nc5+" check":"")+".");
     document.getElementById("bk").value="";
   }catch(e){msg("bkMsg","Testo non valido.")}
 });
@@ -1263,8 +1312,9 @@ document.getElementById("adjCard").addEventListener("click",function(ev){
   var b=ev.target.closest("[data-undo]");if(!b)return;
   var a=adj[+b.getAttribute("data-undo")];if(!a)return;
   adj.splice(+b.getAttribute("data-undo"),1);saveA();
-  var r=reports[a.mon];
+  var r=a.src==="check"?null:reports[a.mon],ck=a.src==="check"?checks[a.mon]:null;
   if(r&&r.prop&&r.prop.state==="applied"&&r.prop.date===a.date){r.prop.state="undone";r.prop.undone=todayIso();saveR()}
+  if(ck&&ck.prop&&ck.prop.state==="applied"&&ck.prop.date===a.date){ck.prop.state="undone";saveC()}
   render();
 });
 document.getElementById("wkOk").addEventListener("click",function(){
@@ -1383,10 +1433,529 @@ function renderTdee(){
   if(!adj.length)c+='<p style="margin:0;color:var(--mute);font-size:14.5px">Nessuna correzione. Se il peso va fuori rotta (2 settimane di fila, o 1 molto fuori) e hai rispettato le kcal, il lunedì il report ti propone ±'+ADJ_STEP+' kcal sui carboidrati: decidi tu se applicarla.</p>';
   else adj.map(function(a,i){return {a:a,i:i}}).reverse().forEach(function(x){
     var p=PH.filter(function(q){return q.id===x.a.ph})[0];
-    c+='<div class="adjr"><span><b>'+sgn(x.a.dk,0)+' kcal</b> · '+(p?p.name:x.a.ph)+'<small>dal '+dIt(x.a.date)+', dal report del '+dIt(x.a.mon)+'</small></span><button class="btn ghost" type="button" data-undo="'+x.i+'">Annulla</button></div>';
+    c+='<div class="adjr"><span><b>'+sgn(x.a.dk,0)+' kcal</b> · '+(p?p.name:x.a.ph)+'<small>dal '+dIt(x.a.date)+(x.a.src==="check"?', dal check del ':', dal report del ')+dIt(x.a.mon)+'</small></span><button class="btn ghost" type="button" data-undo="'+x.i+'">Annulla</button></div>';
   });
   document.getElementById("adjCard").innerHTML=c;
+  renderGp();
 }
+
+/* ---------- lettura del referto BIA (PDF Akern Bodygram) ---------- */
+// Lettore dei referti BIA Akern Bodygram stampati con "Microsoft Print to PDF": il testo e' disegnato come tracciati,
+// quindi ogni carattere si riconosce dalla forma (bitmap 16x16 confrontata con dei campioni).
+function biaInflate(bytes){
+  var ds=new DecompressionStream("deflate");
+  var w=ds.writable.getWriter();w.write(bytes);w.close();
+  return new Response(ds.readable).arrayBuffer().then(function(b){return new TextDecoder("latin1").decode(b)});
+}
+function biaPages(buf){
+  var u=new Uint8Array(buf),s=new TextDecoder("latin1").decode(u),objs={},re=/(\d+) 0 obj([\s\S]*?)endobj/g,m;
+  if(s.slice(0,5)!=="%PDF-")return Promise.reject(new Error("non è un PDF"));
+  while((m=re.exec(s))){objs[m[1]]={body:m[2],at:m.index+m[0].indexOf(m[2])}}
+  function streamOf(n){
+    var o=objs[n];if(!o)return Promise.resolve("");
+    var i=o.body.search(/stream\r?\n/);if(i<0)return Promise.resolve("");
+    var st=o.at+i+o.body.slice(i).match(/stream\r?\n/)[0].length,en=o.at+o.body.lastIndexOf("endstream");
+    var len=o.body.slice(0,i).match(/\/Length\s+(\d+)(?!\s+\d+\s+R)/);
+    if(len&&st+(+len[1])<=en)en=st+(+len[1]);
+    else while(en>st&&(u[en-1]===10||u[en-1]===13))en--;
+    var data=u.subarray(st,en);
+    return /FlateDecode/.test(o.body.slice(0,i))?biaInflate(data):Promise.resolve(new TextDecoder("latin1").decode(data));
+  }
+  var pagesObj=null;Object.keys(objs).forEach(function(k){if(/\/Type\s*\/Pages\b/.test(objs[k].body))pagesObj=objs[k]});
+  if(!pagesObj)return Promise.reject(new Error("pagine non trovate"));
+  var kids=(pagesObj.body.match(/\/Kids\s*\[([^\]]*)\]/)||[,""])[1].match(/\d+(?= 0 R)/g)||[];
+  return Promise.all(kids.map(function(k){
+    var b=(objs[k]||{}).body||"",c=b.match(/\/Contents\s*(\[[^\]]*\]|\d+ 0 R)/);
+    var refs=c?(c[1].match(/\d+(?= 0 R)/g)||[]):[];
+    return Promise.all(refs.map(streamOf)).then(function(parts){return parts.join("\n")});
+  }));
+}
+function biaGlyphs(txt,page){
+  var re=/q\n1\.000000 0\.000000 0\.000000 1\.000000 (-?[\d.]+) (-?[\d.]+) cm\n([\d.]+) ([\d.]+) ([\d.]+) rg\n([\s\S]*?)\n(f\*?)\nQ/g,m,out=[];
+  while((m=re.exec(txt))){
+    // solo testo grigio/nero/bianco: le stelline rosse dei valori di riferimento non sono caratteri
+    var cr=+m[3],cg=+m[4],cb=+m[5];if(Math.max(cr,cg,cb)-Math.min(cr,cg,cb)>0.3)continue;
+    var x=+m[1],y=+m[2],path=m[6],nums=(path.match(/-?\d+\.\d+/g)||[]).map(Number),d="",i=0;
+    if(!nums.length)continue;
+    var ops=path.match(/\b[mlch]\b/g)||[];
+    ops.forEach(function(o){
+      if(o==="m"||o==="l"){d+=(o==="m"?"M":"L")+nums[i]+" "+nums[i+1];i+=2}
+      else if(o==="c"){d+="C"+nums.slice(i,i+6).join(" ");i+=6}
+      else d+="Z";
+    });
+    var xs=nums.filter(function(v,j){return j%2===0}),ys=nums.filter(function(v,j){return j%2===1});
+    var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+    out.push({page:page,x:x,y:y,d:d,eo:m[7]==="f*",x0:x+x0,x1:x+x1,y0:y+y0,y1:y+y1,w:x1-x0,h:y1-y0,lx0:x0,ly0:y0});
+  }
+  // caratteri fatti di soli segmenti disegnati senza traslazione (l, I, /, -): piccoli e scuri
+  var re2=/q\n([\d.]+) ([\d.]+) ([\d.]+) rg\n((?:-?[\d.]+ -?[\d.]+ [ml]\n)+)h\n(f\*?)\nQ/g;
+  while((m=re2.exec(txt))){
+    if(+m[1]+(+m[2])+(+m[3])>1.5)continue;
+    var nn=(m[4].match(/-?\d+\.\d+/g)||[]).map(Number),dd="",xa=[],ya=[];
+    for(var j=0;j<nn.length;j+=2){dd+=(j?"L":"M")+nn[j]+" "+nn[j+1];xa.push(nn[j]);ya.push(nn[j+1])}
+    var a0=Math.min.apply(null,xa),a1=Math.max.apply(null,xa),b0=Math.min.apply(null,ya),b1=Math.max.apply(null,ya);
+    if(Math.max(a1-a0,b1-b0)>=25||Math.max(a1-a0,b1-b0)<0.3)continue;
+    out.push({page:page,x:0,y:0,d:dd+"Z",eo:m[5]==="f*",x0:a0,x1:a1,y0:b0,y1:b1,w:a1-a0,h:b1-b0,lx0:a0,ly0:b0});
+  }
+  return out;
+}
+var BIA_N=16,BIA_S=4;
+// Bitmap 16x16: disegno 4 volte piu' grande e media dei blocchi 4x4, cosi' conta poco come il browser smussa i bordi.
+function biaBits(g,ctx){
+  var Z=BIA_N*BIA_S,s=Math.max(g.w,g.h)||1,k=(Z-2*BIA_S)/s;
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,Z,Z);
+  ctx.setTransform(k,0,0,k,BIA_S+((Z-2*BIA_S)-g.w*k)/2-g.lx0*k,BIA_S+((Z-2*BIA_S)-g.h*k)/2-g.ly0*k);
+  ctx.fill(new Path2D(g.d),g.eo?"evenodd":"nonzero");
+  var px=ctx.getImageData(0,0,Z,Z).data,bits="";
+  for(var r=0;r<BIA_N;r++)for(var c=0;c<BIA_N;c++){
+    var sum=0;for(var y=0;y<BIA_S;y++)for(var x=0;x<BIA_S;x++)sum+=px[((r*BIA_S+y)*Z+c*BIA_S+x)*4+3];
+    bits+=sum>BIA_S*BIA_S*110?"1":"0";
+  }
+  return bits;
+}
+// Riconoscimento: il campione piu' vicino (stesso numero di contorni, proporzioni simili). La distanza perdona
+// lo spostamento di 1 pixel: conta solo i pixel che non hanno un pixel acceso vicino nell'altra forma.
+function biaRows(bits){var r=[];for(var i=0;i<BIA_N;i++)r.push(parseInt(bits.substr(i*BIA_N,BIA_N),2));return r}
+function biaDil(r){var o=[],M=(1<<BIA_N)-1;for(var i=0;i<BIA_N;i++){var v=0;for(var j=i-1;j<=i+1;j++)if(j>=0&&j<BIA_N)v|=r[j]|(r[j]<<1)|(r[j]>>1);o.push(v&M)}return o}
+function biaPop(v){v=v-((v>>1)&0x55555555);v=(v&0x33333333)+((v>>2)&0x33333333);return(((v+(v>>4))&0x0F0F0F0F)*0x01010101)>>>24}
+function biaPrep(T){T.forEach(function(t){if(!t.r){t.r=biaRows(t.bits);t.dr=biaDil(t.r)}});return T}
+function biaDist(a,da,b,db){var n=0;for(var i=0;i<BIA_N;i++)n+=biaPop(a[i]&~db[i])+biaPop(b[i]&~da[i]);return n}
+function biaClassify(g,T){
+  var asp=g.w/Math.max(g.h,0.01),nc=(g.d.match(/M/g)||[]).length,best=null,bd=1e9;
+  // segni piccoli riconosciuti dalla forma, piu' sicuri della bitmap
+  if(Math.max(g.w,g.h)<1.7&&nc===1&&asp>0.6&&asp<1.6)return ".";
+  if(g.h<1&&g.w>1.5&&nc===1)return "-";
+  if(g.h<3.2&&g.w<3.6&&nc===2&&asp>0.7&&asp<1.4)return "°";
+  var r=biaRows(g.bits),dr=biaDil(r);
+  T.forEach(function(t){if(t.nc!==nc)return;var q=t.asp/asp;if(q<0.75||q>1.33)return;var d=biaDist(r,dr,t.r,t.dr);if(d<bd){bd=d;best=t}});
+  return best&&bd<=24?best.ch:"?";
+}
+// Righe di testo: linea di base (le lettere con la coda vanno su), poi i segni piccoli (. - ° :) alla riga piu' vicina.
+function biaLines(gs){
+  // le righe nascono dai caratteri senza coda (base = fondo); quelli con la coda (p/P sono uguali!) e le parentesi
+  // si attaccano alla riga che sovrappongono di piu'
+  var DESC={g:1,p:1,y:1,q:1,j:1,J:1,"(":1,")":1,"/":1,"|":1};
+  var ok=gs.filter(function(x){return x.ch!=="?"}),core=ok.filter(function(x){return x.h>=3&&!DESC[x.ch]}),ls=[];
+  core.sort(function(a,b){return a.y1-b.y1});
+  core.forEach(function(x){
+    var L=ls.length?ls[ls.length-1]:null;
+    if(!L||x.y1-L.base>1.6){L={base:x.y1,top:x.y0,gs:[]};ls.push(L)}
+    L.gs.push(x);L.top=Math.min(L.top,x.y0);
+  });
+  function span(L){if(L.x0==null){L.x0=Math.min.apply(null,L.gs.map(function(q){return q.x0}));L.x1=Math.max.apply(null,L.gs.map(function(q){return q.x1}))}return L}
+  ok.filter(function(x){return x.h>=3&&DESC[x.ch]}).forEach(function(x){
+    var best=null,bo=0;
+    ls.forEach(function(L){span(L);if(x.x1<L.x0-15||x.x0>L.x1+15)return;var o=Math.min(L.base,x.y1)-Math.max(L.top,x.y0);if(o>bo){bo=o;best=L}});
+    if(best&&bo>=0.4*x.h)best.gs.push(x);
+  });
+  ok.filter(function(x){return x.h<3}).forEach(function(x){
+    var yc=(x.y0+x.y1)/2,best=null,bd=1e9;
+    ls.forEach(function(L){if(yc<L.top-1||yc>L.base+1.5)return;span(L);if(x.x1<L.x0-15||x.x0>L.x1+15)return;var d=Math.abs(L.base-x.y1);if(d<bd){bd=d;best=L}});
+    if(best)best.gs.push(x);
+  });
+  return ls.map(function(L){
+    L.gs.sort(function(a,b){return a.x0-b.x0});
+    var hh=L.base-L.top,cells=[],cur=null,prev=null;
+    L.gs.forEach(function(x){
+      var gap=prev?x.x0-prev.x1:0;
+      if(!cur||gap>2.5*hh){cur={x0:x.x0,x1:x.x1,t:""};cells.push(cur)}
+      else if(gap>0.3*hh)cur.t+=" ";
+      cur.t+=x.ch;cur.x1=x.x1;prev=x;
+    });
+    return {page:L.gs[0].page,y:L.base,top:L.top,cells:cells,t:cells.map(function(c){return c.t}).join("  |  ")};
+  });
+}
+// Dai testi delle righe ai valori del referto. Le sigle tra parentesi individuano le righe; E/F e I/l si confondono, quindi si tollerano.
+// Numero all'inizio della cella; dentro il numero le lettere che somigliano a cifre diventano cifre.
+function biaNum(c){
+  var p=(c.match(/^\s*-?[\dOolI|sSZzB. ]+/)||[""])[0];
+  var t=p.replace(/[Oo]/g,"0").replace(/[lI|]/g,"1").replace(/[sS]/g,"5").replace(/[Zz]/g,"2").replace(/B/g,"8").replace(/(\d)\s+(?=[\d.])/g,"$1").replace(/\.\s+(?=\d)/g,".");
+  var m=t.match(/-?\d+(?:\.\d+)?/);return m?+m[0]:null;
+}
+function biaIsNum(c){return /^\s*-?[\dOolI| .]+\s*(kg|k|L|%|°|kCal|kcal)?\s*$/.test(c)&&/\d/.test(c)}
+function biaParse(lines){
+  var o={},rows=[];
+  lines.forEach(function(L,i){
+    // etichette su due righe: "Massa Muscolare Appendicolare" + "(ASMM)", "... Totale" + "(TDEE)"
+    var lab=L.cells[0].t,vals=L.cells.slice(1).map(function(c){return c.t});
+    for(var j=i+1;j<lines.length&&lines[j].page===L.page&&lines[j].y-L.y<=18;j++){
+      var nx=lines[j];if(/^[A-Za-zÀ-ÿ]/.test(lab.trim())&&nx.cells.length===1&&/^\(/.test(nx.cells[0].t.trim())&&!/\(/.test(lab)){lab+=" "+nx.cells[0].t;break}
+    }
+    rows.push({lab:lab.toUpperCase().replace(/\s+/g,"").replace(/[|]/g,"I"),vals:vals,line:L});
+  });
+  // per posizione: la prima cella dopo l'etichetta e' il risultato, la seconda la % (se c'e')
+  function nums(r){return r.vals.map(function(c){return /^\s*-?[\dOolI|]/.test(c)?biaNum(c):null})}
+  var KEY=[["pha",/\(PHA\)/,0],["tbw",/\(TBW\)/,0],["ecw",/\([EF]CW\)/,1],["ffm",/\(FFM\)/,0],["fm",/\(FM\)/,0],["fat",/\(FM\)/,1],["bcm",/\(BCM\)/,0],["mm",/\(MM\)/,0],["smm",/\(SMM\)/,0],["asmm",/\(ASMM\)/,0],["bmr",/\(BMR\)/,0],["tdee",/\(TD[EF][EF]\)/,0]];
+  rows.forEach(function(r){
+    KEY.forEach(function(k){if(o[k[0]]==null&&k[1].test(r.lab)){var n=nums(r);if(n[k[2]]!=null)o[k[0]]=n[k[2]]}});
+  });
+  lines.forEach(function(L){
+    var cs=L.cells.map(function(c){return c.t});
+    cs.forEach(function(c,i){
+      if(o.kg==null&&/^peso[:i]?$/i.test(c.replace(/\s+/g,""))&&cs[i+1]&&biaIsNum(cs[i+1]))o.kg=biaNum(cs[i+1]);
+      var h=c.replace(/\s+/g,"").match(/^([\dOolI|.]+)%\(TBW\/FFM\)/i);if(o.hyd==null&&h)o.hyd=biaNum(h[1]);
+    });
+    if(!o.date&&L.page===0&&!/NASC/i.test(L.t)){var d=L.t.replace(/\s+/g,"").match(/(\d\d)\/(\d\d)\/(\d{4})/);if(d)o.date=d[3]+"-"+d[2]+"-"+d[1]}
+  });
+  return o;
+}
+// Campioni dei caratteri del referto [carattere, contorni, larghezza/altezza, bitmap 16x16 in esadecimale].
+var BIA_T=null,BIA_TPL=[["K",1,1.042,"0000600c601c6038607060e061c07f807fc061c060e060706038601c600e0000"],["R",2,0.98,"00007ff07ff8601c600c600e600c703c7ff87ff0607060386018601c600e0000"],["E",1,0.939,"00003ffe3ffc30003000300030003ffc3ffc30003000300030003ffc3ffc0000"],["N",1,1.143,"00000000700678067c066e066706638661c660e66076603e601e600600000000"],["A",2,1.301,"000000000000018003c0036006600e300c301ff81ff8300c7006000000000000"],["G",1,0.885,"0000000007f01ff81c183800380038fc38fc381c381c1c381ff807e000000000"],["R",2,0.753,"00001fe01ff01ff81c381c381c381ff81ff01fc01de01ce01cf01c701c380000"],["M",1,1.06,"00002004700e781e781e7c3e7c3e7e7e776e77ee73ce73ce700e700e700e0000"],["A",2,0.951,"0000018003c003c007e007e00e700e700e701ff81ff81ff8381c381c781e0000"],["C",1,0.741,"000001f807f80f080c001c0018001800180018001c001c000e0807f803f80000"],["O",2,0.981,"000007e01ff83f7c383c781e701e700e700e700e781e381c3e7c1ff807e00000"],["m",1,1.462,"0000000000006e387f7c73ce6186618661866186618661866186000000000000"],["p",2,0.653,"000019e01ff01c301c381c381c381c301c701fe01dc01c001c001c001c000000"],["S",1,0.68,"000003f00ff00f301c001e000f000fe003f000f80038003818781ff01fe00000"],["i",2,0.189,"0000018001800000000001800180018001800180018001800180018001800000"],["Z",1,0.843,"00001ffc1ffc1ff8007000f001e001c003c0078007000e001ff83ffc3ffc0000"],["n",1,0.866,"000039f03bf83ffc3c3c3c1c381c381c381c381c381c381c381c381c381c0000"],["e",2,0.868,"000003e00ff01f781c3c381c381c3ffc3ffc380038003c001f180ff807f00000"],["r",1,0.577,"00000e700ef00ff00f800f000e000e000e000e000e000e000e000e000e000000"],["a",2,0.812,"000007e00ff80f78003c001c007c0ffc1f9c1c1c381c3c3c3c7c1fdc0f9c0000"],["D",2,0.848,"00003fc03ff038783838381c381c381c381c381c381c383838703fe03f800000"],["B",3,0.678,"00001fc01ff01c701c301c701c601fc01ff01c381c381c381c301ff01fc00000"],["y",1,0.678,"00001c380c300c3006600660066003c003c003c00180018003000f001e000000"],["(",1,0.288,"000000c001800180030003000300030003000300030003000180018000c00000"],["E",1,0.56,"00000ff00ff00e000e000e000e000fe00fe00e000e000e000e000ff00ff00000"],["T",1,0.729,"00001ff81ff80180018001800180018001800180018001800180018001800000"],["À",3,0.705,"00000300010000000180018003c002c00660066006600ff00c300c3018180000"],[":",2,0.274,"0000018003c003c00180000000000000000000000000018003c003c001800000"],["2",1,0.634,"000007c00ff00870003000300070006001e0038007000e000c000ff01ff80000"],["1",1,0.366,"0000006001e007e006e000e000e000e000e000e000e000e000e000e000e00000"],[")",1,0.302,"000003000180018000c000c000c000c000c000c000c000c00180018003000000"],["s",1,0.647,"000003e007f00e001c000c000e0007c003e000700030003818301fe00fc00000"],["a",2,0.71,"000007e00ff00c3800180018003807f80e181818181818381c780fd807980000"],["d",2,0.615,"0000001000100010001003d007f00c300c10081008100c100c30067003d00000"],["3",1,0.547,"000007c00ce00060003000200060078000e000300030003000300ce007800000"],["1",1,0.342,"0000004001c003c0004000400040004000400040004000400040004000400000"],["0",2,0.618,"000003c006600c300c300830081008100810081008300c300c30066003c00000"],["7",1,0.635,"00001ff80ff000300060006000c000c000800180018001000300030003000000"],["2",1,0.633,"000007c00e600830003000300020006000c00180070004000c000c000ff80000"],["6",2,0.62,"000001f0030006000c000c000dc00fe00c300c100c100c100430076003c00000"],["9",2,0.62,"000003c006600c30081008100c100c3007f0019000300030006005e007800000"],["5",1,0.548,"000007e007e00400040004000f000fc0006000300030003000200ce007800000"],["8",3,0.643,"000003c006600c300c300c30066003c00e700c30081808100c3007e003c00000"],["e",2,0.835,"000003e00ff81c18181c380c380c3ffc3ff83800380018001e080ff803f00000"],["o",2,0.935,"000007e00ff81c3c381c300c700e600e600e700c300c381c1c380ff007e00000"],["D",2,0.805,"00003fc031e0303030183018300c300c300c300c3018303830703fe03f800000"],["t",1,0.448,"000001800180018007e007e0018001800180018001800180018001e000e00000"],["i",2,0.139,"0000018001800000000000000180018001800180018001800180018001800000"],["n",1,0.798,"000013e037f03c383818381c301c301c301c301c301c301c301c301c301c0000"],["M",1,1.028,"00006006700e700e781e581648364c3644664666464643c643c6418641860000"],["h",1,0.571,"00000c000c000c000c000dc00fe00c300c300c300c300c300c300c300c300000"],["4",2,0.708,"00000060006000e001e00160036006600c6008601ff81ff80060006000600000"],["P",2,0.627,"00000fc00cf0083008300810083008300fe00f80080008000800080008000000"],["A",2,0.878,"00000180038003c002c00660066004600c300ff01ff018181018300c300c0000"],["Z",1,0.826,"00001ffc1ff80030007000e000c001c00380030006000e001c001ffc3ffc0000"],["k",1,0.573,"000008000800080008000860086008c009800f000f000b8009c008e008700000"],["g",2,0.604,"000003d006700c3008100810081008100c3007f00390001000300c6007c00000"],["u",1,0.8,"0000301c301c301c301c301c301c301c301c301c381c181c1c3c1ffc07880000"],["n",1,0.798,"000011f03ff83c383818381c380c380c380c380c380c380c380c380c380c0000"],["u",1,0.828,"0000380c380c380c380c380c380c380c380c380c380c381c1c3c0fec07cc0000"],["H",1,0.755,"00001008100810081008100810081ff81ff81008100810081008100810080000"],["%",5,1.025,"00001c00261042304260424066c03c80013c0366024204420c42086410380000"],["B",3,0.627,"00000fc00ce008300830083008600fc00ff008300830081008300cf00fc00000"],["w",1,1.327,"0000000000006186618621c423c4324c124812681c380c300c30000000000000"],["F",1,0.527,"00000ff00c000c000c000c000c000fe00fe00c000c000c000c000c000c000000"],["M",1,1.027,"000060067006700e780e681a6c126c3266226662626263c261c2618260820000"],["R",2,0.725,"00001fc019e0186018301830186018e01f8019c018c018601830183018180000"],["X",1,0.779,"000018180c180c300660036003c0018003c003c0066006600c301c1818180000"],["Ω",1,0.928,"000007e01e78181c300c300c600660066006300c300c180818180c307e3e0000"],["Ω",1,0.905,"000007e00e701818300c300c200420042004300c300c18180c303e7c3e7c0000"],["V",1,0.929,"0000300c380c381c18181c180c300c300e300660076007e003c003c001800000"],["®",4,1,"000007e00c3013c826e46626466247c2468246422666262410080c3003e00000"],["H",1,0.762,"00001818181818181818181818181ff818181818181818181818181818180000"],["x",1,1.237,"0000000000006006701e1c3c0ef003c007c01e703c38700c4006000000000000"],["I",1,1.312,"0000000000007ffe7ffe0100010001000100010001007ffe7ffe000000000000"],["E",1,0.745,"00000ff81ff81800180018000c000ff81ff81800180018000c001ff81ff80000"],["a",2,0.854,"00000fe01ff010700070003000700ff01c7038303830383038f01ffc0f1c0000"],["e",2,0.792,"000003e00ff00c381c1818181ffc3ffc380018001c001c000e0007fc03f80000"],["t",1,0.464,"00000300030007e007e00300030003000300030003000300038003e001e00000"],["®",4,1.002,"000007e00ff0183837cc6666666666c667c667c666c6366c3c381ff007e00000"],["1",3,0.317,"000003c003c000c000c000c000c000c000c000c000c000c000c000c000c00000"],["1",2,0.452,"000003e007e007e007e003e003e003e003e003e003e003e003e003e001e00000"],["4",2,0.717,"0000006000e001e001e00360066006600c601c701ff800600060006000600000"],["r",1,0.499,"000004700df00d000e000e000e000c000c000c000c000c000c000c000c000000"],["f",1,0.387,"000000e0018001000100010007c0010001000100010001000100010001000000"],["b",2,0.613,"0000080008000800080009c00fe00c300c300810081008300c300e600bc00000"],["B",3,0.635,"00001fc01ce018301830182018601fc01fe018301810181018301fe01fc00000"],["G",1,0.787,"000001f8071c0c001800180010003000307c100c180c180c0c0c073c03f00000"],["J",1,0.367,"00000060006000600060006000600060006000600060004000c001c007800000"],["p",2,0.627,"00000bc00e600c3008100810081008300c300fe00bc008000800080008000000"],["|",1,0.08,"0000018001800180018001800180018001800180018001800180018001800000"],["|",1,0.159,"0000018001800180018001800180018001800180018001800180018001800000"],["l",1,0.116,"0000018001800180018001800180018001800180018001800180018001800000"],["/",1,0.501,"0000002000600060004000c00080018001000100030002000600040004000000"],["/",1,0.341,"0000004000400040008000800080008001000100010000000200020000000000"],["L",1,0.511,"00000c000c000c000c000c000c000c000c000c000c000c000c000fe00ff00000"],["e",2,0.808,"000003e00ff00c381818181c381c3ffc30003000180018001e180ff803e00000"]];
+function biaTemplates(){
+  if(!BIA_T)BIA_T=biaPrep(BIA_TPL.map(function(t){var b="";for(var i=0;i<t[3].length;i++)b+=("000"+parseInt(t[3][i],16).toString(2)).slice(-4);return {ch:t[0],nc:t[1],asp:t[2],bits:b}}));
+  return BIA_T;
+}
+// File PDF -> valori del referto (solo le prime 2 pagine: la terza e' il glossario).
+function biaRead(file){
+  if(typeof DecompressionStream==="undefined"||typeof Path2D==="undefined")return Promise.reject(new Error("vecchio"));
+  return file.arrayBuffer().then(biaPages).then(function(pages){
+    var cv=document.createElement("canvas");cv.width=cv.height=BIA_N*BIA_S;
+    var ctx=cv.getContext("2d",{willReadFrequently:true}),T=biaTemplates(),lines=[];
+    pages.slice(0,2).forEach(function(t,i){var gs=biaGlyphs(t,i);gs.forEach(function(g){g.bits=biaBits(g,ctx);g.ch=biaClassify(g,T)});lines=lines.concat(biaLines(gs))});
+    var o=biaParse(lines),out={},n=0;
+    CK.bia.f.forEach(function(f){var v=o[f[0]];if(typeof v==="number"&&v>=f[3]&&v<=f[4]){out[f[0]]=v;n++}});
+    if(o.date&&D_RE.test(o.date)&&o.date<=todayIso())out.date=o.date;
+    return {v:out,n:n};
+  });
+}
+
+/* ---------- check dal nutrizionista: BIA + pliche nello stesso check ---------- */
+// Un check = una visita: referto BIA (dal PDF) e pliche e circonferenze (da Nutrium), anche uno solo dei due, l'altro si aggiunge dopo.
+// I due metodi danno numeri diversi (es. BIA 19,7% e pliche 16% nello stesso periodo): ognuno si confronta solo col check prima dello stesso metodo.
+// Servono allo scopo della fase: nel bulk mettere muscolo con poco grasso, nei cut togliere grasso tenendo il muscolo.
+// diario_check: { giorno: { date, bia?:{kg?,fat?,fm?,ffm?,pha?,...}, pli?:{kg?,fat?,ffm?,waist?,hips?}, note?, prop?:{ph,dk,state,date?} } }
+var checks={},ckForm=null,ckOpen=false,ckPdfMsg="",ckPdfFail=false;
+var CK={
+  pli:{n:"Pliche e circonferenze",ico:"📏",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["ffm","Massa magra","kg",20,150],["waist","Circonferenza vita","cm",40,200],["hips","Circonferenza fianchi","cm",40,200]]},
+  bia:{n:"BIA",ico:"⚡",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["fm","Massa grassa","kg",1,100],["ffm","Massa magra (FFM)","kg",20,150],["pha","Angolo di fase","°",2,15],["smm","Muscolo-scheletrica (SMM)","kg",10,80],["mm","Muscolare totale (MM)","kg",10,120],["asmm","Muscolare appendicolare","kg",5,60],["bcm","Massa cellulare (BCM)","kg",10,80],["tbw","Acqua totale (TBW)","L",15,80],["ecw","Acqua extracellulare","%",20,60],["hyd","Idratazione (TBW/FFM)","%",60,85],["bmr","Metabolismo basale","kcal",800,4000],["tdee","Dispendio totale (TDEE)","kcal",1200,6000]]}
+};
+var CK_D=/^\d{4}-\d{2}-\d{2}$/;
+function saveC(){lsPut("diario_check",checks)}
+// Dal formato della beta v1.19-1.22 ({pli:{giorno:..}, bia:{giorno:..}}) a un check per giorno.
+function ckMigrate(c){
+  if(!c||typeof c!=="object")return {};
+  if(!c.pli&&!c.bia)return c;
+  var out={};
+  ["pli","bia"].forEach(function(m){Object.keys(c[m]||{}).forEach(function(d){
+    var e=c[m][d];if(!e||!CK_D.test(d))return;
+    var o=out[d]=out[d]||{date:d},p={};for(var k in e)if(k!=="date"&&k!=="note"&&k!=="sum")p[k]=e[k];
+    if(Object.keys(p).length)o[m]=p;
+    if(e.note)o.note=o.note?o.note+" · "+e.note:e.note;
+  })});
+  Object.keys(out).forEach(function(d){if(!out[d].pli&&!out[d].bia)delete out[d]});
+  return out;
+}
+function ckDates(){return Object.keys(checks).filter(function(d){return CK_D.test(d)}).sort()}
+// Valori mancanti ricavati da quelli scritti (segnati come stima): grasso in kg, massa magra, % di grasso.
+function ckFull(e){
+  var o={_d:{}};for(var k in e)o[k]=e[k];
+  if(o.fm==null&&o.kg!=null&&o.fat!=null){o.fm=o.kg*o.fat/100;o._d.fm=1}
+  if(o.fm==null&&o.kg!=null&&o.ffm!=null){o.fm=o.kg-o.ffm;o._d.fm=1}
+  if(o.ffm==null&&o.kg!=null&&o.fm!=null){o.ffm=o.kg-o.fm;o._d.ffm=1}
+  if(o.fat==null&&o.kg&&o.fm!=null){o.fat=o.fm/o.kg*100;o._d.fat=1}
+  return o;
+}
+function ckPart(d,m){var c=checks[d];return c&&c[m]&&Object.keys(c[m]).length?ckFull(c[m]):null}
+function ckDec(u){return u==="kcal"||u==="mm"||u==="cm"?0:1}
+function ckF(m,k){return CK[m].f.filter(function(f){return f[0]===k})[0]}
+function ckUnit(u){return u==="°"||u==="%"?u:" "+u}
+function validPart(m,e){
+  if(!e||typeof e!=="object")return null;
+  var o={},n=0;CK[m].f.forEach(function(f){var v=e[f[0]];if(typeof v==="number"&&isFinite(v)&&v>=f[3]&&v<=f[4]){o[f[0]]=v;n++}});
+  return n?o:null;
+}
+function validCheck(d,e){
+  if(!CK_D.test(d)||!e||typeof e!=="object")return null;
+  var o={date:d},p=validPart("pli",e.pli),b=validPart("bia",e.bia);
+  if(!p&&!b)return null;if(p)o.pli=p;if(b)o.bia=b;
+  if(typeof e.note==="string"&&e.note.trim())o.note=e.note.trim().slice(0,120);
+  var P=e.prop;
+  if(P&&ADJ_OK[P.ph]&&Math.abs(P.dk)===ADJ_STEP&&/^(applied|declined|undone)$/.test(P.state)){o.prop={ph:P.ph,dk:P.dk,state:P.state};if(CK_D.test(P.date))o.prop.date=P.date}
+  return o;
+}
+function biaShaky(b){return b&&b.hyd!=null&&(b.hyd<71.5||b.hyd>74.5)}
+
+// ---- esito del check, in base allo scopo della fase ----
+function ckKind(ph){return ph==="bulk"?"bulk":/^cut/.test(ph)?"cut":null}
+var CK_GOAL={bulk:"mettere muscolo con poco grasso: almeno metà dei kg presi deve essere massa magra",cut:"togliere grasso tenendo il muscolo: massa magra persa al massimo 0,5 kg"};
+// Quanti giorni tra a e z cadono in fasi dello stesso tipo (bulk o cut).
+function ckShare(a,z,kind){var n=0,t=0;for(var d=a;d<z;d=iso(toT(d)+DAY)){t++;if(ckKind(phaseAt(d).id)===kind)n++}return t?n/t:0}
+function ckJudge(m,a,z,kind){
+  var A=ckPart(a,m),Z=ckPart(z,m);
+  if(!A||!Z||A.fm==null||Z.fm==null||A.ffm==null||Z.ffm==null)return null;
+  var dfm=Z.fm-A.fm,dff=Z.ffm-A.ffm,r={m:m,a:a,z:z,dfm:dfm,dff:dff,shaky:m==="bia"&&(biaShaky(checks[a].bia)||biaShaky(checks[z].bia))};
+  if(kind==="bulk"){
+    if(dff<-0.5){r.lv="warn";r.t="massa magra in calo ("+sgn(dff,1)+" kg): guarda proteine e allenamento, non le kcal"}
+    else if(dfm>dff&&dfm>1){r.lv="bad";r.t="più grasso ("+sgn(dfm,1)+" kg) che massa magra ("+sgn(dff,1)+" kg)"}
+    else if(dfm>dff){r.lv="warn";r.t="un po' più grasso ("+sgn(dfm,1)+" kg) che massa magra ("+sgn(dff,1)+" kg)"}
+    else{r.lv="ok";r.t="massa magra "+sgn(dff,1)+" kg, grasso "+sgn(dfm,1)+" kg"}
+  }else{
+    if(dff<=-1){r.lv="bad";r.t="persi "+fmt(-dff,1)+" kg di massa magra (grasso "+sgn(dfm,1)+" kg)"}
+    else if(dff<-0.5){r.lv="warn";r.t="massa magra "+sgn(dff,1)+" kg, grasso "+sgn(dfm,1)+" kg"}
+    else if(dfm>=0){r.lv="warn";r.t="il grasso non scende ("+sgn(dfm,1)+" kg): lo dice anche il peso"}
+    else{r.lv="ok";r.t="grasso "+sgn(dfm,1)+" kg, massa magra "+sgn(dff,1)+" kg"}
+  }
+  return r;
+}
+function ckOutcome(){
+  var ds=ckDates();if(!ds.length)return null;
+  var z=ds[ds.length-1],ph=phaseAt(z),pre=z<PH[0].from,kind=pre?null:ckKind(ph.id),o={z:z,ph:ph,kind:kind,pre:pre,res:[],lv:null};
+  if(!kind)return o;
+  ["pli","bia"].forEach(function(m){
+    if(!ckPart(z,m))return;
+    var prev=ds.filter(function(d){return d<z&&ckPart(d,m)}).pop();
+    if(!prev){o.res.push({m:m,lv:"none",t:"primo check con questo metodo: il confronto arriva dal prossimo"});return}
+    if(ckShare(prev,z,kind)<0.6){o.res.push({m:m,lv:"none",t:"il check prima ("+dIt(prev)+") è di un'altra fase: il confronto vale dal prossimo"});return}
+    var r=ckJudge(m,prev,z,kind);if(r)o.res.push(r);
+  });
+  var J=o.res.filter(function(r){return r.lv!=="none"}),sure=J.filter(function(r){return !r.shaky});
+  if(!J.length)return o;
+  var bad=sure.some(function(r){return r.lv==="bad"}),ok=J.some(function(r){return r.lv==="ok"});
+  o.lv=bad&&!ok?"bad":bad&&ok?"split":J.every(function(r){return r.lv==="ok"})?"ok":"warn";
+  if(o.lv==="bad")o.prop=ckProposal(o);
+  return o;
+}
+// Correzione proposta dal check: stesse regole di quelle del report (si applica solo col tasto, aspetta 14 giorni, massimo ±300 nella fase).
+function ckProposal(o){
+  var st=(checks[o.z]||{}).prop;if(st)return st;
+  var ph=o.ph.id,dk=o.kind==="bulk"?-ADJ_STEP:ADJ_STEP,today=todayIso(),tot=0,recent=false;
+  if(!ADJ_OK[ph])return null;
+  if(phaseAt(today).id!==ph||daysBetween(o.z,today)>45)return {ph:ph,dk:dk,state:"old"};
+  adj.forEach(function(a){if(a.ph===ph){tot+=a.dk;if(daysBetween(a.date,today)<14)recent=true}});
+  if(recent)return {ph:ph,dk:dk,state:"wait"};
+  if(Math.abs(tot+dk)>ADJ_MAX)return {ph:ph,dk:dk,state:"cap"};
+  return {ph:ph,dk:dk,state:"ask"};
+}
+function ckOutcomeHtml(o){
+  if(!o||!o.kind)return o?'<p class="note" style="margin:10px 0 0">Il check del '+dIt(o.z)+(o.pre?' è di prima del piano':' è nella fase '+o.ph.name)+': serve come punto di partenza per i prossimi.</p>':'';
+  if(!o.res.length)return "";
+  var T={ok:["ok","🟢",o.kind==="bulk"?"Il bulk sta mettendo soprattutto muscolo":"Il cut sta togliendo grasso e tiene il muscolo"],
+    warn:["warn","🟡",o.kind==="bulk"?"Bulk da tenere d'occhio":"Cut da tenere d'occhio"],
+    bad:["bad","🔴",o.kind==="bulk"?"Il bulk sta mettendo troppo grasso":"Il cut sta togliendo anche muscolo"],
+    split:["warn","🟡","I due metodi non sono d'accordo: nessun cambio, aspetta il prossimo check"]};
+  var t=o.lv?T[o.lv]:["warn","⚪","Esito dal prossimo check"];
+  var h='<div class="ckout '+t[0]+'"><b>'+t[1]+' '+t[2]+'</b>';
+  o.res.forEach(function(r){h+='<p>'+CK[r.m].ico+' '+CK[r.m].n+(r.a?' ('+dIt(r.a)+' → '+dIt(r.z)+')':'')+': '+esc(r.t)+(r.shaky?' · BIA poco affidabile (idratazione)':'')+'</p>'});
+  var P=o.prop;
+  if(P){
+    var what=sgn(P.dk,0)+' kcal sui carboidrati ('+sgn(P.dk/4,0)+' g)';
+    if(P.state==="ask")h+='<p class="ckprop">Proposta: <b>'+what+'</b> da oggi, fino alla fine della fase'+(o.kind==="bulk"?', per mettere meno grasso.':', per non perdere muscolo.')+' Proteine e grassi restano uguali.</p><div class="actions" style="margin-top:6px"><button class="btn" type="button" data-ckapply="'+o.z+'">Applica</button><button class="btn ghost" type="button" data-ckdecline="'+o.z+'">Lascia stare</button></div>';
+    else if(P.state==="applied")h+='<p class="ckprop">✅ Applicata dal '+dIt(P.date)+': '+what+'. La annulli nel Piano.</p>';
+    else if(P.state==="undone")h+='<p class="ckprop">↩️ Correzione annullata nel Piano.</p>';
+    else if(P.state==="declined")h+='<p class="ckprop">Lasciata stare: kcal invariate.</p>';
+    else if(P.state==="wait")h+='<p class="ckprop">Avrei proposto '+what+', ma hai già corretto le kcal da meno di 14 giorni: aspetta di vedere l\'effetto.</p>';
+    else if(P.state==="cap")h+='<p class="ckprop">Avrei proposto '+what+', ma le correzioni in questa fase arriverebbero oltre ±'+ADJ_MAX+' kcal: parlane col nutrizionista.</p>';
+    else if(P.state==="old")h+='<p class="ckprop">Il check è di un\'altra fase o di oltre 45 giorni fa: niente correzioni da qui.</p>';
+  }
+  return h+'</div>';
+}
+// Campanelle: solo avvisi.
+function ckBells(){
+  var b=[],today=todayIso(),ds=ckDates(),last=ds[ds.length-1];
+  if(last&&daysBetween(last,today)>=90)b.push("L'ultimo check è di "+daysBetween(last,today)+" giorni fa: di solito lo fai ogni 3 mesi.");
+  var bl=ds.filter(function(d){return ckPart(d,"bia")});
+  if(bl.length){
+    var lb=checks[bl[bl.length-1]].bia,pb=bl.length>1?checks[bl[bl.length-2]].bia:null;
+    if(biaShaky(lb))b.push("BIA del "+dIt(bl[bl.length-1])+": idratazione "+fmt(lb.hyd,1)+"% (normale circa 73%). Con troppa o poca acqua la BIA sbaglia grasso e massa magra: prendila con le pinze.");
+    if(pb&&lb.pha!=null&&pb.pha!=null&&pb.pha-lb.pha>=0.5)b.push("Angolo di fase sceso da "+fmt(pb.pha,1)+"° a "+fmt(lb.pha,1)+"°: può dipendere da stanchezza, idratazione o carico. Chiedine al nutrizionista.");
+  }
+  if(last){var P=ckPart(last,"pli"),B=ckPart(last,"bia");
+    if(P&&B&&P.fat!=null&&B.fat!=null&&Math.abs(P.fat-B.fat)>=3)b.push("Nello stesso check BIA ("+fmt(B.fat,1)+"%) e pliche ("+fmt(P.fat,1)+"%) danno numeri diversi: è normale, sono metodi diversi. Conta come cambia ciascuno da un check all'altro.");}
+  return b;
+}
+// Soglia per anticipare il cut: grasso salito di 4 punti o piu' dall'inizio del bulk (stesso metodo, prima le pliche).
+function ckFatRise(){
+  var bk=PH.filter(function(p){return p.id==="bulk"})[0];if(!bk)return null;
+  var ds=ckDates(),out=null;
+  ["pli","bia"].forEach(function(m){
+    if(out)return;
+    var l=ds.filter(function(d){var p=ckPart(d,m);return p&&p.fat!=null});
+    var base=l.filter(function(d){return d<=bk.from}).pop()||l.filter(function(d){return d>bk.from})[0];
+    var z=l[l.length-1];
+    if(base&&z&&z>base&&z>bk.from)out={m:m,d:ckPart(z,m).fat-ckPart(base,m).fat};
+  });
+  return out;
+}
+function ckPartHtml(d,m){
+  var Z=ckPart(d,m);
+  if(!Z)return '<div class="ckm"><h3>'+CK[m].ico+' '+CK[m].n+'</h3><p class="ckdelta" style="margin:0">'+(m==="bia"?'Non caricata.':'Non ancora segnate.')+' <button type="button" class="lnk" data-ckedit="'+d+'">'+(m==="bia"?'📄 Aggiungi il referto':'＋ Aggiungile')+'</button></p></div>';
+  var prev=ckDates().filter(function(x){return x<d&&ckPart(x,m)}).pop(),A=prev?ckPart(prev,m):null;
+  var h='<div class="ckm"><h3>'+CK[m].ico+' '+CK[m].n+(prev?' <small>· prima: '+fmtDate(prev)+'</small>':'')+'</h3><div class="ckgrid">';
+  var order=m==="pli"?["fat","fm","ffm","kg","waist","hips"]:["fat","fm","ffm","pha","smm","mm","asmm","bcm","tbw","ecw","hyd","bmr","tdee","kg"];
+  order.forEach(function(k){
+    if(Z[k]==null)return;
+    var f=ckF(m,k)||[k,"Grasso","kg"],lab=k==="fm"?"Grasso":f[1],dec=ckDec(f[2]);
+    h+='<div class="ckc"><small>'+lab+'</small><b>'+(Z._d[k]?"≈":"")+fmt(Z[k],dec)+ckUnit(f[2])+'</b>'+(A&&A[k]!=null?'<i>'+sgn(Z[k]-A[k],dec)+'</i>':'')+'</div>';
+  });
+  h+='</div>';
+  if(A&&A.kg!=null&&Z.kg!=null&&A.ffm!=null&&Z.ffm!=null)h+='<p class="ckdelta">Dal '+dIt(prev)+': peso '+sgn(Z.kg-A.kg,1)+' kg = massa magra '+sgn(Z.ffm-A.ffm,1)+' · grasso '+sgn(Z.fm-A.fm,1)+' kg.</p>';
+  if(m==="bia"&&(Z.bmr!=null||Z.tdee!=null))h+='<p class="ckdelta">Metabolismo e dispendio sono stime del macchinario: per le kcal conta il mantenimento reale nel Piano.</p>';
+  return h+'</div>';
+}
+// ---- modulo del check: data, BIA (dal referto), pliche, nota ----
+function ckRaw(m,v){var o={};if(v)CK[m].f.forEach(function(f){if(v[f[0]]!=null)o[f[0]]=fmt(v[f[0]],ckDec(f[2])===0?0:(String(v[f[0]]).split(".")[1]||"").length)});return o}
+function ckOpenForm(d){
+  var c=d&&checks[d];ckPdfMsg="";ckPdfFail=false;
+  ckForm={date:c?d:null,d:c?d:todayIso(),pli:ckRaw("pli",c&&c.pli),bia:ckRaw("bia",c&&c.bia),showBia:!!(c&&c.bia),note:c&&c.note||"",info:""};
+}
+function ckCollect(){
+  var F=ckForm;if(!F)return;var dd=document.getElementById("ckD");if(!dd)return;
+  F.d=dd.value;
+  ["pli","bia"].forEach(function(m){CK[m].f.forEach(function(f){var e=document.getElementById("ck-"+m+"-"+f[0]);if(e)F[m][f[0]]=e.value})});
+  var n=document.getElementById("ckN");if(n)F.note=n.value;
+}
+function ckFields(m){
+  return '<div class="fields" style="margin-top:8px">'+CK[m].f.map(function(f){var id="ck-"+m+"-"+f[0];return '<div><label for="'+id+'">'+f[1]+' ('+f[2]+')</label><input id="'+id+'" inputmode="decimal" value="'+esc(ckForm[m][f[0]]||"")+'"></div>'}).join("")+'</div>';
+}
+function ckFormHtml(){
+  var F=ckForm;
+  var h='<div class="ckform"><h3 style="font-size:17px;margin:8px 0">'+(F.date?'Check del '+fmtDate(F.date):'Nuovo check')+'</h3>';
+  h+='<div class="fields"><div><label for="ckD">Data del check</label><input id="ckD" type="date" max="'+todayIso()+'" value="'+F.d+'"></div></div>';
+  h+='<div class="ckm"><h3>⚡ BIA <small>· referto Bodygram</small></h3>';
+  if(F.info)h+='<p class="ckbell" style="background:var(--okbg)">'+esc(F.info)+'</p>';
+  if(F.showBia)h+=ckFields("bia")+'<p class="note" style="margin:6px 0 0">Valori del referto: correggili solo se ne vedi uno sbagliato.</p>';
+  h+='<div class="actions" style="margin-top:8px"><label class="btn ghost" for="ckPdf" style="display:inline-flex;align-items:center">📄 '+(F.showBia?'Ricarica il referto (PDF)':'Carica referto BIA (PDF)')+'</label></div>';
+  if(ckPdfMsg)h+='<div class="msg">'+esc(ckPdfMsg)+(ckPdfFail&&!F.showBia?' <button type="button" class="lnk" data-ckbia="1">Scrivila a mano</button>':'')+'</div>';
+  if(!F.showBia)h+='<p class="note" style="margin:6px 0 0">Se non ce l\'hai ancora lasciala vuota: la aggiungi dopo dal check.</p>';
+  h+='</div><div class="ckm"><h3>📏 Pliche e circonferenze <small>· da Nutrium</small></h3>'+ckFields("pli")+'<p class="note" style="margin:6px 0 0">Scrivi solo quello che hai; grasso in kg e massa magra li ricavo dal peso.</p></div>';
+  h+='<div class="fields" style="grid-template-columns:1fr;margin-top:10px"><div><label for="ckN">Nota (facoltativa)</label><input id="ckN" maxlength="120" placeholder="es. dopo allenamento, a digiuno" value="'+esc(F.note||"")+'"></div></div>';
+  h+='<div class="msg" id="ckMsg" role="status"></div><div class="actions"><button class="btn" type="button" data-cksave="1">Salva check</button><button class="btn ghost" type="button" data-ckx="1">Annulla</button>'+(F.date?'<button class="btn ghost" type="button" data-ckdel="1">Elimina</button>':'')+'</div></div>';
+  return h;
+}
+function renderChecks(){
+  var card=document.getElementById("ckCard"),ds=ckDates(),today=todayIso(),cur=phaseAt(today),kind=ckKind(cur.id);
+  var h='<h2><i class="hd" style="background:var(--c-trans)"></i>🧪 Check dal nutrizionista</h2>';
+  h+='<p class="note" style="margin:0">'+(kind?'Scopo di questa fase ('+cur.name+'): '+CK_GOAL[kind]+'. ':'')+'In ogni check carichi la BIA e scrivi le pliche: ogni metodo si confronta col check prima dello stesso metodo, perché danno numeri diversi.</p>';
+  if(!ds.length&&!ckForm)h+='<p style="margin:10px 0 0;font-size:14.5px;color:var(--mute)">Nessun check ancora: crea il primo col referto BIA e le pliche di Nutrium.</p>';
+  if(!ckForm){
+    h+=ckOutcomeHtml(ckOutcome());
+    h+=ckBells().map(function(t){return '<div class="ckbell">🔔 '+esc(t)+'</div>'}).join("");
+    if(ds.length){var z=ds[ds.length-1];h+='<p class="cklast">Ultimo check · <b>'+fmtDate(z)+'</b> <button type="button" class="lnk" data-ckedit="'+z+'">✎ Modifica</button></p>'+ckPartHtml(z,"bia")+ckPartHtml(z,"pli")+(checks[z].note?'<p class="ckdelta">📝 '+esc(checks[z].note)+'</p>':'')}
+    h+='<div class="actions"><button class="btn" type="button" data-ckadd="1">＋ Nuovo check</button></div>';
+    if(ckPdfMsg)h+='<div class="msg">'+esc(ckPdfMsg)+'</div>';
+  }else h+=ckFormHtml();
+  if(ds.length)h+='<details id="ckAll" style="margin-top:12px"'+(ckOpen?' open':'')+'><summary>Tutti i check ('+ds.length+')</summary>'+ds.slice().reverse().map(function(d){
+    var P=ckPart(d,"pli"),B=ckPart(d,"bia"),bits=[];
+    if(B)bits.push("⚡ "+(B.fat!=null?(B._d.fat?"≈":"")+fmt(B.fat,1)+"%":"BIA"));
+    if(P)bits.push("📏 "+(P.fat!=null?(P._d.fat?"≈":"")+fmt(P.fat,1)+"%":"pliche"));
+    return '<div class="ckrow"><span><b>'+fmtDate(d)+'</b> · '+phaseAt(d).name+'<small>'+bits.join(" · ")+(B?"":" · BIA mancante")+(P?"":" · pliche mancanti")+'</small></span><button class="btn ghost" type="button" data-ckedit="'+d+'" aria-label="Modifica il check del '+fmtDate(d)+'">✎</button></div>';
+  }).join("")+'</details>';
+  card.innerHTML=h;
+}
+function ckSave(){
+  ckCollect();
+  var F=ckForm,d=F.d,o={date:d},bad=null,n=0;
+  if(!CK_D.test(d)||d>todayIso()){msg("ckMsg","Scegli la data del check (fino a oggi).");return}
+  ["pli","bia"].forEach(function(m){
+    var part={};
+    CK[m].f.forEach(function(f){var t=String(F[m][f[0]]||"").trim();if(!t)return;var v=num(t);if(v==null||v<f[3]||v>f[4]){if(!bad)bad=f[1]+(m==="pli"?" (pliche)":" (BIA)");return}part[f[0]]=v;n++});
+    if(Object.keys(part).length)o[m]=part;
+  });
+  if(bad){msg("ckMsg","Controlla: "+bad+".");return}
+  if(!n){msg("ckMsg","Carica il referto BIA o scrivi almeno un valore delle pliche.");return}
+  var note=String(F.note||"").trim();if(note)o.note=note.slice(0,120);
+  var old=F.date&&checks[F.date];if(old&&old.prop&&F.date===d)o.prop=old.prop;
+  if(F.date&&F.date!==d)delete checks[F.date];
+  var ex=checks[d];
+  if(ex&&F.date!==d){if(!o.pli&&ex.pli)o.pli=ex.pli;if(!o.bia&&ex.bia)o.bia=ex.bia;if(ex.prop)o.prop=ex.prop}
+  checks[d]=o;saveC();ckForm=null;render();
+}
+// Referto BIA in PDF: si legge sul telefono (niente rete) e riempie la parte BIA del check; i valori si controllano prima di salvare.
+var BIA_LAB={pha:"angolo di fase",tbw:"acqua totale",ecw:"acqua extracellulare",hyd:"idratazione",ffm:"massa magra",fm:"massa grassa (kg)",fat:"massa grassa (%)",bcm:"massa cellulare",mm:"muscolare totale",smm:"muscolo-scheletrica",asmm:"appendicolare",bmr:"metabolismo basale",tdee:"dispendio totale",kg:"peso"};
+document.getElementById("ckPdf").addEventListener("change",function(ev){
+  var file=ev.target.files&&ev.target.files[0];ev.target.value="";if(!file)return;
+  ckCollect();ckPdfMsg="Leggo il referto…";ckPdfFail=false;renderChecks();
+  biaRead(file).then(function(r){
+    if(r.n<3)throw new Error("pochi");
+    var miss=Object.keys(BIA_LAB).filter(function(k){return r.v[k]==null}).map(function(k){return BIA_LAB[k]});
+    // senza modulo aperto: check della data del referto (se c'e' gia', lo completa)
+    if(!ckForm){var dd=r.v.date||todayIso();ckOpenForm(checks[dd]?dd:null);if(!checks[dd])ckForm.d=dd}
+    else if(!ckForm.date&&r.v.date)ckForm.d=r.v.date;
+    var v={};for(var k in r.v)if(k!=="date")v[k]=r.v[k];
+    ckForm.bia=ckRaw("bia",v);ckForm.showBia=true;ckPdfMsg="";
+    var far=r.v.date&&ckForm.d&&Math.abs(daysBetween(r.v.date,ckForm.d))>7;
+    ckForm.info="Letti "+r.n+" valori dal referto"+(r.v.date?" del "+fmtDate(r.v.date):"")+". Controlla e premi Salva check."+(miss.length?" Non ho trovato: "+miss.join(", ")+".":"")+(far?" Attenzione: il referto è del "+dIt(r.v.date)+", il check del "+dIt(ckForm.d)+".":"");
+    renderChecks();
+    document.getElementById("ckD").scrollIntoView({block:"center"});
+  },function(e){
+    ckPdfFail=true;
+    ckPdfMsg=e&&e.message==="vecchio"?"Questo telefono non riesce a leggere i PDF qui.":"Non riesco a leggere questo PDF (deve essere il referto BIA Bodygram).";
+    if(!ckForm)ckOpenForm(null);
+    renderChecks();
+  });
+});
+function ckApply(z){
+  var o=ckOutcome();if(!o||o.z!==z||!o.prop||o.prop.state!=="ask")return;
+  var P=o.prop,today=todayIso();
+  adj.push({date:today,ph:P.ph,dk:P.dk,mon:z,src:"check"});saveA();
+  checks[z].prop={ph:P.ph,dk:P.dk,state:"applied",date:today};saveC();render();
+}
+document.getElementById("ckCard").addEventListener("toggle",function(ev){if(ev.target.id==="ckAll")ckOpen=ev.target.open},true);
+document.getElementById("ckCard").addEventListener("click",function(ev){
+  var b=ev.target.closest("button");if(!b)return;
+  if(b.hasAttribute("data-ckadd")){ckOpenForm(null);renderChecks();return}
+  if(b.hasAttribute("data-ckbia")){ckCollect();ckForm.showBia=true;ckPdfMsg="";ckPdfFail=false;renderChecks();return}
+  if(b.hasAttribute("data-ckedit")){ckOpenForm(b.getAttribute("data-ckedit"));renderChecks();document.getElementById("ckD").scrollIntoView({block:"center"});return}
+  if(b.hasAttribute("data-ckx")){ckForm=null;ckPdfMsg="";renderChecks();return}
+  if(b.hasAttribute("data-cksave")){ckSave();return}
+  if(b.hasAttribute("data-ckapply")){ckApply(b.getAttribute("data-ckapply"));return}
+  if(b.hasAttribute("data-ckdecline")){var z=b.getAttribute("data-ckdecline"),o=ckOutcome();if(o&&o.prop&&o.prop.state==="ask"){checks[z].prop={ph:o.prop.ph,dk:o.prop.dk,state:"declined"};saveC();renderChecks()}return}
+  if(b.hasAttribute("data-ckdel")){if(confirm("Eliminare il check del "+fmtDate(ckForm.date)+"?")){delete checks[ckForm.date];saveC();ckForm=null;render()}return}
+});
+
+/* ---------- domenica partita ---------- */
+// Guida per le domeniche di campionato (dal 18 ott a meta' giugno): la domenica tipo dell'utente
+// (colazione, pranzo al campo, pasta dopo la partita, cena al pub) adattata alle kcal della fase.
+// Colazione e pasta si adattano, pranzo al campo e pub restano quelli. In cut soft la partita e' a mantenimento (gp).
+var SEASON={from:"2026-10-18",to:"2027-06-13"},gpSel=null;
+var GP_PUB={n:"Cena al pub",d:"ciabattona con bresaola (~80 g) e caprino: meglio più bresaola e meno caprino",k:700,p:45,c:75,g:25};
+function gpLunch(one){return one?{n:"Pranzo al campo",d:"1 frittatina (uova, formaggio, cotto) e un piatto di pasta",k:670,p:31,c:79,g:22}:{n:"Pranzo al campo",d:"2 frittatine (uova, formaggio, cotto) e un piatto di pasta",k:850,p:45,c:80,g:35}}
+function gpPasta(gr){return {n:"Dopo la partita",d:"pasta al pomodoro, "+gr+" g da cruda",k:Math.round((gr*3.55+66)/10)*10,p:Math.round(gr*0.125+1),c:Math.round(gr*0.71+5),g:Math.round(gr*0.015+5)}}
+function gpBreak(k){return {n:"Colazione",d:"carboidrati e un po' di proteine: es. yogurt greco 0%, avena o cereali, banana, miele, fette biscottate",k:k,p:Math.round(k*35/600),c:Math.round(k*105/600),g:Math.round(k*6/600)}}
+function gpPlan(ph,kcal){
+  var lunch=gpLunch(ph.id==="cutfull"),gr=ph.id==="cutfull"?60:80;
+  function rest(){return kcal-lunch.k-GP_PUB.k-(gr?gpPasta(gr).k:0)}
+  while(rest()<300&&gr>0)gr-=10;
+  while(rest()>750&&gr<120)gr+=10;
+  var rows=[gpBreak(Math.max(0,Math.round(rest()/10)*10)),lunch];
+  if(gr)rows.push(gpPasta(gr));
+  rows.push(GP_PUB);
+  return rows;
+}
+function sundayFrom(d){var t=toT(d);return iso(t+((7-new Date(t).getUTCDay())%7)*DAY)}
+// Fasi con domeniche di campionato ancora davanti, con la prima domenica di ciascuna.
+function gpPhases(){
+  var from=sundayFrom(todayIso()>SEASON.from?todayIso():SEASON.from),out=[];
+  PH.forEach(function(p){
+    var d=sundayFrom(p.from>from?p.from:from);
+    if(d<=p.to&&d<=SEASON.to)out.push({ph:p,d:d});
+  });
+  return out;
+}
+function renderGp(){
+  var card=document.getElementById("gpCard"),list=gpPhases();
+  card.hidden=!list.length;if(!list.length)return;
+  var cur=list.filter(function(x){return x.ph.id===gpSel})[0]||list[0];
+  var T=target(cur.d),extra=cur.ph.gp||0,kcal=T.kcal+extra,rows=gpPlan(cur.ph,kcal);
+  var tot={k:0,p:0,c:0,g:0};rows.forEach(function(r){tot.k+=r.k;tot.p+=r.p;tot.c+=r.c;tot.g+=r.g});
+  var h='<div class="gpseg" role="group" aria-label="Fase">'+list.map(function(x){var on=x.ph.id===cur.ph.id;return '<button type="button" data-gp="'+x.ph.id+'" aria-pressed="'+on+'"'+(on?' style="background:var(--c-'+x.ph.id+');color:var(--on-'+x.ph.id+');border-color:transparent"':'')+'>'+x.ph.name.replace(" pre-partita","")+'</button>'}).join("")+'</div>';
+  h+='<p class="gphd">'+(cur===list[0]?'Prossima partita: domenica '+dIt(cur.d):'Domeniche dal '+dIt(cur.d))+' · '+cur.ph.name+'</p>';
+  h+='<p style="margin:0"><span class="gpk">'+kcal+'</span> kcal · P '+T.p+' / C '+(T.c+Math.round(extra/4))+' / G '+T.g+' g</p>';
+  if(extra)h+='<p class="note" style="margin:4px 0 0">Il piano prevede la partita a mantenimento: '+sgn(extra,0)+' kcal sui carboidrati rispetto ai '+T.kcal+' degli altri giorni.</p>';
+  if(T.dk)h+='<p class="note" style="margin:4px 0 0">Comprese le tue correzioni ('+sgn(T.dk,0)+' kcal).</p>';
+  h+=rows.map(function(r){return '<div class="gprow"><div><b>'+r.n+'</b><small>'+r.d+'</small></div><span class="gk">~'+r.k+' kcal<small>P '+r.p+' · C '+r.c+' · G '+r.g+'</small></span></div>'}).join("");
+  h+='<div class="gptot"><b>Totale ~'+tot.k+' kcal</b><span>P '+tot.p+' · C '+tot.c+' · G '+tot.g+'</span></div>';
+  h+='<ul class="gptips"><li>Proteine un po\' sotto e grassi un po\' sopra il piano: per un giorno va bene, conta la settimana.</li>'+
+    '<li>Pranzo almeno 3 ore prima della partita. Bevi bene tutto il giorno.</li>'+
+    '<li>Birra al pub: una media sono ~200 kcal, toglile dalla pasta dopo la partita.</li>'+
+    '<li>Il sabato sera: meglio pizza o pasta, poco fritto e poco alcol.</li>'+
+    '<li>Segna tutto in Pasti con ✏️ Pasto veloce: dalla seconda domenica basta un tocco.</li></ul>';
+  document.getElementById("gpBody").innerHTML=h;
+}
+document.getElementById("gpBody").addEventListener("click",function(ev){
+  var b=ev.target.closest("[data-gp]");if(!b)return;
+  gpSel=b.getAttribute("data-gp");renderGp();
+});
 
 function renderGoals(list){
   var today=todayIso(),cur=curAvg(list),box=document.getElementById("goalsBox");
@@ -1466,6 +2035,7 @@ function renderGoals(list){
   }
   h+='</section>';
   box.innerHTML=h;
+  renderChecks();
 
   // traguardi
   var ms=document.getElementById("mstones");ms.innerHTML="";
@@ -1649,7 +2219,7 @@ function itemFrom(f,mode,v){
 }
 function keepFood(f){if(f.src!=="base"){foods[f.id]={id:f.id,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,u2:f.u2||null,src:f.src};saveF()}}
 function showTab(k){
-  ["diario","pasti","piano","goals"].forEach(function(x){
+  ["diario","pasti","piano","goals","dati"].forEach(function(x){
     document.getElementById("t-"+x).hidden=(x!==k);
     document.getElementById("tb-"+x).setAttribute("aria-selected",x===k?"true":"false");
   });
@@ -1699,7 +2269,8 @@ function renderPasti(){
     '<div class="gv"><div aria-hidden="true">🎯</div><b>'+T.kcal+'</b><span>Obiettivo</span></div>';
   document.getElementById("pMacros").innerHTML=macroHTML(tt,{p:T.p,c:T.c,g:T.g});
   // pasti
-  var mh="";
+  var mh="",ke=kcalLog[pDay];
+  if(!dayTot(pDay).n&&ke&&typeof ke.kcal==="number"&&ke.src!=="pasti")mh+='<p class="note" id="pManual" style="margin:0 4px 10px">📝 Totale scritto a mano: <b>'+ke.kcal+' kcal</b> su '+target(pDay).kcal+'. Se segni i pasti di questo giorno, vale il totale dei pasti.</p>';
   MEALS.forEach(function(m){
     var c=mealCfg(m.id),M=dayMeal(pDay,m.id)||{},it=M.items||[],st=mealState(pDay,m.id),t=mealTot(it);
     var names=it.length?it.map(function(x){return esc(x.n)}).join(", "):(st.s==="skip"?"Saltato":"Tocca per aggiungere");
@@ -2120,6 +2691,7 @@ function syncDates(){
   var d=document.getElementById("d"),wd=document.getElementById("wd");
   if(d.value===autoD)d.value=n;
   if(wd.value===autoD)wd.value=n;
+  var kqd=document.getElementById("kqd");if(kqd.value===iso(toT(autoD)-DAY)){kqd.value=iso(toT(n)-DAY);kqLoad()}
   autoD=n;render();
 }
 document.addEventListener("visibilitychange",function(){if(!document.hidden)syncDates()});
@@ -2127,7 +2699,7 @@ window.addEventListener("focus",syncDates);
 
 /* ---------- boot ---------- */
 if(BETA){document.getElementById("betaBar").hidden=false;document.title="Diario peso BETA";var ft=document.querySelector("main > p:last-of-type");ft.textContent+=" · BETA"}
-entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];
+entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];checks=lsGet("diario_check");if(checks.pli||checks.bia){checks=ckMigrate(checks);saveC()}
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 try{if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(function(){})}catch(e){}
