@@ -111,6 +111,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .tabs button[data-tab="diario"][aria-selected="true"]{background:var(--accent)}
 .tabs button[data-tab="piano"][aria-selected="true"]{background:var(--c-bulk);color:var(--on-bulk)}
 .tabs button[data-tab="goals"][aria-selected="true"]{background:var(--c-cutsoft);color:var(--on-cutsoft)}
+.tabs button[data-tab="dati"][aria-selected="true"]{background:var(--blue);color:var(--onsel)}
 .tl{display:flex;height:46px;border-radius:12px;overflow:hidden;gap:3px;position:relative}
 .tl button{border:0;padding:0;min-width:7px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;overflow:hidden;white-space:nowrap;opacity:.5}
 .tl button[aria-pressed="true"]{opacity:1}
@@ -198,14 +199,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .wkv b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:24px;line-height:1.1}
 .wkv.ok b{color:var(--ok)} .wkv.up b{color:var(--warn)} .wkv.down b{color:var(--bad)}
 .wkv p{margin:3px 0 0;font-size:14px;opacity:.85}
-.kq{font-size:14px;color:var(--mute);margin:10px 0}
-.kq b{color:var(--ink)}
 .why{margin:8px 0 0;font-size:14px;font-weight:600}
-.kdays{display:flex;gap:4px;margin-top:12px}
-.kday{flex:1;min-height:48px;border:0;border-radius:10px;background:transparent;color:var(--mute);font:inherit;font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:4px 0}
-.kday[aria-pressed="true"]{background:var(--soft);color:var(--ink)}
-.kday i{display:block;width:14px;height:14px;border-radius:50%;background:var(--line)}
-.kday i.si{background:var(--c-bulk)} .kday i.circa{background:var(--c-trans)} .kday i.no{background:var(--c-cut)}
 .note{margin:12px 0 0;color:var(--mute);font-size:13.5px}
 .betabar{background:var(--warn);color:var(--onsel);font-weight:700;font-size:13.5px;text-align:center;border-radius:12px;padding:8px 10px;margin:0 0 12px}
 .rhead{border-radius:16px;padding:14px 14px 12px;margin-bottom:12px;background:var(--soft)}
@@ -368,8 +362,6 @@ body.noscroll{overflow:hidden}
 .qsrc{font-size:14px;color:var(--mute);margin:14px 2px 6px}
 .qsrc b{color:var(--ink)}
 .bigbtn{display:block;width:100%;min-height:54px;border-radius:999px;margin-top:14px;font-size:17px}
-.kbig{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:30px}
-.ka.si{color:var(--ok)} .ka.circa{color:var(--warn)} .ka.no{color:var(--bad)}
 .pu{color:var(--mute);font-weight:600;margin-left:-4px}
 </style>
 </head>
@@ -384,6 +376,7 @@ body.noscroll{overflow:hidden}
     <button type="button" role="tab" id="tb-pasti" data-tab="pasti" aria-selected="false">Pasti</button>
     <button type="button" role="tab" id="tb-piano" data-tab="piano" aria-selected="false">Piano</button>
     <button type="button" role="tab" id="tb-goals" data-tab="goals" aria-selected="false">Goals</button>
+    <button type="button" role="tab" id="tb-dati" data-tab="dati" aria-selected="false">Dati</button>
   </div>
 
   <div id="t-diario" role="tabpanel">
@@ -455,72 +448,11 @@ body.noscroll{overflow:hidden}
     </form>
   </section>
 
-  <section class="card" id="kcalCard">
-    <h2><i class="hd" style="background:var(--c-bulk)"></i><span id="kTitle">Pasti di ieri</span></h2>
-    <div id="kBody"></div>
-    <div class="kdays" id="kDays"></div>
-    <div class="actions" style="margin-top:8px"><button class="btn" id="kGo" type="button">Segna i pasti di ieri</button></div>
-  </section>
-
   <section class="card">
     <h2><i class="hd" style="background:var(--c-cutsoft)"></i>Soglie per anticipare il cut</h2>
     <div id="trig"></div>
   </section>
 
-  <section class="card">
-    <h2><i class="hd" style="background:var(--c-bulk)"></i>Ultime pesate</h2>
-    <div class="scroll"><table>
-      <thead><tr><th>Data</th><th>Peso</th><th>Media 7g</th><th></th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table></div>
-    <div class="actions"><button class="btn ghost" id="exp" type="button">Esporta CSV</button></div>
-  </section>
-
-  <section class="card">
-    <details id="waistBox">
-      <summary>📏 Vita (facoltativa)</summary>
-      <form id="fw" autocomplete="off" style="margin-top:10px">
-        <div class="fields">
-          <div><label for="wd">Data</label><input id="wd" type="date" required></div>
-          <div><label for="wc">Vita (cm)</label><input id="wc" type="text" inputmode="decimal" placeholder="83" required></div>
-        </div>
-        <div class="actions"><button class="btn" type="submit">Salva vita</button></div>
-        <div class="msg" id="wmsg" role="status"></div>
-      </form>
-      <div class="scroll" style="margin-top:6px"><table>
-        <thead><tr><th>Data</th><th>Vita</th><th></th></tr></thead>
-        <tbody id="wrows"></tbody>
-      </table></div>
-    </details>
-  </section>
-
-  <section class="card">
-    <details>
-      <summary>📋 Incolla più pesate</summary>
-      <p style="color:var(--mute);font-size:14px;margin:8px 0">Una per riga: data e peso, es. <code>2026-10-06 78,4</code> o <code>06/10/2026 78.4</code>.</p>
-      <textarea id="bulk" aria-label="Pesate da incollare"></textarea>
-      <div class="actions"><button class="btn" id="bulkGo" type="button">Importa</button></div>
-      <div class="msg" id="bulkMsg" role="status"></div>
-    </details>
-  </section>
-
-  <section class="card">
-    <h2><i class="hd" style="background:var(--c-out)"></i>Backup</h2>
-    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">I dati stanno solo su questo telefono. Se cambi telefono o cancelli i dati del sito li perdi: fai ogni tanto un backup.</p>
-    <div class="actions" style="margin-top:0">
-      <button class="btn" id="bkShare" type="button">Salva file backup</button>
-      <button class="btn ghost" id="bkCopy" type="button">Copia backup</button>
-    </div>
-    <details style="margin-top:12px">
-      <summary>Ripristina da backup</summary>
-      <p style="color:var(--mute);font-size:14px;margin:8px 0">Incolla qui il testo del backup (JSON) e premi Ripristina. I dati si uniscono a quelli già presenti.</p>
-      <textarea id="bk" aria-label="Testo del backup"></textarea>
-      <div class="actions"><button class="btn" id="bkGo" type="button">Ripristina</button></div>
-      <div class="msg" id="bkMsg" role="status"></div>
-    </details>
-    <div class="msg" id="bkInfo" role="status"></div>
-    <div class="msg" id="bkLast" style="margin-top:2px"></div>
-  </section>
   </div>
 
   <div id="t-pasti" role="tabpanel" hidden>
@@ -567,7 +499,79 @@ body.noscroll{overflow:hidden}
     <section class="card" id="ckCard"></section>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.19</p>
+
+  <div id="t-dati" role="tabpanel" hidden>
+  <section class="card" id="kqCard">
+    <h2><i class="hd" style="background:var(--c-bulk)"></i>🍽️ Kcal di un giorno senza pasti</h2>
+    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">Se un giorno non segni i pasti, scrivi qui il totale: conta per gli avvisi sul peso e i report come i pasti. Se poi segni i pasti di quel giorno, vale il totale dei pasti.</p>
+    <form id="fkq" autocomplete="off" novalidate>
+      <div class="fields">
+        <div><label for="kqd">Giorno</label><input id="kqd" type="date" required></div>
+        <div><label for="kqk">Kcal</label><input id="kqk" type="text" inputmode="numeric" placeholder="1900"></div>
+      </div>
+      <p class="note" id="kqInfo" style="margin:8px 0 0"></p>
+      <div class="actions"><button class="btn" type="submit">Salva</button></div>
+      <div class="msg" id="kqMsg" role="status"></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2><i class="hd" style="background:var(--c-bulk)"></i>Ultime pesate</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Data</th><th>Peso</th><th>Media 7g</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <div class="actions"><button class="btn ghost" id="exp" type="button">Esporta CSV</button></div>
+  </section>
+
+    <section class="card">
+    <details id="waistBox">
+      <summary>📏 Vita (facoltativa)</summary>
+      <form id="fw" autocomplete="off" style="margin-top:10px">
+        <div class="fields">
+          <div><label for="wd">Data</label><input id="wd" type="date" required></div>
+          <div><label for="wc">Vita (cm)</label><input id="wc" type="text" inputmode="decimal" placeholder="83" required></div>
+        </div>
+        <div class="actions"><button class="btn" type="submit">Salva vita</button></div>
+        <div class="msg" id="wmsg" role="status"></div>
+      </form>
+      <div class="scroll" style="margin-top:6px"><table>
+        <thead><tr><th>Data</th><th>Vita</th><th></th></tr></thead>
+        <tbody id="wrows"></tbody>
+      </table></div>
+    </details>
+  </section>
+
+    <section class="card">
+    <details>
+      <summary>📋 Incolla più pesate</summary>
+      <p style="color:var(--mute);font-size:14px;margin:8px 0">Una per riga: data e peso, es. <code>2026-10-06 78,4</code> o <code>06/10/2026 78.4</code>.</p>
+      <textarea id="bulk" aria-label="Pesate da incollare"></textarea>
+      <div class="actions"><button class="btn" id="bulkGo" type="button">Importa</button></div>
+      <div class="msg" id="bulkMsg" role="status"></div>
+    </details>
+  </section>
+
+    <section class="card">
+    <h2><i class="hd" style="background:var(--c-out)"></i>Backup</h2>
+    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">I dati stanno solo su questo telefono. Se cambi telefono o cancelli i dati del sito li perdi: fai ogni tanto un backup.</p>
+    <div class="actions" style="margin-top:0">
+      <button class="btn" id="bkShare" type="button">Salva file backup</button>
+      <button class="btn ghost" id="bkCopy" type="button">Copia backup</button>
+    </div>
+    <details style="margin-top:12px">
+      <summary>Ripristina da backup</summary>
+      <p style="color:var(--mute);font-size:14px;margin:8px 0">Incolla qui il testo del backup (JSON) e premi Ripristina. I dati si uniscono a quelli già presenti.</p>
+      <textarea id="bk" aria-label="Testo del backup"></textarea>
+      <div class="actions"><button class="btn" id="bkGo" type="button">Ripristina</button></div>
+      <div class="msg" id="bkMsg" role="status"></div>
+    </details>
+    <div class="msg" id="bkInfo" role="status"></div>
+    <div class="msg" id="bkLast" style="margin-top:2px"></div>
+  </section>
+  </div>
+
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.20</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -826,8 +830,6 @@ function render(){
 /* in cima al Diario: pesata mancante e promemoria backup */
 var weighCard=document.getElementById("weighCard"),weighHome=document.createComment("pesata");
 weighCard.parentNode.insertBefore(weighHome,weighCard);
-var kcalCard=document.getElementById("kcalCard"),kcalHome=document.createComment("kcal");
-kcalCard.parentNode.insertBefore(kcalHome,kcalCard);
 function renderTodo(list,last){
   var today=todayIso(),todo=document.getElementById("todo");
   var due=!entries[today];
@@ -838,12 +840,7 @@ function renderTodo(list,last){
   var kg=document.getElementById("kg");
   if(due&&last&&!kg.value&&document.activeElement!==kg)kg.value=fmt(last.kg,1);
 
-  var kdue=!kcalLog[yesterdayIso()];
-  if(kdue&&kcalCard.parentNode!==todo)todo.insertBefore(kcalCard,weighCard.parentNode===todo?weighCard.nextSibling:todo.firstChild);
-  if(!kdue&&kcalCard.parentNode===todo)kcalHome.parentNode.insertBefore(kcalCard,kcalHome.nextSibling);
-  kcalCard.classList.toggle("due",kdue);
-  setText("kTitle",kdue?"Non hai segnato i pasti di ieri":"Pasti di ieri");
-  renderKcal();
+  renderKq();
 
   var lb=meta.lastBackup,ago=lb?Math.max(0,daysBetween(lb,today)):null;
   var warn=list.length>=7&&(ago==null||ago>=30);
@@ -855,26 +852,36 @@ function renderTodo(list,last){
 
 /* ---------- kcal e aderenza ---------- */
 var DL=["D","L","M","M","G","V","S"];
-// Card "Pasti di ieri" del Diario: riassume quello che hai segnato nel tab Pasti e ti porta li'.
-function renderKcal(){
-  var y=yesterdayIso(),e=kcalLog[y],T=target(y),t=dayTot(y),h;
-  if(e&&typeof e.kcal==="number"){
-    var df=kdiff(e),a=adhOf(e);
-    h='<p class="kq"><b class="kbig">'+e.kcal+'</b> kcal su '+T.kcal+' ('+sgn(df,0)+'): <b class="ka '+a+'">'+ADHL[a](df)+'</b></p>';
-    if(t.n)h+='<p class="note" style="margin:0">P '+Math.round(t.p)+' / '+T.p+' g · C '+Math.round(t.c)+' / '+T.c+' g · G '+Math.round(t.g)+' / '+T.g+' g</p>';
-    else h+='<p class="note" style="margin:0">Totale scritto a mano (prima del diario dei pasti).</p>';
-  }else if(e)h='<p class="kq">Segnato: '+ADH[e.adh]+' (senza kcal).</p>';
-  else h='<p class="kq">Non hai ancora segnato cosa hai mangiato ieri. Servono per capire se il piano è giusto per te.</p>';
-  document.getElementById("kBody").innerHTML=h;
-  setText("kGo",t.n?"Vedi i pasti di ieri":"Segna i pasti di ieri");
-  var dh="";
-  for(var i=6;i>=0;i--){
-    var dd=iso(toT(y)-i*DAY),x=kcalLog[dd],xa=x?adhOf(x):"";
-    dh+='<button type="button" class="kday" data-d="'+dd+'" aria-label="'+dIt(dd)+': '+(x?(typeof x.kcal==="number"?x.kcal+" kcal, ":"")+ADHL[xa](kdiff(x)):"non segnato")+'"><i class="'+xa+'"></i>'+DL[new Date(toT(dd)).getUTCDay()]+'</button>';
-  }
-  document.getElementById("kDays").innerHTML=dh;
+// Tab Dati: kcal di un giorno senza pasti. Va in diario_kcal senza src (come le kcal scritte a mano prima della v1.17);
+// se quel giorno segni i pasti, vince il totale dei pasti (syncDayKcal).
+function kqLoad(){
+  var d=document.getElementById("kqd").value,e=kcalLog[d],t=D_RE.test(d)?dayTot(d):{n:0},k=document.getElementById("kqk");
+  if(!D_RE.test(d)){setText("kqInfo","");return}
+  k.placeholder=String(target(d).kcal);
+  if(t.n){k.value="";k.disabled=true;setText("kqInfo","Il "+dIt(d)+" hai segnato i pasti: "+Math.round(t.k)+" kcal. Le kcal arrivano da lì, cambiale nei Pasti.");return}
+  k.disabled=false;
+  if(e&&typeof e.kcal==="number"&&e.src!=="pasti"){if(document.activeElement!==k)k.value=String(e.kcal);var df=kdiff(e),a=adhOf(e);setText("kqInfo","Scritto a mano: "+e.kcal+" kcal su "+target(d).kcal+" ("+sgn(df,0)+"): "+ADHL[a](df)+". Svuota e salva per toglierlo.")}
+  else{if(document.activeElement!==k)k.value="";setText("kqInfo","Obiettivo del "+dIt(d)+": "+target(d).kcal+" kcal.")}
 }
-function loadKDay(){renderKcal()}
+function renderKq(){
+  var d=document.getElementById("kqd");
+  d.max=todayIso();if(!d.value)d.value=yesterdayIso();
+  kqLoad();
+}
+var D_RE=/^\d{4}-\d{2}-\d{2}$/;
+document.getElementById("kqd").addEventListener("change",function(){msg("kqMsg","");document.getElementById("kqk").value="";kqLoad()});
+document.getElementById("fkq").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var d=document.getElementById("kqd").value,v=document.getElementById("kqk").value.trim(),e=kcalLog[d];
+  if(!D_RE.test(d)||d>todayIso()){msg("kqMsg","Scegli un giorno fino a oggi.");return}
+  if(dayTot(d).n){msg("kqMsg","Quel giorno hai segnato i pasti: cambia le kcal nei Pasti.");return}
+  if(!v){if(e&&e.src!=="pasti"){delete kcalLog[d];saveK();render();msg("kqMsg","Tolto il "+dIt(d)+".")}else msg("kqMsg","Scrivi le kcal.");return}
+  var k=num(v);
+  if(k==null||k<=0||k>9000||Math.round(k)!==k){msg("kqMsg","Scrivi le kcal come numero intero, es. 1900.");return}
+  var n={date:d,kcal:k};n.adh=adhOf(n);kcalLog[d]=n;saveK();render();
+  msg("kqMsg","Salvato: "+k+" kcal il "+dIt(d)+" ("+ADHL[n.adh](kdiff(n))+").");
+});
+function loadKDay(){renderKq()}
 
 /* ---------- settimane (lunedi'-domenica) ---------- */
 function mondayOf(s){var t=toT(s);return iso(t-((new Date(t).getUTCDay()+6)%7)*DAY)}
@@ -1175,8 +1182,6 @@ Array.prototype.forEach.call(document.querySelectorAll(".step"),function(b){
   });
 });
 document.getElementById("wd").value=todayIso();
-document.getElementById("kGo").addEventListener("click",function(){goPasti(yesterdayIso())});
-document.getElementById("kDays").addEventListener("click",function(ev){var b=ev.target.closest(".kday");if(b)goPasti(b.getAttribute("data-d"))});
 document.getElementById("fw").addEventListener("submit",function(ev){
   ev.preventDefault();
   var d=document.getElementById("wd").value,c=num(document.getElementById("wc").value);
@@ -1862,7 +1867,7 @@ function itemFrom(f,mode,v){
 }
 function keepFood(f){if(f.src!=="base"){foods[f.id]={id:f.id,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,u2:f.u2||null,src:f.src};saveF()}}
 function showTab(k){
-  ["diario","pasti","piano","goals"].forEach(function(x){
+  ["diario","pasti","piano","goals","dati"].forEach(function(x){
     document.getElementById("t-"+x).hidden=(x!==k);
     document.getElementById("tb-"+x).setAttribute("aria-selected",x===k?"true":"false");
   });
@@ -1912,7 +1917,8 @@ function renderPasti(){
     '<div class="gv"><div aria-hidden="true">🎯</div><b>'+T.kcal+'</b><span>Obiettivo</span></div>';
   document.getElementById("pMacros").innerHTML=macroHTML(tt,{p:T.p,c:T.c,g:T.g});
   // pasti
-  var mh="";
+  var mh="",ke=kcalLog[pDay];
+  if(!dayTot(pDay).n&&ke&&typeof ke.kcal==="number"&&ke.src!=="pasti")mh+='<p class="note" id="pManual" style="margin:0 4px 10px">📝 Totale scritto a mano: <b>'+ke.kcal+' kcal</b> su '+target(pDay).kcal+'. Se segni i pasti di questo giorno, vale il totale dei pasti.</p>';
   MEALS.forEach(function(m){
     var c=mealCfg(m.id),M=dayMeal(pDay,m.id)||{},it=M.items||[],st=mealState(pDay,m.id),t=mealTot(it);
     var names=it.length?it.map(function(x){return esc(x.n)}).join(", "):(st.s==="skip"?"Saltato":"Tocca per aggiungere");
@@ -2333,6 +2339,7 @@ function syncDates(){
   var d=document.getElementById("d"),wd=document.getElementById("wd");
   if(d.value===autoD)d.value=n;
   if(wd.value===autoD)wd.value=n;
+  var kqd=document.getElementById("kqd");if(kqd.value===iso(toT(autoD)-DAY)){kqd.value=iso(toT(n)-DAY);kqLoad()}
   autoD=n;render();
 }
 document.addEventListener("visibilitychange",function(){if(!document.hidden)syncDates()});
