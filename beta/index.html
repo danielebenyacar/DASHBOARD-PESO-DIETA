@@ -148,6 +148,19 @@ details summary{cursor:pointer;font-weight:600;font-size:15.5px}
 .gptot{display:flex;justify-content:space-between;gap:10px;padding:10px 0 2px;font-size:14.5px}
 .gptips{margin:10px 0 0;padding-left:18px;font-size:14px;color:var(--mute)}
 .gptips li{margin:4px 0}
+.ckm{margin-top:14px}
+.ckm h3{font-size:16px;margin:0 0 8px}
+.ckm h3 small{font-weight:500;color:var(--mute);font-size:13.5px}
+.ckgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.ckc small{display:block;color:var(--mute);font-size:12.5px;line-height:1.25}
+.ckc b{font-size:17px}
+.ckc i{font-style:normal;color:var(--mute);font-size:13px;margin-left:4px}
+.ckdelta{font-size:13.5px;color:var(--mute);margin:8px 0 0}
+.ckbell{background:var(--upbg);border-radius:12px;padding:9px 12px;font-size:14px;margin:8px 0 0}
+.ckrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ckrow span{flex:1;min-width:0}
+.ckrow small{display:block;color:var(--mute);font-size:12.5px}
+.ckform{margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
 .bar{height:16px;border-radius:99px;background:var(--soft);overflow:hidden}
 .bar i{display:block;height:100%;border-radius:99px;min-width:0}
 .gh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
@@ -551,9 +564,10 @@ body.noscroll{overflow:hidden}
       <div class="actions"><button class="btn ghost" id="rvClose" type="button">Chiudi</button></div>
     </section>
     <div id="goalsBox"></div>
+    <section class="card" id="ckCard"></section>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.18</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.19</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1215,7 +1229,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){return JSON.stringify({v:4,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals})}
+function backupText(){return JSON.stringify({v:5,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals,checks:checks})}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -1248,10 +1262,13 @@ document.getElementById("bkGo").addEventListener("click",function(){
     });
     // v4: cibi tuoi e diario dei pasti
     var nf=0,nm=0;
-    Object.keys(o.foods||{}).forEach(function(k){var f=o.foods[k];if(validFood(f,k)){foods[k]={id:k,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,src:f.src};nf++}});
+    Object.keys(o.foods||{}).forEach(function(k){var f=o.foods[k];if(validFood(f,k)){foods[k]={id:k,n:f.n,b:f.b||"",k:f.k,p:f.p,c:f.c,g:f.g,u:f.u||null,u2:f.u2||null,src:f.src};nf++}});
     Object.keys(o.meals||{}).forEach(function(d){var day=cleanDay(d,o.meals[d]);if(day){meals[d]=day;syncDayKcal(d);nm++}});
-    lsSet();saveK();saveR();saveA();saveF();saveP();render();loadKDay();
-    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+".");
+    // v5: check dal nutrizionista (BIA e pliche)
+    var nc5=0,oc=o.checks||{};
+    ["pli","bia"].forEach(function(m){Object.keys(oc[m]||{}).forEach(function(d){var e=validCheck(m,d,oc[m][d]);if(e){checks[m][d]=e;nc5++}})});
+    lsSet();saveK();saveR();saveA();saveF();saveP();saveC();render();loadKDay();
+    msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+(nc5?", "+nc5+" check":"")+".");
     document.getElementById("bk").value="";
   }catch(e){msg("bkMsg","Testo non valido.")}
 });
@@ -1407,6 +1424,128 @@ function renderTdee(){
   renderGp();
 }
 
+/* ---------- check dal nutrizionista (BIA e plicometria) ---------- */
+// Tenuti separati dal resto: non cambiano kcal, verdetto o report. Due metodi che non si mescolano mai,
+// perche' danno numeri diversi (es. BIA 19,7% e pliche 16% nello stesso periodo): ognuno si confronta solo con se stesso.
+// diario_check: { pli: { giorno: {date, kg?, fat?, ffm?, sum?, waist?, hips?, note?} }, bia: { giorno: {date, kg?, fat?, fm?, ffm?, pha?, ...} } }
+var checks={pli:{},bia:{}},ckForm=null,ckOpen=false;
+var CK={
+  pli:{n:"Plicometria",ico:"📏",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["ffm","Massa magra","kg",20,150],["sum","Somma pliche","mm",5,400],["waist","Vita","cm",40,200],["hips","Fianchi","cm",40,200]]},
+  bia:{n:"BIA",ico:"⚡",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["fm","Massa grassa","kg",1,100],["ffm","Massa magra (FFM)","kg",20,150],["pha","Angolo di fase","°",2,15],["smm","Muscolo-scheletrica (SMM)","kg",10,80],["mm","Muscolare totale (MM)","kg",10,120],["asmm","Muscolare appendicolare","kg",5,60],["bcm","Massa cellulare (BCM)","kg",10,80],["tbw","Acqua totale (TBW)","L",15,80],["ecw","Acqua extracellulare","%",20,60],["hyd","Idratazione (TBW/FFM)","%",60,85],["bmr","Metabolismo basale","kcal",800,4000],["tdee","Dispendio totale (TDEE)","kcal",1200,6000]]}
+};
+function saveC(){lsPut("diario_check",checks)}
+function ckList(m){return Object.keys(checks[m]||{}).sort().map(function(d){return checks[m][d]})}
+// Valori mancanti ricavati da quelli scritti (segnati come stima): grasso in kg, massa magra, % di grasso.
+function ckFull(e){
+  var o={_d:{}};for(var k in e)o[k]=e[k];
+  if(o.fm==null&&o.kg!=null&&o.fat!=null){o.fm=o.kg*o.fat/100;o._d.fm=1}
+  if(o.fm==null&&o.kg!=null&&o.ffm!=null){o.fm=o.kg-o.ffm;o._d.fm=1}
+  if(o.ffm==null&&o.kg!=null&&o.fm!=null){o.ffm=o.kg-o.fm;o._d.ffm=1}
+  if(o.fat==null&&o.kg&&o.fm!=null){o.fat=o.fm/o.kg*100;o._d.fat=1}
+  return o;
+}
+function ckDec(u){return u==="kcal"||u==="mm"||u==="cm"?0:1}
+function ckF(m,k){return CK[m].f.filter(function(f){return f[0]===k})[0]}
+function ckVal(m,k,v){var f=ckF(m,k);return fmt(v,ckDec(f[2]))+(f[2]==="°"||f[2]==="%"?f[2]:" "+f[2])}
+function validCheck(m,d,e){
+  if(!CK[m]||!/^\d{4}-\d{2}-\d{2}$/.test(d)||!e||typeof e!=="object")return null;
+  var o={date:d},n=0;
+  CK[m].f.forEach(function(f){var v=e[f[0]];if(typeof v==="number"&&isFinite(v)&&v>=f[3]&&v<=f[4]){o[f[0]]=v;n++}});
+  if(typeof e.note==="string"&&e.note.trim())o.note=e.note.trim().slice(0,120);
+  return n?o:null;
+}
+// Campanelle: solo avvisi, niente correzioni automatiche.
+function ckBells(){
+  var b=[],today=todayIso(),last=null;
+  ["pli","bia"].forEach(function(m){var l=ckList(m);if(l.length&&(!last||l[l.length-1].date>last))last=l[l.length-1].date});
+  if(last&&daysBetween(last,today)>=90)b.push("L'ultimo check è di "+daysBetween(last,today)+" giorni fa: di solito lo fai ogni 3 mesi.");
+  ["pli","bia"].forEach(function(m){
+    var l=ckList(m);if(l.length<2)return;
+    var a=ckFull(l[l.length-2]),z=ckFull(l[l.length-1]);
+    if(a.fm==null||z.fm==null||a.ffm==null||z.ffm==null||a.date<PH[0].from)return;
+    var ph=phaseAt(z.date).id,dfm=z.fm-a.fm,dff=z.ffm-a.ffm,who=CK[m].n+" ("+dIt(a.date)+" → "+dIt(z.date)+")";
+    if(ph==="bulk"&&dfm>0.5&&dfm>dff)b.push(who+": nel bulk hai preso più grasso ("+sgn(dfm,1)+" kg) che massa magra ("+sgn(dff,1)+" kg). Parlane col nutrizionista prima di toccare le kcal.");
+    if(/^cut/.test(ph)&&dff<-1)b.push(who+": nel cut hai perso "+fmt(-dff,1)+" kg di massa magra. Parlane col nutrizionista.");
+  });
+  var bl=ckList("bia");
+  if(bl.length){
+    var lb=bl[bl.length-1];
+    if(lb.hyd!=null&&(lb.hyd<71.5||lb.hyd>74.5))b.push("BIA del "+dIt(lb.date)+": idratazione "+fmt(lb.hyd,1)+"% (normale circa 73%). Con troppa o poca acqua la BIA sbaglia grasso e massa magra: prendila con le pinze.");
+    if(bl.length>1&&lb.pha!=null&&bl[bl.length-2].pha!=null&&bl[bl.length-2].pha-lb.pha>=0.5)b.push("Angolo di fase sceso da "+fmt(bl[bl.length-2].pha,1)+"° a "+fmt(lb.pha,1)+"°: può dipendere da stanchezza, idratazione o carico. Chiedine al nutrizionista.");
+    var pl=ckList("pli"),lp=pl.length?ckFull(pl[pl.length-1]):null,lbf=ckFull(lb);
+    if(lp&&lp.fat!=null&&lbf.fat!=null&&Math.abs(daysBetween(lp.date,lb.date))<=21&&Math.abs(lp.fat-lbf.fat)>=3)
+      b.push("BIA ("+fmt(lbf.fat,1)+"%) e pliche ("+fmt(lp.fat,1)+"%) danno numeri diversi: è normale, sono metodi diversi. Segui come cambia ciascuno nel tempo.");
+  }
+  return b;
+}
+function ckBlock(m){
+  var l=ckList(m);if(!l.length)return "";
+  var z=ckFull(l[l.length-1]),a=l.length>1?ckFull(l[l.length-2]):null;
+  var h='<div class="ckm"><h3>'+CK[m].ico+' '+CK[m].n+' <small>· '+fmtDate(z.date)+(a?' (prima: '+fmtDate(a.date)+')':'')+'</small></h3><div class="ckgrid">';
+  var order=m==="pli"?["fat","fm","ffm","kg","sum","waist","hips"]:["fat","fm","ffm","pha","smm","mm","asmm","bcm","tbw","ecw","hyd","bmr","tdee","kg"];
+  order.forEach(function(k){
+    if(z[k]==null)return;
+    var f=ckF(m,k)||[k,"Grasso","kg"],lab=k==="fm"?"Grasso":f[1],dec=ckDec(f[2]);
+    var val=(z._d[k]?"≈":"")+fmt(z[k],dec)+(f[2]==="°"||f[2]==="%"?f[2]:" "+f[2]);
+    var dl=a&&a[k]!=null?'<i>'+sgn(z[k]-a[k],dec)+'</i>':'';
+    h+='<div class="ckc"><small>'+lab+'</small><b>'+val+'</b>'+dl+'</div>';
+  });
+  h+='</div>';
+  if(a&&a.kg!=null&&z.kg!=null&&a.ffm!=null&&z.ffm!=null&&a.fm!=null&&z.fm!=null)
+    h+='<p class="ckdelta">Dal '+dIt(a.date)+': peso '+sgn(z.kg-a.kg,1)+' kg = massa magra '+sgn(z.ffm-a.ffm,1)+' · grasso '+sgn(z.fm-a.fm,1)+' kg.</p>';
+  if(z.note)h+='<p class="ckdelta">📝 '+esc(z.note)+'</p>';
+  if(m==="bia"&&(z.bmr!=null||z.tdee!=null))h+='<p class="ckdelta">Metabolismo e dispendio sono stime del macchinario: per le kcal conta il mantenimento reale nel Piano.</p>';
+  return h+'</div>';
+}
+function ckFormHtml(){
+  var F=ckForm,e=F.date&&checks[F.m][F.date]||{};
+  var h='<div class="ckform"><div class="gpseg" role="group" aria-label="Metodo">'+["pli","bia"].map(function(m){return '<button type="button" data-ckm="'+m+'" aria-pressed="'+(F.m===m)+'"'+(F.m===m?' style="background:var(--accent);color:var(--onsel);border-color:transparent"':'')+(F.edit?' disabled':'')+'>'+CK[m].ico+' '+CK[m].n+'</button>'}).join("")+'</div>';
+  h+='<div class="fields"><div><label for="ckD">Data del check</label><input id="ckD" type="date" max="'+todayIso()+'" value="'+(F.date||todayIso())+'"></div></div>';
+  h+='<div class="fields" style="margin-top:8px">'+CK[F.m].f.map(function(f){return '<div><label for="ck-'+f[0]+'">'+f[1]+' ('+f[2]+')</label><input id="ck-'+f[0]+'" inputmode="decimal" value="'+(e[f[0]]!=null?fmt(e[f[0]],ckDec(f[2])===0?0:(String(e[f[0]]).split(".")[1]||"").length):"")+'"></div>'}).join("")+'</div>';
+  h+='<div class="fields" style="grid-template-columns:1fr;margin-top:8px"><div><label for="ckN">Nota (facoltativa)</label><input id="ckN" maxlength="120" placeholder="es. dopo allenamento, a digiuno" value="'+esc(e.note||"")+'"></div></div>';
+  h+='<p class="note" style="margin:8px 0 0">Scrivi solo quello che hai: gli altri campi possono restare vuoti. Grasso in kg e massa magra li ricavo io dal peso.</p>';
+  h+='<div class="msg" id="ckMsg" role="status"></div><div class="actions"><button class="btn" type="button" data-cksave="1">Salva check</button><button class="btn ghost" type="button" data-ckx="1">Annulla</button>'+(F.edit?'<button class="btn ghost" type="button" data-ckdel="1">Elimina</button>':'')+'</div></div>';
+  return h;
+}
+function renderChecks(){
+  var card=document.getElementById("ckCard"),all=[];
+  ["pli","bia"].forEach(function(m){ckList(m).forEach(function(e){all.push({m:m,e:e})})});
+  all.sort(function(x,y){return x.e.date<y.e.date?1:x.e.date>y.e.date?-1:0});
+  var h='<h2><i class="hd" style="background:var(--c-trans)"></i>🧪 Check dal nutrizionista</h2>';
+  h+='<p class="note" style="margin:0">BIA e pliche sono stime con i loro errori e danno numeri diversi: confronta ogni metodo solo con se stesso, check dopo check. Questi dati non cambiano kcal, avvisi o report del piano.</p>';
+  if(!all.length&&!ckForm)h+='<p style="margin:10px 0 0;font-size:14.5px;color:var(--mute)">Nessun check ancora. Aggiungi l\'ultimo referto (BIA) o i valori delle pliche (da Nutrium).</p>';
+  h+=ckBells().map(function(t){return '<div class="ckbell">🔔 '+esc(t)+'</div>'}).join("");
+  h+=ckBlock("pli")+ckBlock("bia");
+  if(ckForm)h+=ckFormHtml();
+  else h+='<div class="actions"><button class="btn" type="button" data-ckadd="1">＋ Aggiungi check</button></div>';
+  if(all.length)h+='<details id="ckAll" style="margin-top:12px"'+(ckOpen?' open':'')+'><summary>Tutti i check ('+all.length+')</summary>'+all.map(function(x){var z=ckFull(x.e);return '<div class="ckrow"><span><b>'+fmtDate(x.e.date)+'</b> · '+CK[x.m].ico+' '+CK[x.m].n+'<small>'+[z.fat!=null?(z._d.fat?"≈":"")+fmt(z.fat,1)+"% grasso":"",z.ffm!=null?(z._d.ffm?"≈":"")+fmt(z.ffm,1)+" kg magra":"",z.kg!=null?fmt(z.kg,1)+" kg":""].filter(Boolean).join(" · ")+'</small></span><button class="btn ghost" type="button" data-ckedit="'+x.m+'|'+x.e.date+'">✎</button></div>'}).join("")+'</details>';
+  card.innerHTML=h;
+}
+function ckSave(){
+  var F=ckForm,d=document.getElementById("ckD").value,o={date:d},bad=null,n=0;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||d>todayIso()){msg("ckMsg","Scegli la data del check (fino a oggi).");return}
+  CK[F.m].f.forEach(function(f){
+    var t=document.getElementById("ck-"+f[0]).value.trim();if(!t)return;
+    var v=num(t);if(v==null||v<f[3]||v>f[4]){if(!bad)bad=f[1];return}
+    o[f[0]]=v;n++;
+  });
+  if(bad){msg("ckMsg","Controlla: "+bad+".");return}
+  if(!n){msg("ckMsg","Scrivi almeno un valore.");return}
+  var note=document.getElementById("ckN").value.trim();if(note)o.note=note.slice(0,120);
+  if(F.edit&&F.date!==d)delete checks[F.m][F.date];
+  checks[F.m][d]=o;saveC();ckForm=null;renderChecks();
+}
+document.getElementById("ckCard").addEventListener("toggle",function(ev){if(ev.target.id==="ckAll")ckOpen=ev.target.open},true);
+document.getElementById("ckCard").addEventListener("click",function(ev){
+  var b=ev.target.closest("button");if(!b)return;
+  if(b.hasAttribute("data-ckadd")){ckForm={m:"pli",date:null,edit:false};renderChecks();return}
+  if(b.hasAttribute("data-ckm")){var dv=document.getElementById("ckD").value;ckForm={m:b.getAttribute("data-ckm"),date:null,edit:false};renderChecks();if(dv)document.getElementById("ckD").value=dv;return}
+  if(b.hasAttribute("data-ckedit")){var p=b.getAttribute("data-ckedit").split("|");ckForm={m:p[0],date:p[1],edit:true};renderChecks();document.getElementById("ckD").scrollIntoView({block:"center"});return}
+  if(b.hasAttribute("data-ckx")){ckForm=null;renderChecks();return}
+  if(b.hasAttribute("data-cksave")){ckSave();return}
+  if(b.hasAttribute("data-ckdel")){if(confirm("Eliminare il check del "+fmtDate(ckForm.date)+"?")){delete checks[ckForm.m][ckForm.date];saveC();ckForm=null;renderChecks()}return}
+});
+
 /* ---------- domenica partita ---------- */
 // Guida per le domeniche di campionato (dal 18 ott a meta' giugno): la domenica tipo dell'utente
 // (colazione, pranzo al campo, pasta dopo la partita, cena al pub) adattata alle kcal della fase.
@@ -1539,6 +1678,7 @@ function renderGoals(list){
   }
   h+='</section>';
   box.innerHTML=h;
+  renderChecks();
 
   // traguardi
   var ms=document.getElementById("mstones");ms.innerHTML="";
@@ -2200,7 +2340,7 @@ window.addEventListener("focus",syncDates);
 
 /* ---------- boot ---------- */
 if(BETA){document.getElementById("betaBar").hidden=false;document.title="Diario peso BETA";var ft=document.querySelector("main > p:last-of-type");ft.textContent+=" · BETA"}
-entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];
+entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];checks=lsGet("diario_check");if(!checks.pli)checks.pli={};if(!checks.bia)checks.bia={};
 render();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 try{if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(function(){})}catch(e){}
