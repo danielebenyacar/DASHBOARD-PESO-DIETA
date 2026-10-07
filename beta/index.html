@@ -572,7 +572,7 @@ body.noscroll{overflow:hidden}
   </section>
   </div>
 
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.21</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.22</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1614,7 +1614,7 @@ function biaRead(file){
 // Tenuti separati dal resto: non cambiano kcal, verdetto o report. Due metodi che non si mescolano mai,
 // perche' danno numeri diversi (es. BIA 19,7% e pliche 16% nello stesso periodo): ognuno si confronta solo con se stesso.
 // diario_check: { pli: { giorno: {date, kg?, fat?, ffm?, sum?, waist?, hips?, note?} }, bia: { giorno: {date, kg?, fat?, fm?, ffm?, pha?, ...} } }
-var checks={pli:{},bia:{}},ckForm=null,ckOpen=false,ckPdfMsg="";
+var checks={pli:{},bia:{}},ckForm=null,ckOpen=false,ckPdfMsg="",ckPdfFail=false;
 var CK={
   pli:{n:"Pliche e circonferenze",ico:"📏",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["ffm","Massa magra","kg",20,150],["waist","Circonferenza vita","cm",40,200],["hips","Circonferenza fianchi","cm",40,200]]},
   bia:{n:"BIA",ico:"⚡",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["fm","Massa grassa","kg",1,100],["ffm","Massa magra (FFM)","kg",20,150],["pha","Angolo di fase","°",2,15],["smm","Muscolo-scheletrica (SMM)","kg",10,80],["mm","Muscolare totale (MM)","kg",10,120],["asmm","Muscolare appendicolare","kg",5,60],["bcm","Massa cellulare (BCM)","kg",10,80],["tbw","Acqua totale (TBW)","L",15,80],["ecw","Acqua extracellulare","%",20,60],["hyd","Idratazione (TBW/FFM)","%",60,85],["bmr","Metabolismo basale","kcal",800,4000],["tdee","Dispendio totale (TDEE)","kcal",1200,6000]]}
@@ -1686,7 +1686,7 @@ function ckBlock(m){
 function ckFormHtml(){
   var F=ckForm,e0=F.date&&checks[F.m][F.date]||{},e={},k;
   for(k in e0)e[k]=e0[k];for(k in F.pre||{})e[k]=F.pre[k];
-  var h='<div class="ckform"><div class="gpseg" role="group" aria-label="Metodo">'+["pli","bia"].map(function(m){return '<button type="button" data-ckm="'+m+'" aria-pressed="'+(F.m===m)+'"'+(F.m===m?' style="background:var(--accent);color:var(--onsel);border-color:transparent"':'')+(F.edit?' disabled':'')+'>'+CK[m].ico+' '+CK[m].n+'</button>'}).join("")+'</div>';
+  var h='<div class="ckform"><h3 style="font-size:16px;margin:8px 0">'+CK[F.m].ico+' '+CK[F.m].n+(F.m==="bia"&&F.pre?' <small style="font-weight:500;color:var(--mute)">· dal referto</small>':'')+(F.edit?' <small style="font-weight:500;color:var(--mute)">· modifica</small>':'')+'</h3>';
   if(F.info)h+='<p class="ckbell" style="background:var(--okbg)">'+esc(F.info)+'</p>';
   h+='<div class="fields"><div><label for="ckD">Data del check</label><input id="ckD" type="date" max="'+todayIso()+'" value="'+(F.date||F.newDate||todayIso())+'"></div></div>';
   h+='<div class="fields" style="margin-top:8px">'+CK[F.m].f.map(function(f){return '<div><label for="ck-'+f[0]+'">'+f[1]+' ('+f[2]+')</label><input id="ck-'+f[0]+'" inputmode="decimal" value="'+(e[f[0]]!=null?fmt(e[f[0]],ckDec(f[2])===0?0:(String(e[f[0]]).split(".")[1]||"").length):"")+'"></div>'}).join("")+'</div>';
@@ -1705,7 +1705,7 @@ function renderChecks(){
   h+=ckBells().map(function(t){return '<div class="ckbell">🔔 '+esc(t)+'</div>'}).join("");
   h+=ckBlock("pli")+ckBlock("bia");
   if(ckForm)h+=ckFormHtml();
-  else h+='<div class="actions"><button class="btn" type="button" data-ckadd="1">＋ Aggiungi check</button><label class="btn ghost" for="ckPdf" style="display:inline-flex;align-items:center">📄 Carica referto BIA (PDF)</label></div>'+(ckPdfMsg?'<div class="msg">'+esc(ckPdfMsg)+'</div>':'');
+  else h+='<div class="actions"><button class="btn" type="button" data-ckadd="1">＋ Pliche e circonferenze</button><label class="btn ghost" for="ckPdf" style="display:inline-flex;align-items:center">📄 Carica referto BIA (PDF)</label></div>'+(ckPdfMsg?'<div class="msg">'+esc(ckPdfMsg)+(ckPdfFail?' <button type="button" class="lnk" data-ckbia="1">Scrivila a mano</button>':'')+'</div>':'');
   if(all.length)h+='<details id="ckAll" style="margin-top:12px"'+(ckOpen?' open':'')+'><summary>Tutti i check ('+all.length+')</summary>'+all.map(function(x){var z=ckFull(x.e);return '<div class="ckrow"><span><b>'+fmtDate(x.e.date)+'</b> · '+CK[x.m].ico+' '+CK[x.m].n+'<small>'+[z.fat!=null?(z._d.fat?"≈":"")+fmt(z.fat,1)+"% grasso":"",z.ffm!=null?(z._d.ffm?"≈":"")+fmt(z.ffm,1)+" kg magra":"",z.kg!=null?fmt(z.kg,1)+" kg":""].filter(Boolean).join(" · ")+'</small></span><button class="btn ghost" type="button" data-ckedit="'+x.m+'|'+x.e.date+'">✎</button></div>'}).join("")+'</details>';
   card.innerHTML=h;
 }
@@ -1727,7 +1727,7 @@ function ckSave(){
 var BIA_LAB={pha:"angolo di fase",tbw:"acqua totale",ecw:"acqua extracellulare",hyd:"idratazione",ffm:"massa magra",fm:"massa grassa (kg)",fat:"massa grassa (%)",bcm:"massa cellulare",mm:"muscolare totale",smm:"muscolo-scheletrica",asmm:"appendicolare",bmr:"metabolismo basale",tdee:"dispendio totale",kg:"peso"};
 document.getElementById("ckPdf").addEventListener("change",function(ev){
   var file=ev.target.files&&ev.target.files[0];ev.target.value="";if(!file)return;
-  ckPdfMsg="Leggo il referto…";ckForm=null;renderChecks();
+  ckPdfMsg="Leggo il referto…";ckPdfFail=false;ckForm=null;renderChecks();
   biaRead(file).then(function(r){
     if(r.n<3)throw new Error("pochi");
     var miss=Object.keys(BIA_LAB).filter(function(k){return r.v[k]==null}).map(function(k){return BIA_LAB[k]});
@@ -1738,15 +1738,16 @@ document.getElementById("ckPdf").addEventListener("change",function(ev){
     renderChecks();
     document.getElementById("ckD").scrollIntoView({block:"center"});
   },function(e){
-    ckPdfMsg=e&&e.message==="vecchio"?"Questo telefono non riesce a leggere i PDF qui: scrivi i valori a mano.":"Non riesco a leggere questo PDF (deve essere il referto BIA Bodygram): scrivi i valori a mano.";
+    ckPdfFail=true;
+    ckPdfMsg=e&&e.message==="vecchio"?"Questo telefono non riesce a leggere i PDF qui.":"Non riesco a leggere questo PDF (deve essere il referto BIA Bodygram).";
     renderChecks();
   });
 });
 document.getElementById("ckCard").addEventListener("toggle",function(ev){if(ev.target.id==="ckAll")ckOpen=ev.target.open},true);
 document.getElementById("ckCard").addEventListener("click",function(ev){
   var b=ev.target.closest("button");if(!b)return;
-  if(b.hasAttribute("data-ckadd")){ckPdfMsg="";ckForm={m:"pli",date:null,edit:false};renderChecks();return}
-  if(b.hasAttribute("data-ckm")){var dv=document.getElementById("ckD").value;ckForm={m:b.getAttribute("data-ckm"),date:null,edit:false};renderChecks();if(dv)document.getElementById("ckD").value=dv;return}
+  if(b.hasAttribute("data-ckadd")){ckPdfMsg="";ckPdfFail=false;ckForm={m:"pli",date:null,edit:false};renderChecks();return}
+  if(b.hasAttribute("data-ckbia")){ckPdfMsg="";ckPdfFail=false;ckForm={m:"bia",date:null,edit:false};renderChecks();return}
   if(b.hasAttribute("data-ckedit")){var p=b.getAttribute("data-ckedit").split("|");ckForm={m:p[0],date:p[1],edit:true};renderChecks();document.getElementById("ckD").scrollIntoView({block:"center"});return}
   if(b.hasAttribute("data-ckx")){ckForm=null;renderChecks();return}
   if(b.hasAttribute("data-cksave")){ckSave();return}
