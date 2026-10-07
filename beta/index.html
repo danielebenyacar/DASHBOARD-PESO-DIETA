@@ -497,6 +497,7 @@ body.noscroll{overflow:hidden}
     </section>
     <div id="goalsBox"></div>
     <section class="card" id="ckCard"></section>
+    <input type="file" id="ckPdf" accept="application/pdf,.pdf" hidden>
     <section class="card"><h2><i class="hd" style="background:var(--c-cutfull)"></i>Traguardi del piano</h2><div id="mstones"></div></section>
   </div>
 
@@ -571,7 +572,7 @@ body.noscroll{overflow:hidden}
   </section>
   </div>
 
-  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.20</p>
+  <p style="text-align:center;color:var(--mute);font-size:12.5px;margin:18px 0 0">Diario peso · v1.21</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1429,13 +1430,193 @@ function renderTdee(){
   renderGp();
 }
 
+/* ---------- lettura del referto BIA (PDF Akern Bodygram) ---------- */
+// Lettore dei referti BIA Akern Bodygram stampati con "Microsoft Print to PDF": il testo e' disegnato come tracciati,
+// quindi ogni carattere si riconosce dalla forma (bitmap 16x16 confrontata con dei campioni).
+function biaInflate(bytes){
+  var ds=new DecompressionStream("deflate");
+  var w=ds.writable.getWriter();w.write(bytes);w.close();
+  return new Response(ds.readable).arrayBuffer().then(function(b){return new TextDecoder("latin1").decode(b)});
+}
+function biaPages(buf){
+  var u=new Uint8Array(buf),s=new TextDecoder("latin1").decode(u),objs={},re=/(\d+) 0 obj([\s\S]*?)endobj/g,m;
+  if(s.slice(0,5)!=="%PDF-")return Promise.reject(new Error("non è un PDF"));
+  while((m=re.exec(s))){objs[m[1]]={body:m[2],at:m.index+m[0].indexOf(m[2])}}
+  function streamOf(n){
+    var o=objs[n];if(!o)return Promise.resolve("");
+    var i=o.body.search(/stream\r?\n/);if(i<0)return Promise.resolve("");
+    var st=o.at+i+o.body.slice(i).match(/stream\r?\n/)[0].length,en=o.at+o.body.lastIndexOf("endstream");
+    var len=o.body.slice(0,i).match(/\/Length\s+(\d+)(?!\s+\d+\s+R)/);
+    if(len&&st+(+len[1])<=en)en=st+(+len[1]);
+    else while(en>st&&(u[en-1]===10||u[en-1]===13))en--;
+    var data=u.subarray(st,en);
+    return /FlateDecode/.test(o.body.slice(0,i))?biaInflate(data):Promise.resolve(new TextDecoder("latin1").decode(data));
+  }
+  var pagesObj=null;Object.keys(objs).forEach(function(k){if(/\/Type\s*\/Pages\b/.test(objs[k].body))pagesObj=objs[k]});
+  if(!pagesObj)return Promise.reject(new Error("pagine non trovate"));
+  var kids=(pagesObj.body.match(/\/Kids\s*\[([^\]]*)\]/)||[,""])[1].match(/\d+(?= 0 R)/g)||[];
+  return Promise.all(kids.map(function(k){
+    var b=(objs[k]||{}).body||"",c=b.match(/\/Contents\s*(\[[^\]]*\]|\d+ 0 R)/);
+    var refs=c?(c[1].match(/\d+(?= 0 R)/g)||[]):[];
+    return Promise.all(refs.map(streamOf)).then(function(parts){return parts.join("\n")});
+  }));
+}
+function biaGlyphs(txt,page){
+  var re=/q\n1\.000000 0\.000000 0\.000000 1\.000000 (-?[\d.]+) (-?[\d.]+) cm\n([\d.]+) ([\d.]+) ([\d.]+) rg\n([\s\S]*?)\n(f\*?)\nQ/g,m,out=[];
+  while((m=re.exec(txt))){
+    // solo testo grigio/nero/bianco: le stelline rosse dei valori di riferimento non sono caratteri
+    var cr=+m[3],cg=+m[4],cb=+m[5];if(Math.max(cr,cg,cb)-Math.min(cr,cg,cb)>0.3)continue;
+    var x=+m[1],y=+m[2],path=m[6],nums=(path.match(/-?\d+\.\d+/g)||[]).map(Number),d="",i=0;
+    if(!nums.length)continue;
+    var ops=path.match(/\b[mlch]\b/g)||[];
+    ops.forEach(function(o){
+      if(o==="m"||o==="l"){d+=(o==="m"?"M":"L")+nums[i]+" "+nums[i+1];i+=2}
+      else if(o==="c"){d+="C"+nums.slice(i,i+6).join(" ");i+=6}
+      else d+="Z";
+    });
+    var xs=nums.filter(function(v,j){return j%2===0}),ys=nums.filter(function(v,j){return j%2===1});
+    var x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+    out.push({page:page,x:x,y:y,d:d,eo:m[7]==="f*",x0:x+x0,x1:x+x1,y0:y+y0,y1:y+y1,w:x1-x0,h:y1-y0,lx0:x0,ly0:y0});
+  }
+  // caratteri fatti di soli segmenti disegnati senza traslazione (l, I, /, -): piccoli e scuri
+  var re2=/q\n([\d.]+) ([\d.]+) ([\d.]+) rg\n((?:-?[\d.]+ -?[\d.]+ [ml]\n)+)h\n(f\*?)\nQ/g;
+  while((m=re2.exec(txt))){
+    if(+m[1]+(+m[2])+(+m[3])>1.5)continue;
+    var nn=(m[4].match(/-?\d+\.\d+/g)||[]).map(Number),dd="",xa=[],ya=[];
+    for(var j=0;j<nn.length;j+=2){dd+=(j?"L":"M")+nn[j]+" "+nn[j+1];xa.push(nn[j]);ya.push(nn[j+1])}
+    var a0=Math.min.apply(null,xa),a1=Math.max.apply(null,xa),b0=Math.min.apply(null,ya),b1=Math.max.apply(null,ya);
+    if(Math.max(a1-a0,b1-b0)>=25||Math.max(a1-a0,b1-b0)<0.3)continue;
+    out.push({page:page,x:0,y:0,d:dd+"Z",eo:m[5]==="f*",x0:a0,x1:a1,y0:b0,y1:b1,w:a1-a0,h:b1-b0,lx0:a0,ly0:b0});
+  }
+  return out;
+}
+var BIA_N=16,BIA_S=4;
+// Bitmap 16x16: disegno 4 volte piu' grande e media dei blocchi 4x4, cosi' conta poco come il browser smussa i bordi.
+function biaBits(g,ctx){
+  var Z=BIA_N*BIA_S,s=Math.max(g.w,g.h)||1,k=(Z-2*BIA_S)/s;
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,Z,Z);
+  ctx.setTransform(k,0,0,k,BIA_S+((Z-2*BIA_S)-g.w*k)/2-g.lx0*k,BIA_S+((Z-2*BIA_S)-g.h*k)/2-g.ly0*k);
+  ctx.fill(new Path2D(g.d),g.eo?"evenodd":"nonzero");
+  var px=ctx.getImageData(0,0,Z,Z).data,bits="";
+  for(var r=0;r<BIA_N;r++)for(var c=0;c<BIA_N;c++){
+    var sum=0;for(var y=0;y<BIA_S;y++)for(var x=0;x<BIA_S;x++)sum+=px[((r*BIA_S+y)*Z+c*BIA_S+x)*4+3];
+    bits+=sum>BIA_S*BIA_S*110?"1":"0";
+  }
+  return bits;
+}
+// Riconoscimento: il campione piu' vicino (stesso numero di contorni, proporzioni simili). La distanza perdona
+// lo spostamento di 1 pixel: conta solo i pixel che non hanno un pixel acceso vicino nell'altra forma.
+function biaRows(bits){var r=[];for(var i=0;i<BIA_N;i++)r.push(parseInt(bits.substr(i*BIA_N,BIA_N),2));return r}
+function biaDil(r){var o=[],M=(1<<BIA_N)-1;for(var i=0;i<BIA_N;i++){var v=0;for(var j=i-1;j<=i+1;j++)if(j>=0&&j<BIA_N)v|=r[j]|(r[j]<<1)|(r[j]>>1);o.push(v&M)}return o}
+function biaPop(v){v=v-((v>>1)&0x55555555);v=(v&0x33333333)+((v>>2)&0x33333333);return(((v+(v>>4))&0x0F0F0F0F)*0x01010101)>>>24}
+function biaPrep(T){T.forEach(function(t){if(!t.r){t.r=biaRows(t.bits);t.dr=biaDil(t.r)}});return T}
+function biaDist(a,da,b,db){var n=0;for(var i=0;i<BIA_N;i++)n+=biaPop(a[i]&~db[i])+biaPop(b[i]&~da[i]);return n}
+function biaClassify(g,T){
+  var asp=g.w/Math.max(g.h,0.01),nc=(g.d.match(/M/g)||[]).length,best=null,bd=1e9;
+  // segni piccoli riconosciuti dalla forma, piu' sicuri della bitmap
+  if(Math.max(g.w,g.h)<1.7&&nc===1&&asp>0.6&&asp<1.6)return ".";
+  if(g.h<1&&g.w>1.5&&nc===1)return "-";
+  if(g.h<3.2&&g.w<3.6&&nc===2&&asp>0.7&&asp<1.4)return "°";
+  var r=biaRows(g.bits),dr=biaDil(r);
+  T.forEach(function(t){if(t.nc!==nc)return;var q=t.asp/asp;if(q<0.75||q>1.33)return;var d=biaDist(r,dr,t.r,t.dr);if(d<bd){bd=d;best=t}});
+  return best&&bd<=24?best.ch:"?";
+}
+// Righe di testo: linea di base (le lettere con la coda vanno su), poi i segni piccoli (. - ° :) alla riga piu' vicina.
+function biaLines(gs){
+  // le righe nascono dai caratteri senza coda (base = fondo); quelli con la coda (p/P sono uguali!) e le parentesi
+  // si attaccano alla riga che sovrappongono di piu'
+  var DESC={g:1,p:1,y:1,q:1,j:1,J:1,"(":1,")":1,"/":1,"|":1};
+  var ok=gs.filter(function(x){return x.ch!=="?"}),core=ok.filter(function(x){return x.h>=3&&!DESC[x.ch]}),ls=[];
+  core.sort(function(a,b){return a.y1-b.y1});
+  core.forEach(function(x){
+    var L=ls.length?ls[ls.length-1]:null;
+    if(!L||x.y1-L.base>1.6){L={base:x.y1,top:x.y0,gs:[]};ls.push(L)}
+    L.gs.push(x);L.top=Math.min(L.top,x.y0);
+  });
+  function span(L){if(L.x0==null){L.x0=Math.min.apply(null,L.gs.map(function(q){return q.x0}));L.x1=Math.max.apply(null,L.gs.map(function(q){return q.x1}))}return L}
+  ok.filter(function(x){return x.h>=3&&DESC[x.ch]}).forEach(function(x){
+    var best=null,bo=0;
+    ls.forEach(function(L){span(L);if(x.x1<L.x0-15||x.x0>L.x1+15)return;var o=Math.min(L.base,x.y1)-Math.max(L.top,x.y0);if(o>bo){bo=o;best=L}});
+    if(best&&bo>=0.4*x.h)best.gs.push(x);
+  });
+  ok.filter(function(x){return x.h<3}).forEach(function(x){
+    var yc=(x.y0+x.y1)/2,best=null,bd=1e9;
+    ls.forEach(function(L){if(yc<L.top-1||yc>L.base+1.5)return;span(L);if(x.x1<L.x0-15||x.x0>L.x1+15)return;var d=Math.abs(L.base-x.y1);if(d<bd){bd=d;best=L}});
+    if(best)best.gs.push(x);
+  });
+  return ls.map(function(L){
+    L.gs.sort(function(a,b){return a.x0-b.x0});
+    var hh=L.base-L.top,cells=[],cur=null,prev=null;
+    L.gs.forEach(function(x){
+      var gap=prev?x.x0-prev.x1:0;
+      if(!cur||gap>2.5*hh){cur={x0:x.x0,x1:x.x1,t:""};cells.push(cur)}
+      else if(gap>0.3*hh)cur.t+=" ";
+      cur.t+=x.ch;cur.x1=x.x1;prev=x;
+    });
+    return {page:L.gs[0].page,y:L.base,top:L.top,cells:cells,t:cells.map(function(c){return c.t}).join("  |  ")};
+  });
+}
+// Dai testi delle righe ai valori del referto. Le sigle tra parentesi individuano le righe; E/F e I/l si confondono, quindi si tollerano.
+// Numero all'inizio della cella; dentro il numero le lettere che somigliano a cifre diventano cifre.
+function biaNum(c){
+  var p=(c.match(/^\s*-?[\dOolI|sSZzB. ]+/)||[""])[0];
+  var t=p.replace(/[Oo]/g,"0").replace(/[lI|]/g,"1").replace(/[sS]/g,"5").replace(/[Zz]/g,"2").replace(/B/g,"8").replace(/(\d)\s+(?=[\d.])/g,"$1").replace(/\.\s+(?=\d)/g,".");
+  var m=t.match(/-?\d+(?:\.\d+)?/);return m?+m[0]:null;
+}
+function biaIsNum(c){return /^\s*-?[\dOolI| .]+\s*(kg|k|L|%|°|kCal|kcal)?\s*$/.test(c)&&/\d/.test(c)}
+function biaParse(lines){
+  var o={},rows=[];
+  lines.forEach(function(L,i){
+    // etichette su due righe: "Massa Muscolare Appendicolare" + "(ASMM)", "... Totale" + "(TDEE)"
+    var lab=L.cells[0].t,vals=L.cells.slice(1).map(function(c){return c.t});
+    for(var j=i+1;j<lines.length&&lines[j].page===L.page&&lines[j].y-L.y<=18;j++){
+      var nx=lines[j];if(/^[A-Za-zÀ-ÿ]/.test(lab.trim())&&nx.cells.length===1&&/^\(/.test(nx.cells[0].t.trim())&&!/\(/.test(lab)){lab+=" "+nx.cells[0].t;break}
+    }
+    rows.push({lab:lab.toUpperCase().replace(/\s+/g,"").replace(/[|]/g,"I"),vals:vals,line:L});
+  });
+  // per posizione: la prima cella dopo l'etichetta e' il risultato, la seconda la % (se c'e')
+  function nums(r){return r.vals.map(function(c){return /^\s*-?[\dOolI|]/.test(c)?biaNum(c):null})}
+  var KEY=[["pha",/\(PHA\)/,0],["tbw",/\(TBW\)/,0],["ecw",/\([EF]CW\)/,1],["ffm",/\(FFM\)/,0],["fm",/\(FM\)/,0],["fat",/\(FM\)/,1],["bcm",/\(BCM\)/,0],["mm",/\(MM\)/,0],["smm",/\(SMM\)/,0],["asmm",/\(ASMM\)/,0],["bmr",/\(BMR\)/,0],["tdee",/\(TD[EF][EF]\)/,0]];
+  rows.forEach(function(r){
+    KEY.forEach(function(k){if(o[k[0]]==null&&k[1].test(r.lab)){var n=nums(r);if(n[k[2]]!=null)o[k[0]]=n[k[2]]}});
+  });
+  lines.forEach(function(L){
+    var cs=L.cells.map(function(c){return c.t});
+    cs.forEach(function(c,i){
+      if(o.kg==null&&/^peso[:i]?$/i.test(c.replace(/\s+/g,""))&&cs[i+1]&&biaIsNum(cs[i+1]))o.kg=biaNum(cs[i+1]);
+      var h=c.replace(/\s+/g,"").match(/^([\dOolI|.]+)%\(TBW\/FFM\)/i);if(o.hyd==null&&h)o.hyd=biaNum(h[1]);
+    });
+    if(!o.date&&L.page===0&&!/NASC/i.test(L.t)){var d=L.t.replace(/\s+/g,"").match(/(\d\d)\/(\d\d)\/(\d{4})/);if(d)o.date=d[3]+"-"+d[2]+"-"+d[1]}
+  });
+  return o;
+}
+// Campioni dei caratteri del referto [carattere, contorni, larghezza/altezza, bitmap 16x16 in esadecimale].
+var BIA_T=null,BIA_TPL=[["K",1,1.042,"0000600c601c6038607060e061c07f807fc061c060e060706038601c600e0000"],["R",2,0.98,"00007ff07ff8601c600c600e600c703c7ff87ff0607060386018601c600e0000"],["E",1,0.939,"00003ffe3ffc30003000300030003ffc3ffc30003000300030003ffc3ffc0000"],["N",1,1.143,"00000000700678067c066e066706638661c660e66076603e601e600600000000"],["A",2,1.301,"000000000000018003c0036006600e300c301ff81ff8300c7006000000000000"],["G",1,0.885,"0000000007f01ff81c183800380038fc38fc381c381c1c381ff807e000000000"],["R",2,0.753,"00001fe01ff01ff81c381c381c381ff81ff01fc01de01ce01cf01c701c380000"],["M",1,1.06,"00002004700e781e781e7c3e7c3e7e7e776e77ee73ce73ce700e700e700e0000"],["A",2,0.951,"0000018003c003c007e007e00e700e700e701ff81ff81ff8381c381c781e0000"],["C",1,0.741,"000001f807f80f080c001c0018001800180018001c001c000e0807f803f80000"],["O",2,0.981,"000007e01ff83f7c383c781e701e700e700e700e781e381c3e7c1ff807e00000"],["m",1,1.462,"0000000000006e387f7c73ce6186618661866186618661866186000000000000"],["p",2,0.653,"000019e01ff01c301c381c381c381c301c701fe01dc01c001c001c001c000000"],["S",1,0.68,"000003f00ff00f301c001e000f000fe003f000f80038003818781ff01fe00000"],["i",2,0.189,"0000018001800000000001800180018001800180018001800180018001800000"],["Z",1,0.843,"00001ffc1ffc1ff8007000f001e001c003c0078007000e001ff83ffc3ffc0000"],["n",1,0.866,"000039f03bf83ffc3c3c3c1c381c381c381c381c381c381c381c381c381c0000"],["e",2,0.868,"000003e00ff01f781c3c381c381c3ffc3ffc380038003c001f180ff807f00000"],["r",1,0.577,"00000e700ef00ff00f800f000e000e000e000e000e000e000e000e000e000000"],["a",2,0.812,"000007e00ff80f78003c001c007c0ffc1f9c1c1c381c3c3c3c7c1fdc0f9c0000"],["D",2,0.848,"00003fc03ff038783838381c381c381c381c381c381c383838703fe03f800000"],["B",3,0.678,"00001fc01ff01c701c301c701c601fc01ff01c381c381c381c301ff01fc00000"],["y",1,0.678,"00001c380c300c3006600660066003c003c003c00180018003000f001e000000"],["(",1,0.288,"000000c001800180030003000300030003000300030003000180018000c00000"],["E",1,0.56,"00000ff00ff00e000e000e000e000fe00fe00e000e000e000e000ff00ff00000"],["T",1,0.729,"00001ff81ff80180018001800180018001800180018001800180018001800000"],["À",3,0.705,"00000300010000000180018003c002c00660066006600ff00c300c3018180000"],[":",2,0.274,"0000018003c003c00180000000000000000000000000018003c003c001800000"],["2",1,0.634,"000007c00ff00870003000300070006001e0038007000e000c000ff01ff80000"],["1",1,0.366,"0000006001e007e006e000e000e000e000e000e000e000e000e000e000e00000"],[")",1,0.302,"000003000180018000c000c000c000c000c000c000c000c00180018003000000"],["s",1,0.647,"000003e007f00e001c000c000e0007c003e000700030003818301fe00fc00000"],["a",2,0.71,"000007e00ff00c3800180018003807f80e181818181818381c780fd807980000"],["d",2,0.615,"0000001000100010001003d007f00c300c10081008100c100c30067003d00000"],["3",1,0.547,"000007c00ce00060003000200060078000e000300030003000300ce007800000"],["1",1,0.342,"0000004001c003c0004000400040004000400040004000400040004000400000"],["0",2,0.618,"000003c006600c300c300830081008100810081008300c300c30066003c00000"],["7",1,0.635,"00001ff80ff000300060006000c000c000800180018001000300030003000000"],["2",1,0.633,"000007c00e600830003000300020006000c00180070004000c000c000ff80000"],["6",2,0.62,"000001f0030006000c000c000dc00fe00c300c100c100c100430076003c00000"],["9",2,0.62,"000003c006600c30081008100c100c3007f0019000300030006005e007800000"],["5",1,0.548,"000007e007e00400040004000f000fc0006000300030003000200ce007800000"],["8",3,0.643,"000003c006600c300c300c30066003c00e700c30081808100c3007e003c00000"],["e",2,0.835,"000003e00ff81c18181c380c380c3ffc3ff83800380018001e080ff803f00000"],["o",2,0.935,"000007e00ff81c3c381c300c700e600e600e700c300c381c1c380ff007e00000"],["D",2,0.805,"00003fc031e0303030183018300c300c300c300c3018303830703fe03f800000"],["t",1,0.448,"000001800180018007e007e0018001800180018001800180018001e000e00000"],["i",2,0.139,"0000018001800000000000000180018001800180018001800180018001800000"],["n",1,0.798,"000013e037f03c383818381c301c301c301c301c301c301c301c301c301c0000"],["M",1,1.028,"00006006700e700e781e581648364c3644664666464643c643c6418641860000"],["h",1,0.571,"00000c000c000c000c000dc00fe00c300c300c300c300c300c300c300c300000"],["4",2,0.708,"00000060006000e001e00160036006600c6008601ff81ff80060006000600000"],["P",2,0.627,"00000fc00cf0083008300810083008300fe00f80080008000800080008000000"],["A",2,0.878,"00000180038003c002c00660066004600c300ff01ff018181018300c300c0000"],["Z",1,0.826,"00001ffc1ff80030007000e000c001c00380030006000e001c001ffc3ffc0000"],["k",1,0.573,"000008000800080008000860086008c009800f000f000b8009c008e008700000"],["g",2,0.604,"000003d006700c3008100810081008100c3007f00390001000300c6007c00000"],["u",1,0.8,"0000301c301c301c301c301c301c301c301c301c381c181c1c3c1ffc07880000"],["n",1,0.798,"000011f03ff83c383818381c380c380c380c380c380c380c380c380c380c0000"],["u",1,0.828,"0000380c380c380c380c380c380c380c380c380c380c381c1c3c0fec07cc0000"],["H",1,0.755,"00001008100810081008100810081ff81ff81008100810081008100810080000"],["%",5,1.025,"00001c00261042304260424066c03c80013c0366024204420c42086410380000"],["B",3,0.627,"00000fc00ce008300830083008600fc00ff008300830081008300cf00fc00000"],["w",1,1.327,"0000000000006186618621c423c4324c124812681c380c300c30000000000000"],["F",1,0.527,"00000ff00c000c000c000c000c000fe00fe00c000c000c000c000c000c000000"],["M",1,1.027,"000060067006700e780e681a6c126c3266226662626263c261c2618260820000"],["R",2,0.725,"00001fc019e0186018301830186018e01f8019c018c018601830183018180000"],["X",1,0.779,"000018180c180c300660036003c0018003c003c0066006600c301c1818180000"],["Ω",1,0.928,"000007e01e78181c300c300c600660066006300c300c180818180c307e3e0000"],["Ω",1,0.905,"000007e00e701818300c300c200420042004300c300c18180c303e7c3e7c0000"],["V",1,0.929,"0000300c380c381c18181c180c300c300e300660076007e003c003c001800000"],["®",4,1,"000007e00c3013c826e46626466247c2468246422666262410080c3003e00000"],["H",1,0.762,"00001818181818181818181818181ff818181818181818181818181818180000"],["x",1,1.237,"0000000000006006701e1c3c0ef003c007c01e703c38700c4006000000000000"],["I",1,1.312,"0000000000007ffe7ffe0100010001000100010001007ffe7ffe000000000000"],["E",1,0.745,"00000ff81ff81800180018000c000ff81ff81800180018000c001ff81ff80000"],["a",2,0.854,"00000fe01ff010700070003000700ff01c7038303830383038f01ffc0f1c0000"],["e",2,0.792,"000003e00ff00c381c1818181ffc3ffc380018001c001c000e0007fc03f80000"],["t",1,0.464,"00000300030007e007e00300030003000300030003000300038003e001e00000"],["®",4,1.002,"000007e00ff0183837cc6666666666c667c667c666c6366c3c381ff007e00000"],["1",3,0.317,"000003c003c000c000c000c000c000c000c000c000c000c000c000c000c00000"],["1",2,0.452,"000003e007e007e007e003e003e003e003e003e003e003e003e003e001e00000"],["4",2,0.717,"0000006000e001e001e00360066006600c601c701ff800600060006000600000"],["r",1,0.499,"000004700df00d000e000e000e000c000c000c000c000c000c000c000c000000"],["f",1,0.387,"000000e0018001000100010007c0010001000100010001000100010001000000"],["b",2,0.613,"0000080008000800080009c00fe00c300c300810081008300c300e600bc00000"],["B",3,0.635,"00001fc01ce018301830182018601fc01fe018301810181018301fe01fc00000"],["G",1,0.787,"000001f8071c0c001800180010003000307c100c180c180c0c0c073c03f00000"],["J",1,0.367,"00000060006000600060006000600060006000600060004000c001c007800000"],["p",2,0.627,"00000bc00e600c3008100810081008300c300fe00bc008000800080008000000"],["|",1,0.08,"0000018001800180018001800180018001800180018001800180018001800000"],["|",1,0.159,"0000018001800180018001800180018001800180018001800180018001800000"],["l",1,0.116,"0000018001800180018001800180018001800180018001800180018001800000"],["/",1,0.501,"0000002000600060004000c00080018001000100030002000600040004000000"],["/",1,0.341,"0000004000400040008000800080008001000100010000000200020000000000"],["L",1,0.511,"00000c000c000c000c000c000c000c000c000c000c000c000c000fe00ff00000"],["e",2,0.808,"000003e00ff00c381818181c381c3ffc30003000180018001e180ff803e00000"]];
+function biaTemplates(){
+  if(!BIA_T)BIA_T=biaPrep(BIA_TPL.map(function(t){var b="";for(var i=0;i<t[3].length;i++)b+=("000"+parseInt(t[3][i],16).toString(2)).slice(-4);return {ch:t[0],nc:t[1],asp:t[2],bits:b}}));
+  return BIA_T;
+}
+// File PDF -> valori del referto (solo le prime 2 pagine: la terza e' il glossario).
+function biaRead(file){
+  if(typeof DecompressionStream==="undefined"||typeof Path2D==="undefined")return Promise.reject(new Error("vecchio"));
+  return file.arrayBuffer().then(biaPages).then(function(pages){
+    var cv=document.createElement("canvas");cv.width=cv.height=BIA_N*BIA_S;
+    var ctx=cv.getContext("2d",{willReadFrequently:true}),T=biaTemplates(),lines=[];
+    pages.slice(0,2).forEach(function(t,i){var gs=biaGlyphs(t,i);gs.forEach(function(g){g.bits=biaBits(g,ctx);g.ch=biaClassify(g,T)});lines=lines.concat(biaLines(gs))});
+    var o=biaParse(lines),out={},n=0;
+    CK.bia.f.forEach(function(f){var v=o[f[0]];if(typeof v==="number"&&v>=f[3]&&v<=f[4]){out[f[0]]=v;n++}});
+    if(o.date&&D_RE.test(o.date)&&o.date<=todayIso())out.date=o.date;
+    return {v:out,n:n};
+  });
+}
+
 /* ---------- check dal nutrizionista (BIA e plicometria) ---------- */
 // Tenuti separati dal resto: non cambiano kcal, verdetto o report. Due metodi che non si mescolano mai,
 // perche' danno numeri diversi (es. BIA 19,7% e pliche 16% nello stesso periodo): ognuno si confronta solo con se stesso.
 // diario_check: { pli: { giorno: {date, kg?, fat?, ffm?, sum?, waist?, hips?, note?} }, bia: { giorno: {date, kg?, fat?, fm?, ffm?, pha?, ...} } }
-var checks={pli:{},bia:{}},ckForm=null,ckOpen=false;
+var checks={pli:{},bia:{}},ckForm=null,ckOpen=false,ckPdfMsg="";
 var CK={
-  pli:{n:"Plicometria",ico:"📏",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["ffm","Massa magra","kg",20,150],["sum","Somma pliche","mm",5,400],["waist","Vita","cm",40,200],["hips","Fianchi","cm",40,200]]},
+  pli:{n:"Pliche e circonferenze",ico:"📏",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["ffm","Massa magra","kg",20,150],["waist","Circonferenza vita","cm",40,200],["hips","Circonferenza fianchi","cm",40,200]]},
   bia:{n:"BIA",ico:"⚡",f:[["kg","Peso","kg",40,200],["fat","Massa grassa","%",2,60],["fm","Massa grassa","kg",1,100],["ffm","Massa magra (FFM)","kg",20,150],["pha","Angolo di fase","°",2,15],["smm","Muscolo-scheletrica (SMM)","kg",10,80],["mm","Muscolare totale (MM)","kg",10,120],["asmm","Muscolare appendicolare","kg",5,60],["bcm","Massa cellulare (BCM)","kg",10,80],["tbw","Acqua totale (TBW)","L",15,80],["ecw","Acqua extracellulare","%",20,60],["hyd","Idratazione (TBW/FFM)","%",60,85],["bmr","Metabolismo basale","kcal",800,4000],["tdee","Dispendio totale (TDEE)","kcal",1200,6000]]}
 };
 function saveC(){lsPut("diario_check",checks)}
@@ -1487,7 +1668,7 @@ function ckBlock(m){
   var l=ckList(m);if(!l.length)return "";
   var z=ckFull(l[l.length-1]),a=l.length>1?ckFull(l[l.length-2]):null;
   var h='<div class="ckm"><h3>'+CK[m].ico+' '+CK[m].n+' <small>· '+fmtDate(z.date)+(a?' (prima: '+fmtDate(a.date)+')':'')+'</small></h3><div class="ckgrid">';
-  var order=m==="pli"?["fat","fm","ffm","kg","sum","waist","hips"]:["fat","fm","ffm","pha","smm","mm","asmm","bcm","tbw","ecw","hyd","bmr","tdee","kg"];
+  var order=m==="pli"?["fat","fm","ffm","kg","waist","hips"]:["fat","fm","ffm","pha","smm","mm","asmm","bcm","tbw","ecw","hyd","bmr","tdee","kg"];
   order.forEach(function(k){
     if(z[k]==null)return;
     var f=ckF(m,k)||[k,"Grasso","kg"],lab=k==="fm"?"Grasso":f[1],dec=ckDec(f[2]);
@@ -1503,9 +1684,11 @@ function ckBlock(m){
   return h+'</div>';
 }
 function ckFormHtml(){
-  var F=ckForm,e=F.date&&checks[F.m][F.date]||{};
+  var F=ckForm,e0=F.date&&checks[F.m][F.date]||{},e={},k;
+  for(k in e0)e[k]=e0[k];for(k in F.pre||{})e[k]=F.pre[k];
   var h='<div class="ckform"><div class="gpseg" role="group" aria-label="Metodo">'+["pli","bia"].map(function(m){return '<button type="button" data-ckm="'+m+'" aria-pressed="'+(F.m===m)+'"'+(F.m===m?' style="background:var(--accent);color:var(--onsel);border-color:transparent"':'')+(F.edit?' disabled':'')+'>'+CK[m].ico+' '+CK[m].n+'</button>'}).join("")+'</div>';
-  h+='<div class="fields"><div><label for="ckD">Data del check</label><input id="ckD" type="date" max="'+todayIso()+'" value="'+(F.date||todayIso())+'"></div></div>';
+  if(F.info)h+='<p class="ckbell" style="background:var(--okbg)">'+esc(F.info)+'</p>';
+  h+='<div class="fields"><div><label for="ckD">Data del check</label><input id="ckD" type="date" max="'+todayIso()+'" value="'+(F.date||F.newDate||todayIso())+'"></div></div>';
   h+='<div class="fields" style="margin-top:8px">'+CK[F.m].f.map(function(f){return '<div><label for="ck-'+f[0]+'">'+f[1]+' ('+f[2]+')</label><input id="ck-'+f[0]+'" inputmode="decimal" value="'+(e[f[0]]!=null?fmt(e[f[0]],ckDec(f[2])===0?0:(String(e[f[0]]).split(".")[1]||"").length):"")+'"></div>'}).join("")+'</div>';
   h+='<div class="fields" style="grid-template-columns:1fr;margin-top:8px"><div><label for="ckN">Nota (facoltativa)</label><input id="ckN" maxlength="120" placeholder="es. dopo allenamento, a digiuno" value="'+esc(e.note||"")+'"></div></div>';
   h+='<p class="note" style="margin:8px 0 0">Scrivi solo quello che hai: gli altri campi possono restare vuoti. Grasso in kg e massa magra li ricavo io dal peso.</p>';
@@ -1522,7 +1705,7 @@ function renderChecks(){
   h+=ckBells().map(function(t){return '<div class="ckbell">🔔 '+esc(t)+'</div>'}).join("");
   h+=ckBlock("pli")+ckBlock("bia");
   if(ckForm)h+=ckFormHtml();
-  else h+='<div class="actions"><button class="btn" type="button" data-ckadd="1">＋ Aggiungi check</button></div>';
+  else h+='<div class="actions"><button class="btn" type="button" data-ckadd="1">＋ Aggiungi check</button><label class="btn ghost" for="ckPdf" style="display:inline-flex;align-items:center">📄 Carica referto BIA (PDF)</label></div>'+(ckPdfMsg?'<div class="msg">'+esc(ckPdfMsg)+'</div>':'');
   if(all.length)h+='<details id="ckAll" style="margin-top:12px"'+(ckOpen?' open':'')+'><summary>Tutti i check ('+all.length+')</summary>'+all.map(function(x){var z=ckFull(x.e);return '<div class="ckrow"><span><b>'+fmtDate(x.e.date)+'</b> · '+CK[x.m].ico+' '+CK[x.m].n+'<small>'+[z.fat!=null?(z._d.fat?"≈":"")+fmt(z.fat,1)+"% grasso":"",z.ffm!=null?(z._d.ffm?"≈":"")+fmt(z.ffm,1)+" kg magra":"",z.kg!=null?fmt(z.kg,1)+" kg":""].filter(Boolean).join(" · ")+'</small></span><button class="btn ghost" type="button" data-ckedit="'+x.m+'|'+x.e.date+'">✎</button></div>'}).join("")+'</details>';
   card.innerHTML=h;
 }
@@ -1540,10 +1723,29 @@ function ckSave(){
   if(F.edit&&F.date!==d)delete checks[F.m][F.date];
   checks[F.m][d]=o;saveC();ckForm=null;renderChecks();
 }
+// Referto BIA in PDF: si legge sul telefono (niente rete) e riempie il modulo; i valori si controllano prima di salvare.
+var BIA_LAB={pha:"angolo di fase",tbw:"acqua totale",ecw:"acqua extracellulare",hyd:"idratazione",ffm:"massa magra",fm:"massa grassa (kg)",fat:"massa grassa (%)",bcm:"massa cellulare",mm:"muscolare totale",smm:"muscolo-scheletrica",asmm:"appendicolare",bmr:"metabolismo basale",tdee:"dispendio totale",kg:"peso"};
+document.getElementById("ckPdf").addEventListener("change",function(ev){
+  var file=ev.target.files&&ev.target.files[0];ev.target.value="";if(!file)return;
+  ckPdfMsg="Leggo il referto…";ckForm=null;renderChecks();
+  biaRead(file).then(function(r){
+    if(r.n<3)throw new Error("pochi");
+    var miss=Object.keys(BIA_LAB).filter(function(k){return r.v[k]==null}).map(function(k){return BIA_LAB[k]});
+    var d=r.v.date||todayIso(),pre={};for(var k in r.v)if(k!=="date")pre[k]=r.v[k];
+    ckPdfMsg="";
+    ckForm={m:"bia",date:checks.bia[d]?d:null,newDate:d,edit:!!checks.bia[d],pre:pre,
+      info:"Letti "+r.n+" valori dal referto"+(r.v.date?" del "+fmtDate(r.v.date):" (data non trovata: scegli tu)")+". Controlla e premi Salva check."+(miss.length?" Non ho trovato: "+miss.join(", ")+".":"")+(checks.bia[d]?" C'era già una BIA in quella data: salvando la sostituisci.":"")};
+    renderChecks();
+    document.getElementById("ckD").scrollIntoView({block:"center"});
+  },function(e){
+    ckPdfMsg=e&&e.message==="vecchio"?"Questo telefono non riesce a leggere i PDF qui: scrivi i valori a mano.":"Non riesco a leggere questo PDF (deve essere il referto BIA Bodygram): scrivi i valori a mano.";
+    renderChecks();
+  });
+});
 document.getElementById("ckCard").addEventListener("toggle",function(ev){if(ev.target.id==="ckAll")ckOpen=ev.target.open},true);
 document.getElementById("ckCard").addEventListener("click",function(ev){
   var b=ev.target.closest("button");if(!b)return;
-  if(b.hasAttribute("data-ckadd")){ckForm={m:"pli",date:null,edit:false};renderChecks();return}
+  if(b.hasAttribute("data-ckadd")){ckPdfMsg="";ckForm={m:"pli",date:null,edit:false};renderChecks();return}
   if(b.hasAttribute("data-ckm")){var dv=document.getElementById("ckD").value;ckForm={m:b.getAttribute("data-ckm"),date:null,edit:false};renderChecks();if(dv)document.getElementById("ckD").value=dv;return}
   if(b.hasAttribute("data-ckedit")){var p=b.getAttribute("data-ckedit").split("|");ckForm={m:p[0],date:p[1],edit:true};renderChecks();document.getElementById("ckD").scrollIntoView({block:"center"});return}
   if(b.hasAttribute("data-ckx")){ckForm=null;renderChecks();return}
