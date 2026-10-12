@@ -747,7 +747,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.27</p>
+  <p class="foot">Diario peso · v1.28</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1510,7 +1510,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
     // v5/v6: check dal nutrizionista (v5 aveva BIA e pliche separate: si uniscono per giorno)
     var nc5=0,oc=ckMigrate(o.checks||{});
     Object.keys(oc).forEach(function(d){var e=validCheck(d,oc[d]);if(e){checks[d]=e;nc5++}});
-    // "Continua il cut" (dalla beta v1.27, facoltativo)
+    // "Continua il cut" (dalla v1.28, facoltativo)
     var cx=o.cutx;if(cx&&D.test(cx.on)&&(cx.end==null||D.test(cx.end))){meta.cutx={on:cx.on};if(cx.end)meta.cutx.end=cx.end;saveMeta()}
     lsSet();saveK();saveR();saveA();saveF();saveP();saveC();render();loadKDay();
     msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+(nc5?", "+nc5+" check":"")+".");
