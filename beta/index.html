@@ -446,6 +446,89 @@ body.noscroll{overflow:hidden}
 .sheet .sbox input{background:transparent}
 .sheet .note + label,.sheet p + label{margin-top:14px}
 
+/* ---------- Goals: obiettivo della settimana, settimane, percorso, abitudini ---------- */
+.hsub{margin-left:auto;font-size:13px;font-weight:500;color:var(--mute);letter-spacing:0;text-align:right}
+.tiles{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:8px;margin-top:12px}
+.tiles div{background:var(--fill);border-radius:14px;padding:9px 10px;min-width:0}
+.tiles span{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tiles b{font-family:var(--num);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tiles b.ok,.wgst.ok{color:var(--ok)} .tiles b.warn,.wgst.warn{color:var(--warn)} .tiles b.bad,.wgst.bad{color:var(--bad)}
+.wg{padding:18px}
+.wgtop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.wglab{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:600}
+.wglab::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--hc)}
+.wgdate{font-size:13px;color:var(--mute);white-space:nowrap}
+.wgbig{display:flex;align-items:baseline;gap:6px;margin-top:6px}
+.wgbig b{font-family:var(--num);font-size:56px;font-weight:700;line-height:1.05;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.wgbig small{font-size:17px;color:var(--mute);font-weight:500}
+.wgrate{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:15px;color:var(--mute)}
+.wgchip{font-family:var(--num);font-weight:700;font-size:14px;padding:4px 10px;border-radius:999px;background:var(--hc);color:var(--hon)}
+.wgtrack{position:relative;height:28px;margin:18px 10px 4px}
+.wgtrack::before{content:"";position:absolute;left:-10px;right:-10px;top:12px;height:4px;border-radius:2px;background:var(--fill)}
+.wgband{position:absolute;top:7px;height:14px;border-radius:7px;background:var(--hc);opacity:.32}
+.wgideal{position:absolute;top:3px;width:3px;height:22px;margin-left:-1.5px;border-radius:2px;background:var(--hc)}
+.wgprev{position:absolute;top:7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--card);border:3px solid var(--mute)}
+.wgnow{position:absolute;top:3px;width:22px;height:22px;margin-left:-11px;border-radius:50%;border:3px solid var(--card);background:var(--mute);box-shadow:0 1px 5px rgba(0,0,0,.25);transition:left .4s}
+.wgnow.ok{background:var(--ok)} .wgnow.warn{background:var(--warn)} .wgnow.bad{background:var(--bad)}
+.wgst{display:inline-block;margin-top:12px;font-size:14px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--fill)}
+.wgst.ok{background:var(--okbg)} .wgst.warn{background:var(--upbg)} .wgst.bad{background:var(--downbg)}
+.wgnote{margin:6px 0 0;font-size:13px;color:var(--mute);line-height:1.35}
+.wks{display:flex;gap:4px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px;margin:0 -6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.wks::-webkit-scrollbar{display:none}
+.wkc{flex:none;width:44px;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:transparent;color:var(--mute);font:inherit;font-size:11px;font-weight:600;padding:8px 0 6px;border-radius:14px;cursor:pointer;scroll-snap-align:end;transition:background .2s}
+.wkc[aria-pressed="true"]{background:var(--fill);color:var(--ink)}
+.wkp{position:relative;width:100%;height:118px}
+.wkb{position:absolute;left:13px;right:13px;border-radius:7px;background:var(--wt);opacity:.22}
+.wkc.cur .wkb{opacity:.12}
+.wki{position:absolute;left:9px;right:9px;height:2.5px;margin-bottom:-1.25px;border-radius:2px;background:var(--wt)}
+.wcd{position:absolute;left:50%;width:14px;height:14px;margin:0 0 -7px -7px;border-radius:50%;background:var(--mute);border:2.5px solid var(--card)}
+.wcd.ok{background:var(--ok)} .wcd.warn{background:var(--warn)} .wcd.bad{background:var(--bad)}
+.wkleg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--mute);margin-top:8px}
+.wkleg i{display:inline-block;vertical-align:middle;margin-right:5px}
+.wkleg .lb{width:9px;height:14px;border-radius:4px;background:var(--wt);opacity:.3}
+.wkleg .li{width:12px;height:2.5px;border-radius:2px;background:var(--wt)}
+.wkleg .ld{width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.wkdet{margin-top:12px;border-top:.5px solid var(--sep);padding-top:12px}
+.wkdh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.wkdh b{font-size:16px;font-weight:600}
+.wkst{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--fill)}
+.wkst.ok{background:var(--okbg);color:var(--ok)} .wkst.warn{background:var(--upbg);color:var(--warn)} .wkst.bad{background:var(--downbg);color:var(--bad)}
+.wopen{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:48px;margin-top:10px;border:0;border-radius:14px;background:var(--tint);color:var(--accent);font:inherit;font-weight:600;font-size:15px;padding:0 14px;cursor:pointer;text-align:left}
+.wopen span:last-child{font-size:22px;font-weight:400}
+.wkall{margin-top:12px;border-top:.5px solid var(--sep);padding-top:6px}
+.wkall summary{font-size:16px}
+.gseg{margin-bottom:16px}
+.goal .gh{margin-bottom:14px}
+.gbody{display:flex;align-items:center;gap:16px}
+.gring{position:relative;flex:none;width:116px;height:116px}
+.gring svg{width:116px;height:116px;display:block}
+.gpc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gpc b{font-family:var(--num);font-size:22px;font-weight:700;line-height:1.05}
+.gpc span{font-size:11px;color:var(--mute)}
+.gside{flex:1;min-width:0}
+.gside .gl{margin:0;padding:8px 0;border-bottom:.5px solid var(--sep);font-size:14px;color:var(--ink)}
+.gside .gl span:last-child{font-family:var(--num);font-weight:700;white-space:nowrap}
+.gside .gl i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.gside .st{margin-top:10px}
+.hab{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.habt{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:var(--fill);border-radius:18px;padding:12px 4px 10px;color:var(--ink);font:inherit;cursor:pointer;min-height:44px;transition:background .2s}
+.habt[aria-pressed="true"]{background:var(--tint);box-shadow:inset 0 0 0 2px var(--accent)}
+.habr{position:relative;width:66px;height:66px;margin-bottom:4px}
+.habr svg{width:66px;height:66px;display:block}
+.habr b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--num);font-size:16px;font-weight:700}
+.habt > span:not(.habr){font-size:15px;font-weight:600}
+.habt small{font-size:11.5px;color:var(--mute)}
+.habd{margin-top:12px;padding-top:12px;border-top:.5px solid var(--sep)}
+#mstones{position:relative}
+#mstones::before{content:"";position:absolute;left:4px;top:22px;bottom:22px;width:2px;border-radius:1px;background:var(--fill)}
+.ms{border-bottom:0;padding:10px 0}
+.ms .d{position:relative;z-index:1;box-shadow:0 0 0 3px var(--card)}
+.ms.fut .d{background:var(--card);border:2px solid var(--line)}
+.ms.fut{color:var(--mute)}
+.ms.next{color:var(--ink);font-weight:600}
+.ms.next .d{background:var(--accent);border-color:var(--accent)}
+.ms.next .r{color:var(--accent);font-weight:600}
+
 /* footer */
 .foot{text-align:center;color:var(--mute);font-size:12px;margin:22px 0 0}
 
@@ -665,7 +748,7 @@ body.noscroll{overflow:hidden}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.25</p>
+  <p class="foot">Diario peso · v1.26</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -696,9 +779,9 @@ var PH=[
 var PHASES=PH;
 var PLANLAB=["6 ott · partenza","16 ott · fine cut finale","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr · fine bulk","25 apr · fine cut soft","14 giu · fine cut pieno"];
 var GOALS=[
-  {id:"cut",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-06",to:"2026-10-16",start:77.4,target:76.7,col:"cut"},
-  {id:"bulk",emo:"💪",title:"Lean bulk",from:"2026-10-26",to:"2027-04-05",start:76.7,target:81.4,col:"bulk"},
-  {id:"cutf",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-05",to:"2027-06-14",start:81.4,target:77.4,col:"cutfull"}
+  {id:"cut",short:"Cut finale",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-06",to:"2026-10-16",start:77.4,target:76.7,col:"cut"},
+  {id:"bulk",short:"Lean bulk",emo:"💪",title:"Lean bulk",from:"2026-10-26",to:"2027-04-05",start:76.7,target:81.4,col:"bulk"},
+  {id:"cutf",short:"Fine stagione",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-05",to:"2027-06-14",start:81.4,target:77.4,col:"cutfull"}
 ];
 var selPh=null;
 
@@ -1411,10 +1494,15 @@ document.getElementById("wkOk").addEventListener("click",function(){
   meta.weekSeen=m;saveMeta();render();
 });
 document.getElementById("rvClose").addEventListener("click",function(){document.getElementById("repView").hidden=true;renderGoals(sorted())});
+document.getElementById("goalsBox").addEventListener("toggle",function(ev){if(ev.target.id==="wkAllBox")wkAllOpen=ev.target.open},true);
 document.getElementById("goalsBox").addEventListener("click",function(ev){
-  var b=ev.target.closest(".wrow");
+  var b=ev.target.closest("[data-wk]");
+  if(b){wkSel=b.getAttribute("data-wk");renderGoals(sorted());return}
+  if((b=ev.target.closest("[data-goal]"))){goalSel=b.getAttribute("data-goal");renderGoals(sorted());return}
+  if((b=ev.target.closest("[data-hab]"))){var hb=b.getAttribute("data-hab");habSel=habSel===hb?null:hb;renderGoals(sorted());return}
+  b=ev.target.closest(".wrow,[data-open]");
   if(b){
-    var r=reports[b.getAttribute("data-mon")],rv=document.getElementById("repView");if(!r)return;
+    var r=reports[b.getAttribute("data-mon")||b.getAttribute("data-open")],rv=document.getElementById("repView");if(!r)return;
     document.getElementById("rvBody").innerHTML=reportHTML(r,"rv");rv.hidden=false;rv.setAttribute("data-mon",r.mon);
     renderGoals(sorted());rv.scrollIntoView({behavior:"smooth",block:"start"});return;
   }
@@ -2045,74 +2133,104 @@ document.getElementById("gpBody").addEventListener("click",function(ev){
   gpSel=b.getAttribute("data-gp");renderGp();
 });
 
-function renderGoals(list){
-  var today=todayIso(),cur=curAvg(list),box=document.getElementById("goalsBox");
-  var h='';
-  GOALS.forEach(function(g){
-    var tpct=clamp(daysBetween(g.from,today)/Math.max(1,daysBetween(g.from,g.to)),0,1);
-    var started=today>=g.from,ended=today>g.to;
-    var wpct=0,st="",stc="var(--mute)";
-    if(cur==null){st="Nessun dato"}
-    else if(!started){st="Parte il "+dIt(g.from)}
-    else{
-      wpct=clamp((cur-g.start)/(g.target-g.start),0,1);
-      var exp=g.start+(g.target-g.start)*tpct,diff=cur-exp;
-      if(Math.abs(diff)<=0.7){st=(ended?"Chiuso · ":"")+"In linea con il piano";stc="var(--ok)"}
-      else{st=(ended?"Chiuso · ":"")+"Fuori traiettoria ("+(diff>0?"+":"")+fmt(diff,1)+" kg)";stc="var(--warn)"}
-    }
-    h+='<section class="card"><div class="gh"><b>'+g.emo+' '+g.title+'</b><span>'+dIt(g.from)+' – '+dIt(g.to)+'</span></div>';
-    h+='<div class="gl"><span>Peso: '+fmt(g.start,1)+' → '+fmt(g.target,1)+' kg</span><span>'+Math.round(wpct*100)+'%</span></div>';
-    h+='<div class="bar" aria-label="Avanzamento peso"><i style="width:'+wpct*100+'%;background:var(--c-'+g.col+')"></i></div>';
-    h+='<div class="gl" style="margin-top:10px"><span>Tempo trascorso</span><span>'+Math.round(tpct*100)+'%</span></div>';
-    h+='<div class="bar" aria-label="Tempo trascorso"><i style="width:'+tpct*100+'%;background:var(--mute);opacity:.45"></i></div>';
-    h+='<div class="st" style="margin-top:10px;color:'+stc+'">'+st+'</div></section>';
+/* ---------- Goals ---------- */
+// Obiettivo della settimana: media della settimana prima + quanto prevede il piano per questa settimana
+// (differenza tra le medie del piano nelle due settimane). Cambia solo il lunedi', non a ogni pesata:
+// se sei avanti o indietro col peso, l'obiettivo riparte da dove sei. Niente di salvato: si ricalcola dalle pesate.
+var PLAN_MON=mondayOf(PLAN[0][0]);
+var goalSel=null,habSel=null,wkSel=null,wkX=null,wkAllOpen=false;
+function planWk(mon){var s=0;for(var i=0;i<7;i++)s+=planAt(toT(mon)+i*DAY);return s/7}
+function wkAvg(list,mon){return avgWin(list,toT(mon)+6*DAY,7)}
+function weekGoal(list,mon,depth){
+  depth=depth||0;
+  var prev=iso(toT(mon)-7*DAY),pa=wkAvg(list,prev),rate=planWk(mon)-planWk(prev),anchor,src;
+  if(pa.n){anchor=pa.avg;src=pa.n>=3?"media":"poche"}
+  else if(depth<8&&prev>PLAN_MON){var g0=weekGoal(list,prev,depth+1);anchor=g0.ideal;src=g0.src==="piano"?"piano":"stima"}
+  else{anchor=planWk(prev);src="piano"}
+  // fascia giusta: la stessa degli avvisi sul ritmo (BAND); dove non c'e', obiettivo ±0,3 kg
+  var ph=phaseAt(iso(toT(mon)+3*DAY)),b=BAND[ph.id]||[null,null];
+  var lo=b[0]!=null?Math.min(b[0],rate-0.1):rate-0.3,hi=b[1]!=null?Math.max(b[1],rate+0.1):rate+0.3;
+  return {mon:mon,ph:ph,anchor:anchor,src:src,n0:pa.n,rate:rate,ideal:anchor+rate,lo:anchor+lo,hi:anchor+hi};
+}
+function weekEval(list,g){
+  var a=wkAvg(list,g.mon);if(!a.n)return {n:0,lv:"none"};
+  var off=a.avg<g.lo?a.avg-g.lo:a.avg>g.hi?a.avg-g.hi:0;
+  return {n:a.n,avg:a.avg,off:off,lv:a.n<3?"few":!off?"ok":Math.abs(off)>=FAR?"bad":"warn"};
+}
+function wkLv(e){return e.lv==="ok"||e.lv==="warn"||e.lv==="bad"?e.lv:"na"}
+function wkLab(e){
+  if(e.lv==="none")return "Nessuna pesata";
+  if(e.lv==="few")return "Servono 3 pesate (ora "+e.n+")";
+  if(e.lv==="ok")return "🟢 Nella fascia";
+  return (e.lv==="bad"?"🔴 ":"🟡 ")+(e.off>0?"Sopra":"Sotto")+" di "+fmt(Math.abs(e.off),1)+" kg";
+}
+function wkRange(mon){return dIt(mon)+" – "+dIt(iso(toT(mon)+6*DAY))}
+// anelli concentrici come Attivita': [{f:0..1, col}] dall'esterno all'interno
+function ringSvg(rs,w){
+  var s='<svg viewBox="0 0 100 100" aria-hidden="true">',r=50;
+  rs.forEach(function(g){
+    r-=w/2;var C=2*Math.PI*r;
+    s+='<circle cx="50" cy="50" r="'+r.toFixed(1)+'" fill="none" stroke="'+g.col+'" stroke-opacity=".2" stroke-width="'+w+'"/>';
+    if(g.f>0)s+='<circle cx="50" cy="50" r="'+r.toFixed(1)+'" fill="none" stroke="'+g.col+'" stroke-width="'+w+'" stroke-linecap="round" stroke-dasharray="'+(Math.min(g.f,1)*C).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 50 50)"/>';
+    r-=w/2+3;
   });
+  return s+'</svg>';
+}
 
-  // vita
-  var wl=sortedW().pop();
-  h+='<section class="card"><div class="gh"><b>📏 Vita sotto controllo</b><span>soglia 87 cm</span></div>';
-  if(wl){
-    var wp=clamp((wl.cm-83)/(87-83),0,1);
-    var bad=wl.cm>=87,warn=wl.cm>=85.5;
-    var col=bad?"var(--bad)":warn?"var(--warn)":"var(--ok)";
-    h+='<div class="gl"><span>83 cm (partenza)</span><span>87 cm</span></div>';
-    h+='<div class="bar"><i style="width:'+wp*100+'%;background:'+col+'"></i></div>';
-    h+='<div class="st" style="margin-top:10px;color:'+col+'">'+fmt(wl.cm,1)+' cm · '+(bad?"soglia superata: valuta di anticipare il cut":"margine "+fmt(87-wl.cm,1)+" cm")+'</div>';
-  }else{h+='<div class="st" style="color:var(--mute)">Nessuna misura: aggiungila nella sezione Vita del Diario.</div>'}
-  h+='</section>';
+// 1. obiettivo di questa settimana
+function goalWeekHTML(list,today){
+  var mon=mondayOf(today),g=weekGoal(list,mon),e=weekEval(list,g),lv=wkLv(e),rate=g.rate;
+  var verb=Math.abs(rate)<0.05?"da mantenere":rate>0?"da mettere su":"da perdere";
+  var vals=[g.lo,g.hi,g.anchor];if(e.n)vals.push(e.avg);
+  var mn=Math.min.apply(null,vals)-0.15,mx=Math.max.apply(null,vals)+0.15;
+  function P(v){return ((v-mn)/(mx-mn)*100).toFixed(1)+"%"}
+  var h='<section class="card wg" id="wgCard" style="--hc:var(--c-'+g.ph.id+');--hon:var(--on-'+g.ph.id+')">';
+  h+='<div class="wgtop"><span class="wglab">Questa settimana</span><span class="wgdate">'+wkRange(mon)+'</span></div>';
+  h+='<div class="wgbig"><b id="wgVal">'+fmt(g.ideal,1)+'</b><small>kg di media</small></div>';
+  h+='<div class="wgrate"><span class="wgchip">'+(Math.abs(rate)<0.05?"±0":sgn(rate,2))+' kg</span>'+verb+' · '+g.ph.name+'</div>';
+  h+='<div class="wgtrack" aria-hidden="true"><i class="wgband" style="left:'+P(g.lo)+';right:calc(100% - '+P(g.hi)+')"></i><i class="wgideal" style="left:'+P(g.ideal)+'"></i>'+
+    '<i class="wgprev" style="left:'+P(g.anchor)+'"></i>'+(e.n?'<i class="wgnow '+lv+'" style="left:'+P(e.avg)+'"></i>':'')+'</div>';
+  h+='<div class="tiles"><div><span>Sett. scorsa</span><b>'+fmt(g.anchor,1)+'</b></div><div><span>Fascia giusta</span><b>'+fmt(g.lo,1)+'–'+fmt(g.hi,1)+'</b></div>'+
+    '<div><span>Adesso'+(e.n?' · '+e.n+'/7':'')+'</span><b class="'+lv+'">'+(e.n?fmt(e.avg,1):'–')+'</b></div></div>';
+  h+='<div class="wgst '+lv+'" id="wgSt">'+wkLab(e)+'</div>';
+  h+='<p class="wgnote">Si aggiorna da solo ogni lunedì: '+(g.src==="piano"?"parte dal piano.":g.src==="stima"?"la settimana scorsa è senza pesate, riparte dall'obiettivo di quella prima.":"tua media della settimana scorsa "+sgn(rate,2)+" kg come vuole il piano"+(g.src==="poche"?" (con "+g.n0+(g.n0===1?" sola pesata)":" pesate)"):"")+".")+'</p>';
+  return h+'</section>';
+}
 
-  // costanza
-  var n14=0,streak=0;
-  for(var i=0;i<14;i++){if(entries[iso(toT(today)-i*DAY)])n14++}
-  var startI=entries[today]?0:1;
-  for(var j=startI;j<400;j++){if(entries[iso(toT(today)-j*DAY)])streak++;else break}
-  h+='<section class="card"><div class="gh"><b>✅ Costanza</b><span>ultimi 14 giorni</span></div>';
-  h+='<div class="gl"><span>Giorni con pesata</span><span>'+n14+' / 14</span></div>';
-  h+='<div class="bar"><i style="width:'+n14/14*100+'%;background:var(--accent)"></i></div>';
-  h+='<div class="st" style="margin-top:10px">Serie in corso: '+streak+(streak===1?" giorno":" giorni")+'</div></section>';
-
-  // aderenza alle kcal
-  var as=adhStats(yesterdayIso(),14);
-  h+='<section class="card"><div class="gh"><b>🍽️ Kcal rispettate</b><span>ultimi 14 giorni</span></div>';
-  if(!as.n)h+='<div class="st" style="color:var(--mute)">Nessun dato: scrivi nel Diario le kcal che mangi ogni giorno.</div>';
-  else{
-    var ac=as.score>=0.85?"var(--ok)":as.score>=0.7?"var(--warn)":"var(--bad)";
-    h+='<div class="gl"><span>Aderenza ('+as.n+'/14 giorni segnati)</span><span>'+Math.round(as.score*100)+'%</span></div>';
-    h+='<div class="bar"><i style="width:'+as.score*100+'%;background:'+ac+'"></i></div>';
-    h+='<div class="st" style="margin-top:10px;color:'+ac+'">✅ '+as.si+' rispettati · 〰️ '+as.circa+' vicini · ⬆️ '+as.noUp+' sopra · ⬇️ '+as.noDown+' sotto'+(as.noUnk?' · '+as.noUnk+' fuori':'')+'</div>';
-    if(as.kAvg!=null)h+='<div class="gl" style="margin:8px 0 0"><span>Media kcal ('+as.kn+' giorni)</span><span>'+Math.round(as.kAvg)+' / obiettivo '+Math.round(as.tAvg)+' ('+sgn(as.avgDiff,0)+')</span></div>';
-  }
-  h+='</section>';
-
-  // report settimanali salvati, dal piu' recente: tocca una riga per riaprirlo
+// 2. le settimane: fascia giusta, obiettivo e la tua media; tocco = dettaglio e report
+function weeksHTML(list,today){
+  var cur=mondayOf(today),first=PLAN_MON,wks=[];
+  if(list.length&&mondayOf(list[0].date)>first)first=mondayOf(list[0].date);
+  if(first>cur)first=cur;
+  for(var t=toT(first);t<=toT(cur);t+=7*DAY){var m=iso(t),g=weekGoal(list,m);wks.push({m:m,g:g,e:weekEval(list,g),cur:m===cur})}
+  var vs=[];wks.forEach(function(w){vs.push(w.g.lo,w.g.hi);if(w.e.n)vs.push(w.e.avg)});
+  var mn=Math.min.apply(null,vs)-0.2,mx=Math.max.apply(null,vs)+0.2;
+  function Y(v){return ((v-mn)/(mx-mn)*100).toFixed(1)+"%"}
+  var done=wks.filter(function(w){return !w.cur&&w.e.n>=3}),hit=done.filter(function(w){return w.e.lv==="ok"}).length;
+  if(!wkSel||!wks.some(function(w){return w.m===wkSel}))wkSel=wks.length>1?wks[wks.length-2].m:cur;
+  var h='<section class="card" id="wkCard"><h2><i class="hd" data-i="chart" style="background:var(--wt)"></i>Le tue settimane'+(done.length?'<span class="hsub">'+hit+' su '+done.length+' nella fascia</span>':'')+'</h2>';
+  h+='<div class="wks" id="wkScroll">';
+  wks.forEach(function(w){
+    var e=w.e,g=w.g;
+    h+='<button type="button" class="wkc'+(w.cur?' cur':'')+'" data-wk="'+w.m+'" aria-pressed="'+(w.m===wkSel)+'" aria-label="Settimana '+wkRange(w.m)+'">'+
+      '<span class="wkp"><i class="wkb" style="bottom:'+Y(g.lo)+';top:calc(100% - '+Y(g.hi)+')"></i><i class="wki" style="bottom:'+Y(g.ideal)+'"></i>'+
+      (e.n?'<i class="wcd '+wkLv(e)+'" style="bottom:'+Y(e.avg)+'"></i>':'')+'</span><span class="wcl">'+(w.cur?"ora":(+w.m.slice(8))+"/"+(+w.m.slice(5,7)))+'</span></button>';
+  });
+  h+='</div><div class="wkleg"><span><i class="lb"></i>fascia giusta</span><span><i class="li"></i>obiettivo</span><span><i class="ld"></i>tua media</span></div>';
+  var s=wks.filter(function(w){return w.m===wkSel})[0],r=reports[wkSel];
+  h+='<div class="wkdet" id="wkDet"><div class="wkdh"><b>'+wkRange(s.m)+(s.cur?" · in corso":"")+'</b><span class="wkst '+wkLv(s.e)+'">'+wkLab(s.e)+'</span></div>';
+  h+='<div class="tiles"><div><span>Tua media</span><b class="'+wkLv(s.e)+'">'+(s.e.n?fmt(s.e.avg,1):"–")+'</b></div><div><span>Obiettivo</span><b>'+fmt(s.g.ideal,1)+'</b></div><div><span>Pesate</span><b>'+s.e.n+'/7</b></div></div>';
+  if(r)h+='<button type="button" class="wopen" data-open="'+r.mon+'"><span>Report · '+"⭐".repeat(r.stars)+' '+r.badges.map(function(b){return BADGE[b].e}).join("")+'</span><span aria-hidden="true">›</span></button>';
+  h+='</div>';
+  // tutti i report salvati, dal piu' recente: tocca una riga per riaprirlo
   var wk=Object.keys(reports).sort().reverse(),open=document.getElementById("repView");
   var openMon=open.hidden?null:open.getAttribute("data-mon");
-  h+='<section class="card"><div class="gh"><b>📅 Report settimanali</b><span>tocca per aprire</span></div>';
+  h+='<details class="wkall" id="wkAllBox"'+(wkAllOpen?' open':'')+'><summary>Tutti i report'+(wk.length?' ('+wk.length+')':'')+'</summary>';
   if(!wk.length)h+='<div class="st" style="color:var(--mute)">Il primo report arriva lunedì prossimo.</div>';
   else{
     var tot={pos:0,neg:0};
     wk.forEach(function(k){reports[k].badges.forEach(function(b){tot[BADGE[b].k>0?"pos":"neg"]++})});
-    h+='<div class="gl" style="margin:0 0 6px"><span>Premi in bacheca: '+tot.pos+' 🏆 · malus: '+tot.neg+'</span><span>'+wk.length+(wk.length===1?" settimana":" settimane")+'</span></div>';
+    h+='<div class="gl" style="margin:4px 0 6px"><span>Premi in bacheca: '+tot.pos+' 🏆 · malus: '+tot.neg+'</span><span>'+wk.length+(wk.length===1?" settimana":" settimane")+'</span></div>';
     (showAllWeeks?wk:wk.slice(0,8)).forEach(function(k){
       var r=reports[k],ic=r.badges.map(function(b){return BADGE[b].e}).join("");
       h+='<button type="button" class="wrow" data-mon="'+k+'" aria-pressed="'+(k===openMon?"true":"false")+'"><span aria-hidden="true">'+(trendLabel({lv:r.st,dir:r.dir}).slice(0,2)||"⚪")+'</span>';
@@ -2121,16 +2239,97 @@ function renderGoals(list){
     });
     if(wk.length>8)h+='<div class="actions"><button class="btn ghost" id="wkAll" type="button">'+(showAllWeeks?"Mostra meno":"Mostra tutte ("+wk.length+")")+'</button></div>';
   }
-  h+='</section>';
-  box.innerHTML=h;
+  return h+'</details></section>';
+}
+
+// 3. il percorso: le tre tappe del piano, una alla volta, con l'anello del peso e del tempo
+function journeyHTML(list,today){
+  var cur=curAvg(list),mon=mondayOf(today),gw=weekGoal(list,mon);
+  if(!goalSel){
+    var g0=GOALS.filter(function(g){return today>=g.from&&today<=g.to})[0]||GOALS.filter(function(g){return g.from>today})[0]||GOALS[GOALS.length-1];
+    goalSel=g0.id;
+  }
+  var gs=GOALS.filter(function(g){return g.id===goalSel})[0];
+  var h='<section class="card" id="gjCard"><h2><i class="hd" data-i="flag" style="background:var(--c-'+gs.col+')"></i>Il percorso</h2>';
+  h+='<div class="seg gseg" role="group" aria-label="Tappa del piano">'+GOALS.map(function(g){return '<button type="button" data-goal="'+g.id+'" aria-pressed="'+(g.id===goalSel)+'">'+g.short+'</button>'}).join("")+'</div>';
+  GOALS.forEach(function(g){
+    var tpct=clamp(daysBetween(g.from,today)/Math.max(1,daysBetween(g.from,g.to)),0,1);
+    var started=today>=g.from,ended=today>g.to;
+    var wpct=0,st="",stc="var(--mute)";
+    // tappa chiusa: conta la media degli ultimi 7 giorni della tappa, non il peso di adesso
+    var ga=ended?avgWin(list,toT(g.to),7):null,w=ended?(ga.n?ga.avg:null):cur;
+    if(cur==null){st="Nessun dato"}
+    else if(!started){st="Parte il "+dIt(g.from)}
+    else if(w==null){st="Chiuso · senza pesate alla fine"}
+    else{
+      wpct=clamp((w-g.start)/(g.target-g.start),0,1);
+      var exp=g.start+(g.target-g.start)*tpct,diff=w-exp;
+      if(Math.abs(diff)<=0.7){st=(ended?"Chiuso · ":"")+"In linea con il piano";stc="var(--ok)"}
+      else{st=(ended?"Chiuso · ":"")+"Fuori traiettoria ("+(diff>0?"+":"")+fmt(diff,1)+" kg)";stc="var(--warn)"}
+    }
+    // dove arrivi se da qui segui il ritmo del piano (riparte dall'obiettivo di questa settimana)
+    var proj=cur!=null&&!ended?gw.ideal+planAt(toT(g.to))-planWk(mon):null;
+    h+='<div class="goal" data-goal="'+g.id+'"'+(g.id===goalSel?'':' hidden')+'>';
+    h+='<div class="gh"><b>'+g.emo+' '+g.title+'</b><span>'+dIt(g.from)+' – '+dIt(g.to)+'</span></div>';
+    h+='<div class="gbody"><div class="gring">'+ringSvg([{f:wpct,col:"var(--c-"+g.col+")"},{f:tpct,col:"var(--accent)"}],12)+
+      '<div class="gpc"><b>'+Math.round(wpct*100)+'%</b><span>del peso</span></div></div><div class="gside">';
+    h+='<div class="gl"><span>Peso: '+fmt(g.start,1)+' → '+fmt(g.target,1)+' kg</span><span><i style="background:var(--c-'+g.col+')"></i>'+Math.round(wpct*100)+'%</span></div>';
+    h+='<div class="gl"><span>Tempo trascorso</span><span><i style="background:var(--accent)"></i>'+Math.round(tpct*100)+'%</span></div>';
+    if(proj!=null)h+='<div class="gl"><span>Arrivo previsto</span><span>~'+fmt(proj,1)+' kg</span></div>';
+    h+='<div class="st" style="color:'+stc+'">'+st+'</div></div></div></div>';
+  });
+  return h+'</section>';
+}
+
+// 4. abitudini: pesate, kcal e vita in tre anelli; tocco = dettaglio
+function habitsHTML(list,today){
+  var n14=0,streak=0;
+  for(var i=0;i<14;i++){if(entries[iso(toT(today)-i*DAY)])n14++}
+  var startI=entries[today]?0:1;
+  for(var j=startI;j<400;j++){if(entries[iso(toT(today)-j*DAY)])streak++;else break}
+  var as=adhStats(yesterdayIso(),14),ac=!as.n?"var(--line)":as.score>=0.85?"var(--ok)":as.score>=0.7?"var(--warn)":"var(--bad)";
+  var wl=sortedW().pop(),wp=0,wcol="var(--line)";
+  if(wl){wp=clamp((wl.cm-83)/(87-83),0,1);wcol=wl.cm>=87?"var(--bad)":wl.cm>=85.5?"var(--warn)":"var(--ok)"}
+  function tile(id,f,col,val,lab,sub){return '<button type="button" class="habt" data-hab="'+id+'" aria-pressed="'+(habSel===id)+'"><span class="habr">'+ringSvg([{f:f,col:col}],11)+'<b>'+val+'</b></span><span>'+lab+'</span><small>'+sub+'</small></button>'}
+  var h='<section class="card" id="habCard"><h2><i class="hd" data-i="target" style="background:var(--ok)"></i>Abitudini<span class="hsub">ultimi 14 giorni</span></h2><div class="hab">';
+  h+=tile("pes",n14/14,"var(--accent)",n14,"Pesate","su 14 giorni");
+  h+=tile("kcal",as.n?as.score:0,ac,as.n?Math.round(as.score*100)+"%":"–","Kcal","rispettate");
+  h+=tile("vita",wp,wcol,wl?fmt(wl.cm,1):"–","Vita","soglia 87 cm");
+  h+='</div>';
+  // dettagli (uno alla volta)
+  h+='<div class="habd" data-hab="pes"'+(habSel==="pes"?'':' hidden')+'><div class="gl"><span>Giorni con pesata</span><span>'+n14+' / 14</span></div>';
+  h+='<div class="bar"><i style="width:'+n14/14*100+'%;background:var(--accent)"></i></div>';
+  h+='<div class="st" style="margin-top:10px">Serie in corso: '+streak+(streak===1?" giorno":" giorni")+'</div></div>';
+  h+='<div class="habd" data-hab="kcal"'+(habSel==="kcal"?'':' hidden')+'>';
+  if(!as.n)h+='<div class="st" style="color:var(--mute)">Nessun dato: segna i pasti o scrivi le kcal nella tab Dati.</div>';
+  else{
+    h+='<div class="gl"><span>Aderenza ('+as.n+'/14 giorni segnati)</span><span>'+Math.round(as.score*100)+'%</span></div>';
+    h+='<div class="bar"><i style="width:'+as.score*100+'%;background:'+ac+'"></i></div>';
+    h+='<div class="st" style="margin-top:10px;color:'+ac+'">✅ '+as.si+' rispettati · 〰️ '+as.circa+' vicini · ⬆️ '+as.noUp+' sopra · ⬇️ '+as.noDown+' sotto'+(as.noUnk?' · '+as.noUnk+' fuori':'')+'</div>';
+    if(as.kAvg!=null)h+='<div class="gl" style="margin:8px 0 0"><span>Media kcal ('+as.kn+' giorni)</span><span>'+Math.round(as.kAvg)+' / obiettivo '+Math.round(as.tAvg)+' ('+sgn(as.avgDiff,0)+')</span></div>';
+  }
+  h+='</div><div class="habd" data-hab="vita"'+(habSel==="vita"?'':' hidden')+'>';
+  if(wl){
+    h+='<div class="gl"><span>83 cm (partenza)</span><span>87 cm</span></div>';
+    h+='<div class="bar"><i style="width:'+wp*100+'%;background:'+wcol+'"></i></div>';
+    h+='<div class="st" style="margin-top:10px;color:'+wcol+'">'+fmt(wl.cm,1)+' cm · '+(wl.cm>=87?"soglia superata: valuta di anticipare il cut":"margine "+fmt(87-wl.cm,1)+" cm")+'</div>';
+  }else h+='<div class="st" style="color:var(--mute)">Nessuna misura: aggiungila nella tab Dati.</div>';
+  return h+'</div></section>';
+}
+
+function renderGoals(list){
+  var today=todayIso(),box=document.getElementById("goalsBox");
+  var sc=document.getElementById("wkScroll");if(sc&&!box.closest("[hidden]"))wkX=sc.scrollLeft;
+  box.innerHTML=goalWeekHTML(list,today)+weeksHTML(list,today)+journeyHTML(list,today)+habitsHTML(list,today);
+  sc=document.getElementById("wkScroll");if(sc)sc.scrollLeft=wkX==null?sc.scrollWidth:wkX;
   renderChecks();
 
   // traguardi
   var ms=document.getElementById("mstones");ms.innerHTML="";
-  var list2=list;
+  var list2=list,nextMs=false;
   PLAN.forEach(function(p,i){
     var d=p[0],past=d<=today;
-    var row=document.createElement("div");row.className="ms";
+    var row=document.createElement("div");row.className="ms"+(past?"":nextMs?" fut":" fut next");if(!past)nextMs=true;
     var dot=document.createElement("span");dot.className="d";
     var lab=document.createElement("span");lab.textContent=PLANLAB[i]+" · "+fmt(p[1],1)+" kg";
     var r=document.createElement("span");r.className="r";
@@ -2314,6 +2513,7 @@ function showTab(k){
   var nm=document.getElementById("tb-"+k).textContent;
   setText("tTitle",nm);setText("navBar",nm);
   window.scrollTo(0,0);navBarUpd();
+  var sc=document.getElementById("wkScroll");if(k==="goals"&&sc)sc.scrollLeft=wkX==null?sc.scrollWidth:wkX;
 }
 // barra compatta in alto quando il titolo grande esce dallo schermo (come su iOS)
 function navBarUpd(){var t=document.getElementById("tTitle").getBoundingClientRect();document.getElementById("navBar").classList.toggle("on",t.bottom<8)}

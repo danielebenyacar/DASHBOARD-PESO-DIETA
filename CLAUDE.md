@@ -72,6 +72,25 @@ Palette vivace con token CSS su `:root` (chiaro) e override scuro in `@media (pr
   - nuova icona dell'app (bianca con bilancia rosa).
   - Fasi: cut `#DC3229`, ricarica `#097BBA`, transizione `#FFCC00`, bulk `#23863B`, cut soft `#FF9500`, cut pieno `#DF294B`, uscita `#5856D6` (testo bianco con contrasto >= 4,5, nero su giallo e arancione).
   - All'unione con l'app vera aggiornare anche "Stack e regole" (Google Fonts) e "Design".
+- Beta v1.26: tab **Goals rifatta** (vedi sotto "Goals (beta)"), stesse chiavi e stessi dati.
+
+## Goals (beta v1.26)
+- **Obiettivo della settimana** (`weekGoal`, `weekEval`, card `#wgCard`), si ricalcola da solo e cambia solo il lunedi'. Niente di salvato: si ricalcola dalle pesate.
+  - Obiettivo = media lun-dom della settimana prima + ritmo del piano (`planWk(lunedi')` - `planWk(lunedi' prima)`, medie settimanali di `planAt`): se sei avanti o indietro col peso, riparte da dove sei.
+  - Senza pesate la settimana prima: riparte dall'obiettivo di quella prima (fino a 8 settimane); senza nessun dato: dal piano.
+  - Fascia giusta = media della settimana prima + `BAND` della fase (dove manca, obiettivo ±0,3 kg).
+  - La media di questa settimana si giudica con almeno 3 pesate: dentro la fascia = 🟢; fuori = 🟡, oppure 🔴 se fuori di oltre `FAR` (0,25 kg).
+- **Le tue settimane** (`#wkCard`):
+  - striscia scorrevole di colonne (`.wkc[data-wk]`) dalla prima settimana con pesate (non prima del 5 ott) a questa: fascia, tacca dell'obiettivo e pallino della media;
+  - un tocco mostra il dettaglio (`#wkDet`) col tasto del report (`[data-open]`);
+  - "Tutti i report" (`#wkAllBox`, chiuso di default) contiene le righe `.wrow` e la bacheca dei premi.
+- **Il percorso** (`#gjCard`):
+  - controllo segmentato sulle tre tappe di `GOALS` (`[data-goal]`, di default quella in corso o la prossima) e un pannello `.goal` per tappa;
+  - doppio anello: peso (colore della tappa) e tempo (blu);
+  - "Arrivo previsto" = obiettivo di questa settimana + quanto prevede ancora il piano fino alla fine della tappa;
+  - una tappa chiusa si giudica sulla media dei suoi ultimi 7 giorni, non sul peso di adesso.
+- **Abitudini** (`#habCard`): tre anelli (pesate su 14 giorni, kcal rispettate, vita verso 87 cm); un tocco (`[data-hab]`) apre il dettaglio (`.habd`), uno alla volta.
+- **Traguardi**: timeline con il prossimo evidenziato (`.ms.next`) e i futuri vuoti (`.ms.fut`).
 
 ## Check dal nutrizionista (Goals)
 - **Un check = BIA + pliche**. Nei Goals la card "🧪 Check dal nutrizionista" (`renderChecks`) mostra lo scopo della fase corrente, l'**esito** dell'ultimo check, le campanelle, l'ultimo check (prima ⚡ BIA poi 📏 pliche, ciascuna confrontata col check prima dello stesso metodo; la parte mancante ha il tasto per aggiungerla) e "Tutti i check" con ✎. "＋ Nuovo check" apre il modulo (`ckFormHtml`): data, parte BIA solo dal PDF ("📄 Carica referto BIA (PDF)", poi campi compilati da controllare; "Scrivila a mano" solo se il PDF non si legge), parte pliche coi campi di Nutrium, nota; una delle due parti si puo' lasciare vuota e aggiungere dopo. Un PDF caricato a modulo chiuso apre il check della data del referto; in un check esistente tiene la data del check e avvisa se il referto e' di oltre 7 giorni prima/dopo.
