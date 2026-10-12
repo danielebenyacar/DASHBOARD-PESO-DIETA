@@ -12,11 +12,11 @@ Web app personale, mobile-first, per registrare il peso ogni mattina e seguire u
   - `diario_kcal`  -> oggetto `{ "YYYY-MM-DD": { date, adh: "si"|"circa"|"no", kcal? } }` (giorno a cui si riferisce il mangiare). Dalla v1.10 l'utente scrive solo le kcal: `adh` viene calcolato (`adhOf`) e salvato insieme, cosi' il formato non cambia; quando `kcal` c'e' vince sempre su `adh`. Le voci vecchie senza kcal tengono il loro `adh`. Dalla v1.17 il totale dei Pasti scrive qui la voce del giorno con `src:"pasti"` (sovrascrive una voce scritta a mano solo se aggiungi pasti a quel giorno; se togli tutti i pasti si cancellano solo le voci `src:"pasti"`).
   - `diario_report` -> oggetto `{ "YYYY-MM-DD"(lunedi'): { mon, sun, n, avg, rate, dv, dw, adh:{n,si,circa,no,kAvg}, ph, st, dir, two, streak, badges:[...], stars, notes, vc, vt, vx, seen, made } }` (report settimanali congelati: l'ultimo si ricalcola finche' non premi "Ok, visto", poi resta fisso)
   - `diario_adj`   -> array `[ { date, ph, dk, mon, src? } ]` (correzioni kcal accettate: valgono da `date` in poi, solo nella fase `ph`; `dk` = +/-150, tutto sui carboidrati; `mon` = lunedi' del report che l'ha proposta, oppure data del check se `src:"check"`)
-  - `diario_meta`  -> oggetto `{ lastBackup: "YYYY-MM-DD", chartWaist: bool, weekSeen: "YYYY-MM-DD", meals: { pasto: { pct } }, recent: [id] }` (impostazioni e promemoria, non dati di misura; `meals` = percentuali dei pasti, `recent` = cronologia della ricerca)
+  - `diario_meta`  -> oggetto `{ lastBackup: "YYYY-MM-DD", chartWaist: bool, weekSeen: "YYYY-MM-DD", meals: { pasto: { pct } }, recent: [id], cutx?: { on: "YYYY-MM-DD", end?: "YYYY-MM-DD" } }` (impostazioni e promemoria, non dati di misura; `meals` = percentuali dei pasti, `recent` = cronologia della ricerca; `cutx` = "Continua il cut", dalla beta v1.27)
   - `diario_cibi`  -> oggetto `{ id: { id, n, b, k, p, c, g, u:{n,g}|null, u2:{n,g}|null, src:"mio"|"off" } }` (cibi tuoi e prodotti scelti, valori per 100 g; `u` porzione/unita', `u2` confezione; id `m:...` creati da te, `o:codice` Open Food Facts)
   - `diario_check` -> oggetto `{ "YYYY-MM-DD": { date, bia?: { kg?, fat?, fm?, ffm?, pha?, smm?, mm?, asmm?, bcm?, tbw?, ecw?, hyd?, bmr?, tdee? }, pli?: { kg?, fat?, ffm?, waist?, hips? }, note?, prop?: { ph, dk, state: "applied"|"declined"|"undone", date? } } }` (dalla v1.24: un check = una visita dal nutrizionista con la BIA, referto Akern Bodygram, e le pliche e circonferenze come le mostra Nutrium, anche una sola delle due; `fat`, `ecw`, `hyd` in %, `fm`/`ffm`/`smm`/`mm`/`asmm`/`bcm` in kg, `tbw` in L, `pha` in gradi, `bmr`/`tdee` in kcal, vita e fianchi in cm; `prop` = cosa hai scelto per la correzione proposta dal check). Migrazione `ckMigrate` dal formato della beta v1.19-1.22 `{ pli: { giorno }, bia: { giorno } }`: si uniscono per giorno (al caricamento e nel ripristino).
   - `diario_pasti` -> oggetto `{ "YYYY-MM-DD": { colazione|pranzo|merenda|cena: { items:[ { f, n, b, q, u, un, per:{k,p,c,g}|null, k, p, c, g } ], skip? } } }` (voci gia' calcolate; `per:null` e `b:"stima"` = Pasto veloce)
-- **Non cambiare mai il formato di queste chiavi senza scrivere una migrazione**: l'utente ha dati reali. Backup/ripristino in JSON: `{ v: 6, exported, weights, waists, kcal, reports, adj, foods, meals, checks }`; il ripristino accetta anche i backup `v: 1`...`v: 5` (senza `kcal`/`reports`/`foods`/`meals`/`checks`; i `checks` della v5 nel formato vecchio si convertono) e controlla ogni report con `validReport`, ogni cibo con `validFood`, ogni giorno di pasti con `cleanDay`, ogni check con `validCheck`.
+- **Non cambiare mai il formato di queste chiavi senza scrivere una migrazione**: l'utente ha dati reali. Backup/ripristino in JSON: `{ v: 6, exported, weights, waists, kcal, reports, adj, foods, meals, checks, cutx? }` (`cutx` facoltativo, dalla beta v1.27); il ripristino accetta anche i backup `v: 1`...`v: 5` (senza `kcal`/`reports`/`foods`/`meals`/`checks`; i `checks` della v5 nel formato vecchio si convertono) e controlla ogni report con `validReport`, ogni cibo con `validFood`, ogni giorno di pasti con `cleanDay`, ogni check con `validCheck`.
 - PWA: `manifest.webmanifest`, `sw.js` (network-first, fallback cache; il database dei prodotti invece prima dalla cache, in una cache sua `diario-peso-prodotti` che non si svuota a ogni versione), icone `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`. Tutti i percorsi sono **relativi** (`./`) perche' il sito sta in una sottocartella di GitHub Pages.
 - Su iOS la PWA aggiunta alla Home ha uno storage separato da Safari: i dati inseriti in Safari non compaiono nell'icona. Usare solo l'icona, oppure passare i dati col backup.
 
@@ -72,25 +72,42 @@ Palette vivace con token CSS su `:root` (chiaro) e override scuro in `@media (pr
   - nuova icona dell'app (bianca con bilancia rosa).
   - Fasi: cut `#DC3229`, ricarica `#097BBA`, transizione `#FFCC00`, bulk `#23863B`, cut soft `#FF9500`, cut pieno `#DF294B`, uscita `#5856D6` (testo bianco con contrasto >= 4,5, nero su giallo e arancione).
   - All'unione con l'app vera aggiornare anche "Stack e regole" (Google Fonts) e "Design".
-- Beta v1.26: tab **Goals rifatta** (vedi sotto "Goals (beta)"), stesse chiavi e stessi dati.
+- Beta v1.27:
+  - tab **Goals semplificata** (vedi sotto "Goals (beta)");
+  - **piano che riparte a ogni cambio di tappa**;
+  - impostazione **"Continua il cut"** nella tab Dati.
 
-## Goals (beta v1.26)
-- **Obiettivo della settimana** (`weekGoal`, `weekEval`, card `#wgCard`), si ricalcola da solo e cambia solo il lunedi'. Niente di salvato: si ricalcola dalle pesate.
-  - Obiettivo = media lun-dom della settimana prima + ritmo del piano (`planWk(lunedi')` - `planWk(lunedi' prima)`, medie settimanali di `planAt`): se sei avanti o indietro col peso, riparte da dove sei.
-  - Senza pesate la settimana prima: riparte dall'obiettivo di quella prima (fino a 8 settimane); senza nessun dato: dal piano.
-  - Fascia giusta = media della settimana prima + `BAND` della fase (dove manca, obiettivo ±0,3 kg).
-  - La media di questa settimana si giudica con almeno 3 pesate: dentro la fascia = 🟢; fuori = 🟡, oppure 🔴 se fuori di oltre `FAR` (0,25 kg).
-- **Le tue settimane** (`#wkCard`):
-  - striscia scorrevole di colonne (`.wkc[data-wk]`) dalla prima settimana con pesate (non prima del 5 ott) a questa: fascia, tacca dell'obiettivo e pallino della media;
-  - un tocco mostra il dettaglio (`#wkDet`) col tasto del report (`[data-open]`);
-  - "Tutti i report" (`#wkAllBox`, chiuso di default) contiene le righe `.wrow` e la bacheca dei premi.
-- **Il percorso** (`#gjCard`):
-  - controllo segmentato sulle tre tappe di `GOALS` (`[data-goal]`, di default quella in corso o la prossima) e un pannello `.goal` per tappa;
-  - doppio anello: peso (colore della tappa) e tempo (blu);
-  - "Arrivo previsto" = obiettivo di questa settimana + quanto prevede ancora il piano fino alla fine della tappa;
-  - una tappa chiusa si giudica sulla media dei suoi ultimi 7 giorni, non sul peso di adesso.
-- **Abitudini** (`#habCard`): tre anelli (pesate su 14 giorni, kcal rispettate, vita verso 87 cm); un tocco (`[data-hab]`) apre il dettaglio (`.habd`), uno alla volta.
-- **Traguardi**: timeline con il prossimo evidenziato (`.ms.next`) e i futuri vuoti (`.ms.fut`).
+## Goals (beta v1.27)
+**Piano adattato** (`planAt0` = piano originale di `PLAN`; `planRaw` = piano con le date di "Continua il cut"; `planAt` = `planRaw` + ripartenze; `planPrep()` all'inizio di ogni `render`):
+- a ogni cambio di tappa il piano riparte dal peso vero: dopo il cut dalla media degli ultimi 7 giorni del cut (`PA.off1`), dopo il bulk (4 apr) dalla media di fine bulk (`PA.off2`); forme e ritmi restano quelli del piano;
+- `GOALS` si ricalcola da `GOALS0` (`goalsNow`): il bulk parte dal peso di fine cut e mette su gli stessi kg del piano, il cut di fine stagione parte dal peso di fine bulk;
+- grafico, "piano oggi", report (🧭) e traguardi usano `planAt`; i ritmi (obiettivo della settimana, "Arrivo previsto") usano `planRaw`.
+
+**Continua il cut** (Dati → Impostazioni, `#cutxSw`, `meta.cutx`, `cutxEnd`, `buildPH`):
+- si accende fino al 18 ott;
+- la ricarica del 17-18 ott resta; dal 19 ott c'e' una fase "Cut finale (continua)" (`id:"cut"`, stesse kcal e macro, `ext:true`) fino a `end`; finche' e' acceso, fino a oggi + 7;
+- spegnerlo il giorno X = X ultimo giorno di cut (`end`), poi 7 giorni di transizione e il bulk, che finisce sempre il 4 apr; si puo' riaccendere solo lo stesso giorno;
+- spento entro il 18 ott = nessun effetto (`cutx` tolto);
+- `PH0` = fasi originali, `PH`/`PHASES` = fasi di adesso; nel Piano la fase scelta si riconosce da `from` (il cut puo' comparire due volte);
+- il piano dopo il cut slitta degli stessi giorni (`PA.sh`): il cut continua al ritmo del cut finale.
+
+**Tab Goals**, poche cose in vista:
+1. **Questa settimana** (`#wgCard`):
+   - obiettivo = media lun-dom della settimana prima + ritmo del piano (`weekGoal`, medie settimanali di `planRaw`); cambia solo il lunedi'. Senza pesate la settimana prima: riparte dall'obiettivo di prima; senza dati: dal piano;
+   - "Ora" = media di questa settimana; con almeno 3 pesate e' 🟢 se nella fascia (settimana prima + `BAND`, o ±0,3 kg), se no 🟡/🔴 (oltre `FAR`);
+   - nota di una riga (`#wgNote`).
+2. **Piano e realtà** (`#wkCard`): colonne per settimana (`.wkc[data-wk]`, tacca = obiettivo, pallino = tua media colorata); il tocco mostra una riga di dettaglio (`#wkDet`) e il tasto del report (`[data-open]`).
+3. **Tappa in corso** (`#gjCard`):
+   - barra del peso con la tacca "dove dovresti essere oggi" (`.gtick`), partenza → arrivo, "Arrivo previsto" e stato;
+   - le altre tappe in "Tutte le tappe" (`.fold.mini`);
+   - una tappa chiusa si giudica sulla media dei suoi ultimi 7 giorni.
+4. **Sezioni chiuse di default** (un gruppo solo, `.folds`):
+   - Report settimanali (righe `.wrow`, bacheca);
+   - Abitudini (pesate, kcal, vita);
+   - Check dal nutrizionista (`#fdCk`, si apre da solo col modulo o con una proposta);
+   - Traguardi (`#fdMs`, timeline col prossimo evidenziato).
+
+   Il riassunto e' nella riga; lo stato aperto/chiuso resta tra un tocco e l'altro (`foldOpen`).
 
 ## Check dal nutrizionista (Goals)
 - **Un check = BIA + pliche**. Nei Goals la card "🧪 Check dal nutrizionista" (`renderChecks`) mostra lo scopo della fase corrente, l'**esito** dell'ultimo check, le campanelle, l'ultimo check (prima ⚡ BIA poi 📏 pliche, ciascuna confrontata col check prima dello stesso metodo; la parte mancante ha il tasto per aggiungerla) e "Tutti i check" con ✎. "＋ Nuovo check" apre il modulo (`ckFormHtml`): data, parte BIA solo dal PDF ("📄 Carica referto BIA (PDF)", poi campi compilati da controllare; "Scrivila a mano" solo se il PDF non si legge), parte pliche coi campi di Nutrium, nota; una delle due parti si puo' lasciare vuota e aggiungere dopo. Un PDF caricato a modulo chiuso apre il check della data del referto; in un check esistente tiene la data del check e avvisa se il referto e' di oltre 7 giorni prima/dopo.
