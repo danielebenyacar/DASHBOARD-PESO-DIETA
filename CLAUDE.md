@@ -70,7 +70,7 @@ Palette vivace con token CSS su `:root` (chiaro) e override scuro in `@media (pr
   - anello di stato con lo stacco sulla card del peso;
   - schede che salgono dal basso;
   - nuova icona dell'app (bianca con bilancia rosa).
-  - Fasi: cut `#E8352B`, ricarica `#0A84C8`, transizione `#FFCC00`, bulk `#248A3D`, cut soft `#FF9500`, cut pieno `#E62A4D`, uscita `#5856D6` (testo nero su giallo e arancione).
+  - Fasi: cut `#DC3229`, ricarica `#097BBA`, transizione `#FFCC00`, bulk `#23863B`, cut soft `#FF9500`, cut pieno `#DF294B`, uscita `#5856D6` (testo bianco con contrasto >= 4,5, nero su giallo e arancione).
   - All'unione con l'app vera aggiornare anche "Stack e regole" (Google Fonts) e "Design".
 
 ## Check dal nutrizionista (Goals)
