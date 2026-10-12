@@ -58,7 +58,20 @@ Palette vivace con token CSS su `:root` (chiaro) e override scuro in `@media (pr
 - `beta/` contiene la versione di prova: lo **stesso** `index.html` dell'app con le novita', piu' copie di `sw.js` (CACHE `diario-peso-beta-...`), `manifest.webmanifest` e icone. Indirizzo: `https://danielebenyacar.github.io/DASHBOARD-PESO-DIETA/beta/`, da aprire in **Safari** (storage separato dall'icona).
 - In `/beta/` il codice usa da solo il prefisso `beta_` per tutte le chiavi `localStorage` (`BETA`, `PFX`, `lsGet`/`lsPut`), mostra la fascia "Versione BETA" e aggiunge "· BETA" al footer: la beta non tocca mai i dati dell'app vera. Per provarla coi dati veri: backup dall'icona e "Ripristina da backup" nella beta.
 - Ogni novita' va prima in beta; quando l'utente approva: copia `beta/index.html` in `index.html` (fuori da `/beta/` il prefisso e' vuoto) e, se cambia, il database `prodotti-it-*.txt`; aumenta CACHE in `sw.js` e `beta/sw.js` e il footer, aggiorna questo file. Non copiare `beta/sw.js` sopra `sw.js`: le cache hanno nomi diversi (`diario-peso-...` / `diario-peso-beta-...`) e ognuno cancella solo le sue. I dati della beta (in Safari, prefisso `beta_`) non passano all'app vera.
-- Adesso la beta e' uguale all'app vera (v1.24).
+- Adesso la beta (v1.25) ha le stesse funzioni dell'app vera (v1.24) con un **nuovo aspetto stile Apple Salute (iOS 26)**, da approvare:
+  - colori di sistema iOS: sfondo `#F2F2F7`/nero, card bianche/`#1C1C1E` con raggio 22 px senza bordi, blu `--accent` per azioni e tab, separatori sottili `--sep`;
+  - font di sistema (SF Pro, numeri in SF Pro Rounded con `--num`): niente piu' Google Fonts;
+  - in alto data, titolo grande col nome della tab (`#tTitle`) e capsula della fase (`#phaseLine`, classe `phchip`); barra compatta `#navBar` quando il titolo esce dallo schermo;
+  - tab bar di vetro fissa in basso (`.tabs`, icone SVG + etichetta);
+  - card con icona colorata al posto del quadratino (`.hd[data-i]`, glifo con `mask`);
+  - controlli segmentati iOS (`.seg`, `.psub`), bottoni a capsula;
+  - grafico in viola `--wt` (pesate e media 7 giorni) col piano arancione tratteggiato;
+  - kcal del giorno nei Pasti con un anello tipo Attivita' (stesso `#pGauge`);
+  - anello di stato con lo stacco sulla card del peso;
+  - schede che salgono dal basso;
+  - nuova icona dell'app (bianca con bilancia rosa).
+  - Fasi: cut `#E8352B`, ricarica `#0A84C8`, transizione `#FFCC00`, bulk `#248A3D`, cut soft `#FF9500`, cut pieno `#E62A4D`, uscita `#5856D6` (testo nero su giallo e arancione).
+  - All'unione con l'app vera aggiornare anche "Stack e regole" (Google Fonts) e "Design".
 
 ## Check dal nutrizionista (Goals)
 - **Un check = BIA + pliche**. Nei Goals la card "🧪 Check dal nutrizionista" (`renderChecks`) mostra lo scopo della fase corrente, l'**esito** dell'ultimo check, le campanelle, l'ultimo check (prima ⚡ BIA poi 📏 pliche, ciascuna confrontata col check prima dello stesso metodo; la parte mancante ha il tasto per aggiungerla) e "Tutti i check" con ✎. "＋ Nuovo check" apre il modulo (`ckFormHtml`): data, parte BIA solo dal PDF ("📄 Carica referto BIA (PDF)", poi campi compilati da controllare; "Scrivila a mano" solo se il PDF non si legge), parte pliche coi campi di Nutrium, nota; una delle due parti si puo' lasciare vuota e aggiungere dopo. Un PDF caricato a modulo chiuso apre il check della data del referto; in un check esistente tiene la data del check e avvisa se il referto e' di oltre 7 giorni prima/dopo.
