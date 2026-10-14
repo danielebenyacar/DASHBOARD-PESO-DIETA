@@ -28,18 +28,17 @@ Nel JS: `PLAN` (punti di traiettoria peso), `PH0`/`PH` (fasi con kcal e macro: o
 | Fase | Periodo | Kcal | P / C / G (g) |
 |---|---|---|---|
 | Cut finale | 5 ott – 16 ott 2026 | 1900 | 162 / 212 / 42 |
-| Ricarica pre-partita, sab 17 ott (vigilia della prima partita; non un carb load vero, solo arrivare carico dopo il cut) | 17 ott | 2650 | 160 / 400 / 45 |
-| Ricarica pre-partita, dom 18 ott (prima partita) | 18 ott | 2400 | 160 / 340 / 45 |
-| Transizione | 19 – 25 ott | 2300 | 160 / 290 / 55 |
-| Lean bulk (tutto il campionato, fino all'ultima partita) | 26 ott – 25 apr 2027 | 2650 | 160 / 380 / 55 |
+| Ricarica pre-partita (sab 17 e dom 18 ott, prima partita; non un carb load vero, solo arrivare carico dopo il cut) | 17 – 18 ott | 2650 | 160 / 400 / 45 |
+| Transizione | 19 – 25 ott | 2500 | 160 / 340 / 55 |
+| Lean bulk (tutto il campionato, fino all'ultima partita) | 26 ott – 25 apr 2027 | 2800 | 160 / 405 / 60 |
 | Cut soft (campionato finito) | 26 apr – 16 mag | 2250 | 170 / 270 / 55 |
 | Cut pieno | 17 mag – 4 lug | 2100 | 170 / 245 / 50 |
 | Uscita | 5 – 18 lug | 2300 | 160 / 290 / 55 |
 | Mantenimento (fase `out` anche lei) | 19 lug – 1 ago | 2500 | 160 / 340 / 55 |
 
-Dalla v1.30 (revisione del piano del 14 ott 2026): il campionato finisce il 25 apr 2027, il bulk dura fino a li', poi cut soft fino a meta' maggio e cut pieno fino al 4 lug; la ricarica e' divisa in due voci di `PH0` con lo stesso `id:"carb"` (come il cut che puo' comparire due volte; nel Piano una fase di un giorno mostra una data sola, `dRange`); cut finale atteso -0,5 kg/sett; la transizione ha il suo punto nella traiettoria, cosi' le prime settimane di bulk chiedono +0,2 kg/sett e non +0,5; dopo l'uscita si risale davvero a 2500.
+Dalla v1.30 (revisione del piano del 14 ott 2026): il campionato finisce il 25 apr 2027, il bulk dura fino a li', poi cut soft fino a meta' maggio e cut pieno fino al 4 lug; nel Piano una fase di un giorno mostrerebbe una data sola (`dRange`; nella v1.30-1.31 la ricarica era divisa in sabato e domenica); cut finale atteso -0,5 kg/sett; la transizione ha il suo punto nella traiettoria, cosi' le prime settimane di bulk chiedono +0,2 kg/sett e non +0,5; dopo l'uscita si risale davvero a 2500.
 
-Dalla v1.31 il bulk e' a 2650 (prima 2500): il mantenimento stimato dal cut (1900 kcal per -0,5 kg/sett) e' ~2450, quindi 2500 dava solo +50 kcal, troppo poco per la traiettoria (+0,16 kg/sett = ~+180 kcal al giorno). +200 kcal = 5-10% sopra il mantenimento, il surplus che negli allenati fa crescere il muscolo quanto uno piu' grande ma con meno grasso (Helms 2023, 5% vs 15%; Iraki 2019: 0,25-0,5% del peso a settimana). I 40 g in piu' sono carboidrati; proteine 2 g/kg e grassi 0,7 g/kg restano. Se il mantenimento vero e' diverso, il verdetto e il report del lunedi' correggono di 150 (massimo ±300 nella fase); la card "Mantenimento reale" del Piano lo misura dalle kcal e dal peso.
+Dalla v1.32 (14 ott 2026) le kcal attorno al mantenimento sono rifatte sui dati veri dell'utente: 22 anni, 174 cm, 77 kg, a settimana 3 allenamenti di rugby (45' di campo + 15' di reparti), 5 di palestra (4 a intensita' media, 1 bassa) e la partita della domenica (20-60'). Mantenimento stimato ~2600-2700 kcal: dal peso (da ~79 kg il 25 set a ~77 il 14 ott mangiando ~1950-2050, una parte del calo e' acqua) e dalle formule (riposo ~1750-1950, sport ~450-500 al giorno: ~2750-3000); dopo il cut tende a salire. Il 2450 che il piano dava per scontato (1900 kcal = -0,5 kg/sett) era troppo basso. Quindi: ricarica sabato e domenica a 2650 (prima sab 2650 / dom 2400, in partita era sotto quello che consuma), transizione a 2500 (prima 2300), bulk a 2800 (prima 2500, poi 2650 nella v1.31): ~+150-200 sul mantenimento, il 5-10% che negli allenati fa crescere il muscolo quanto un surplus piu' grande ma con meno grasso (Helms 2023, 5% vs 15%; Iraki 2019: 0,25-0,5% del peso a settimana); grassi 60 g (0,8 g/kg), carboidrati 405 g (5,3 g/kg), proteine 2 g/kg. Coi correttivi del report (±300 nella fase) 2800 copre un mantenimento vero da ~2350 a ~2900; partendo piu' bassi non si arriverebbe alle formule. Le fasi di fine stagione (cut soft, cut pieno, uscita, mantenimento) restano come prima: la card "Mantenimento reale" del Piano avra' mesi di dati per rivederle.
 
 Traiettoria peso attesa (`PLAN`, etichette in `PLANLAB`, stessa lunghezza; l'indice 1 e' la fine del cut, il 2 la fine della transizione): 6 ott 77,4 (partenza reale) – 16 ott 76,7 (fine cut) – 25 ott 77,6 (fine transizione: acqua e glicogeno) – 5 nov 77,9 – 5 dic 78,8 – 5 gen 79,5 – 5 feb 80,2 – 5 mar 80,8 – 5 apr 81,4 – 25 apr 81,8 (fine bulk e campionato) – 16 mag 80,9 (fine cut soft, -0,3/sett) – 4 lug 77,4 (fine cut pieno, -0,5/sett) (kg, media settimanale). Il piano iniziale partiva da 78,5: tutti i punti sono stati spostati di -1,1 kg mantenendo gli stessi ritmi. `GOALS` usa gli stessi valori (cut 77,4 -> 76,7, 6-16 ott; bulk 76,7 -> 81,8, 26 ott – 25 apr; cut di fine stagione 81,8 -> 77,4, 26 apr – 4 lug).
 
@@ -74,7 +73,7 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
 - `beta/` contiene la versione di prova: lo **stesso** `index.html` dell'app con le novita', piu' copie di `sw.js` (CACHE `diario-peso-beta-...`), `manifest.webmanifest` e icone. Indirizzo: `https://danielebenyacar.github.io/DASHBOARD-PESO-DIETA/beta/`, da aprire in **Safari** (storage separato dall'icona).
 - In `/beta/` il codice usa da solo il prefisso `beta_` per tutte le chiavi `localStorage` (`BETA`, `PFX`, `lsGet`/`lsPut`), mostra la fascia "Versione BETA" e aggiunge "· BETA" al footer: la beta non tocca mai i dati dell'app vera. Per provarla coi dati veri: backup dall'icona e "Ripristina da backup" nella beta.
 - Ogni novita' va prima in beta; quando l'utente approva: copia `beta/index.html` in `index.html` (fuori da `/beta/` il prefisso e' vuoto) e, se cambia, il database `prodotti-it-*.txt`; aumenta CACHE in `sw.js` e `beta/sw.js` e il footer, aggiorna questo file. Non copiare `beta/sw.js` sopra `sw.js`: le cache hanno nomi diversi (`diario-peso-...` / `diario-peso-beta-...`) e ognuno cancella solo le sue. I dati della beta (in Safari, prefisso `beta_`) non passano all'app vera.
-- Adesso la beta e' uguale all'app vera (v1.31).
+- Adesso la beta e' uguale all'app vera (v1.32).
 
 ## Goals
 **Piano adattato** (`planAt0` = piano originale di `PLAN`; `planRaw` = piano con le date di "Continua il cut"; `planAt` = `planRaw` + ripartenze; `planPrep()` all'inizio di ogni `render`):
