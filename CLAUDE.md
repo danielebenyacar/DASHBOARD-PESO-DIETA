@@ -1,7 +1,7 @@
 # Diario peso – contesto per Claude Code
 
 ## Scopo
-Web app personale, mobile-first, per registrare il peso ogni mattina e seguire un piano nutrizionale stagionale (cut finale, lean bulk, cut di fine stagione). Usata solo da telefono (iPhone, aggiunta alla schermata Home come PWA). Interfaccia in **italiano informale**, numeri con virgola decimale.
+Web app personale, mobile-first, per registrare il peso ogni mattina e seguire un piano nutrizionale stagionale (cut finale, lean bulk, cut di fine stagione). Usata solo da telefono (iPhone, aggiunta alla schermata Home come PWA). Interfaccia in **italiano informale**, numeri con virgola decimale. L'utente gioca a rugby: campionato la domenica, con pranzo al campo (vedi "Domenica partita"); forza, carichi e infortuni li gestisce la squadra.
 
 ## Stack e regole
 - Un solo file `index.html` con HTML, CSS e JS vanilla. **Niente framework, niente build, niente dipendenze.** Unico altro file di dati: il database dei prodotti `prodotti-it-AAAA-MM-GG.txt` (vedi Pasti).
@@ -121,6 +121,20 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
 - Quantita' proposta col + (`defUnit`): porzione/unita' del cibo; la confezione solo se e' fino a 400 g e 600 kcal, se no 100 g.
 - Eccezione alla regola "niente rete": se un prodotto non e' nel database, "Non lo trovi? Cerca anche online" su `it.openfoodfacts.org/cgi/search.pl` (Open Food Facts risponde spesso 503 "occupato", senza CORS: si riprova da solo fino a 3 volte, attesa 20 s per tentativo, poi "↻ Riprova"; `search.openfoodfacts.org` non accetta richieste da altri siti, CORS). Solo il testo cercato esce dal telefono. Invio/🔍 cerca online solo se il database non si e' caricato. Niente codici a barre (scelta dell'utente).
 
+## Pubblicazione e sicurezza
+- GitHub Pages pubblica gratis da `main` perche' il repo e' pubblico; da privato servirebbe un piano a pagamento (GitHub Pro) e il sito resterebbe comunque pubblico.
+- Possibile passaggio futuro a **Netlify**, piano Personal:
+  - pubblicare l'app vera (production deploy) costa 15 crediti; branch deploy e deploy preview sono gratis;
+  - la beta diventerebbe un ramo `beta` con indirizzo suo: va cambiato il riconoscimento della beta, che ora usa il percorso `/beta/`;
+  - cambiando indirizzo cambia lo storage su iPhone: backup dall'icona vecchia, nuova icona sulla Home, ripristino.
+- Nel repo non ci sono dati personali: pesate, pasti e check stanno solo nel `localStorage` del telefono, i commit sono firmati con un indirizzo noreply. Visibili a tutti: il codice, il piano (kcal, macro, pesi obiettivo) e questo file.
+- Rischio vero = account GitHub violato (un aggiornamento malevolo arriverebbe al telefono): consigliati verifica in due passaggi e controllo di collaboratori e app con accesso.
+- Punti deboli noti, proposti all'utente e non ancora fatti:
+  - `sw.js` mette in cache e restituisce anche le risposte d'errore (404): se il sito sparisse, l'app sull'iPhone non si aprirebbe piu'. Va salvato solo `res.ok`, se no si usa la cache;
+  - `lsPut` fallisce in silenzio se lo spazio finisce. Misurato con dati finti: circa 0,6 MB l'anno con i pasti di ogni giorno, Safari da' circa 5 MB al sito, la velocita' non cambia da 40 giorni a 5 anni. Idea: spazio usato in Dati, avviso oltre l'80%, messaggio se un salvataggio fallisce.
+- Le skill di design (taste, apple-hig, web-design-guidelines, playwright-cli) non sono nel repo: la scrittura in `.claude/` e' stata bloccata dai permessi. `playwright-cli` si installa con `npm install -g @playwright/cli` e nel cloud va usato col Chromium in `/opt/pw-browsers/chromium` (`launchOptions.executablePath`).
+- I test di regressione (Playwright, `main-test-*.js` con `harness.js`, circa 960 controlli) stanno nella scratchpad della sessione, non nel repo.
+
 ## Come lavorare
 1. Modifica solo cio' che serve, mantenendo il file unico e l'impostazione delle cinque tab.
 2. Prova in locale: `python3 -m http.server 8000` e apri `http://localhost:8000` (il service worker richiede http/https, non `file://`). Controlla la console senza errori e prova viewport 390x844, tema chiaro e scuro.
@@ -130,4 +144,20 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
 
 ## Idee future (solo su richiesta)
 Note giornaliere, widget con la media a 7 giorni, pasti tipo per fase con tabella degli scambi (servono i cibi abituali, il numero di pasti e gli orari di allenamento dell'utente).
+Dal brainstorming del 13 ott 2026. I preferiti sono i primi tre: 1, 2 e 6 o 14.
+1. Calendario partite con data e orario d'inizio: giorno prima, giorno partita e giorno dopo automatici; guida della partita con gli orari dei pasti.
+2. Pesata prima e dopo la partita, per sapere quanti litri bere (fuori dalla media del mattino).
+3. Terzo tempo: birre e kcal dentro la giornata.
+4. Carboidrati diversi tra giorni di allenamento e di riposo, a kcal settimanali uguali.
+5. Sale e liquidi nella guida della partita.
+6. Creatina: data di inizio, cosi' il verdetto sa che i primi 1-1,5 kg sono acqua.
+7. Proteine per pasto (30-40 g).
+8. FFMI dai check (serve l'altezza).
+9. Altre circonferenze.
+10. Foto dei progressi solo sul telefono.
+11. Lista della spesa.
+12. Stime pronte per il sabato sera fuori.
+13. Ore di sonno facoltative.
+14. Riassunto di una pagina per il nutrizionista.
+15. Piano della stagione dopo, da luglio.
 Scartate dall'utente: import da Apple Salute (preferisce scrivere il peso), notifiche push (usa un promemoria del calendario alle 7:30), log di forza, carico, infortuni (li gestisce la squadra).
