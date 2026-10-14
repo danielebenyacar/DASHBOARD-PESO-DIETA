@@ -278,6 +278,10 @@ details[open] > summary::after{transform:rotate(45deg)}
 .warnCard .wr{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .warnCard p{margin:2px 0 0;font-size:13px;color:var(--mute)}
 .betabar{background:#FF9F0A;color:#000;font-weight:600;font-size:13px;text-align:center;border-radius:999px;padding:7px 12px;margin:6px 0 4px}
+.stbar{display:block;width:100%;border:0;background:#D70015;color:#fff;font:inherit;font-weight:600;font-size:14px;line-height:1.35;text-align:center;border-radius:18px;padding:10px 14px;margin:6px 0 4px;min-height:44px;cursor:pointer}
+.stbar[hidden]{display:none}
+.repdone{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 4px 0;font-size:14px}
+.repdone .lnk{flex:none}
 .rhead{border-radius:18px;padding:14px 14px 12px;margin-bottom:12px;background:var(--fill)}
 .rhead.ok{background:var(--okbg)} .rhead.warn{background:var(--upbg)} .rhead.bad{background:var(--downbg)}
 .rstars{font-size:20px;letter-spacing:2px;line-height:1}
@@ -533,6 +537,7 @@ input.sw:disabled{opacity:.45;cursor:default}
 <div class="navbar" id="navBar" aria-hidden="true">Diario</div>
 <main>
   <div class="betabar" id="betaBar" hidden>🧪 Versione BETA · dati separati dall'app vera</div>
+  <button type="button" class="stbar" id="stBar" hidden>⚠️ Dati non salvati: lo spazio è pieno. Tocca qui per fare subito un backup, se no chiudendo l'app li perdi.</button>
   <header class="top" id="top">
     <div class="tdate" id="tDate"></div>
     <div class="trow"><h1 id="tTitle">Diario</h1><span class="tav" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M7.8 11a4.6 4.6 0 0 1 8.4 0M12 11.6l1.7-2.5"/></svg></span></div>
@@ -559,6 +564,12 @@ input.sw:disabled{opacity:.45;cursor:default}
       <div class="wr">
         <div><b id="bkWarnT">💾 Fai un backup</b><p>I dati stanno solo su questo telefono.</p></div>
         <button class="btn" id="bkWarnGo" type="button">Fai backup</button>
+      </div>
+    </section>
+    <section class="card warnCard" id="stWarn" hidden>
+      <div class="wr">
+        <div><b id="stWarnT">💾 Spazio quasi pieno</b><p>Quando è pieno i nuovi dati non si salvano più. Intanto fai un backup.</p></div>
+        <button class="btn" id="stWarnGo" type="button">Fai backup</button>
       </div>
     </section>
   </div>
@@ -739,6 +750,7 @@ input.sw:disabled{opacity:.45;cursor:default}
     </details>
     <div class="msg" id="bkInfo" role="status"></div>
     <div class="msg" id="bkLast" style="margin-top:2px"></div>
+    <div class="msg" id="stUse" style="margin-top:2px"></div>
   </section>
 
   <section class="card" id="setCard">
@@ -747,7 +759,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.28</p>
+  <p class="foot">Diario peso · v1.29</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -884,7 +896,21 @@ function avgWin(list,endT,days){
 // La beta (cartella /beta/) usa chiavi con prefisso "beta_": non tocca mai i dati dell'app vera.
 var BETA=/\/beta\//.test(location.pathname),PFX=BETA?"beta_":"";
 function lsGet(k){try{var r=localStorage.getItem(PFX+k);return r?JSON.parse(r):{}}catch(e){return {}}}
-function lsPut(k,v){try{localStorage.setItem(PFX+k,JSON.stringify(v))}catch(e){}}
+// Se un salvataggio fallisce (di solito lo spazio e' pieno) lo dico subito: quello che non si salva resta solo in memoria finche' l'app e' aperta.
+// lsBad = chiavi non salvate; la fascia rossa resta finche' ogni chiave non si salva di nuovo.
+var lsBad={};
+function lsPut(k,v){
+  try{localStorage.setItem(PFX+k,JSON.stringify(v));if(lsBad[k]){delete lsBad[k];stBarUpd()}return true}
+  catch(e){var first=!Object.keys(lsBad).length;lsBad[k]=1;stBarUpd();if(first)toast("⚠️ Non salvato: lo spazio è pieno. Fai un backup.");return false}
+}
+function stBarUpd(){document.getElementById("stBar").hidden=!Object.keys(lsBad).length}
+// Spazio usato da tutto il sito (app, beta e altre chiavi: il limite e' per sito). Safari conta 2 byte per carattere e da' circa 5 MB.
+var LS_MAX=5*1024*1024;
+function lsUsed(){
+  var n=0;
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);n+=k.length+(localStorage.getItem(k)||"").length}}catch(e){return null}
+  return n*2;
+}
 function lsSet(){lsPut("diario_peso",entries);lsPut("diario_vita",waists)}
 function saveMeta(){lsPut("diario_meta",meta)}
 function saveK(){lsPut("diario_kcal",kcalLog)}
@@ -1083,6 +1109,11 @@ function renderTodo(list,last){
   document.getElementById("bkWarn").hidden=!warn;
   if(warn)setText("bkWarnT",ago==null?"💾 Non hai ancora fatto un backup":"💾 Ultimo backup "+ago+" giorni fa");
   setText("bkLast",lb?"Ultimo backup: "+dIt(lb)+(ago===0?" (oggi)":" ("+ago+(ago===1?" giorno fa)":" giorni fa)")):"Nessun backup fatto finora.");
+  // spazio: avviso nel Diario oltre l'80%, il dato sempre nel Backup (tab Dati)
+  var used=lsUsed(),pc=used==null?null:used/LS_MAX*100;
+  document.getElementById("stWarn").hidden=!(pc>=80);
+  if(pc>=80)setText("stWarnT","💾 Spazio quasi pieno: "+Math.round(pc)+"%");
+  setText("stUse",used==null?"":"Spazio usato sul telefono: "+fmt(used/1048576,used<104858?2:1)+" MB su circa 5 MB ("+(pc<1?"meno dell'1":Math.round(pc))+"%).");
   renderWeek(today);
 }
 
@@ -1463,11 +1494,14 @@ function shareOrDownload(name,text,type){
 }
 function backupDone(){meta.lastBackup=todayIso();saveMeta();render()}
 function doBackup(){
-  shareOrDownload("diario_peso_backup_"+todayIso()+".json",backupText(),"application/json").then(function(ok){
+  return shareOrDownload("diario_peso_backup_"+todayIso()+".json",backupText(),"application/json").then(function(ok){
     if(ok){backupDone();msg("bkInfo","Backup salvato.")}
     else msg("bkInfo","Backup annullato.");
+    return ok;
   });
 }
+// Dalla fascia rossa e dall'avviso dello spazio: stesso backup, con la conferma in basso (la scritta del Backup sta nella tab Dati).
+function doBackupT(){doBackup().then(function(ok){if(ok)toast("Backup salvato.")})}
 function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
@@ -1476,6 +1510,8 @@ function backupText(){var o={v:6,exported:todayIso(),weights:entries,waists:wais
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
+document.getElementById("stBar").addEventListener("click",doBackupT);
+document.getElementById("stWarnGo").addEventListener("click",doBackupT);
 document.getElementById("bkCopy").addEventListener("click",function(){
   var txt=backupText();
   function fallback(){var ta=document.getElementById("bk");ta.value=txt;ta.select();document.getElementById("bk").closest("details").open=true;msg("bkInfo","Copia il testo qui sotto a mano.")}
@@ -2661,6 +2697,8 @@ function renderSheet(){
   else if(sh.v==="qty")h=vQty();
   else if(sh.v==="food")h=vFood();
   else if(sh.v==="est")h=vEst();
+  // la scheda copre la fascia rossa: se un salvataggio e' fallito la ripeto qui in cima
+  if(Object.keys(lsBad).length)h='<button type="button" class="stbar" data-bk="1">'+esc(document.getElementById("stBar").textContent)+'</button>'+h;
   box.innerHTML=h;
   document.getElementById("sheet").setAttribute("aria-labelledby","shTitle");
   if(sh.v==="add"){loadDB();renderResults();var q=document.getElementById("sQ");if(sh.focus){q.focus();sh.focus=false}}
@@ -2676,10 +2714,20 @@ function vMeal(){
   if(m==="cena")h+='<p class="note" style="text-align:center;margin:-4px 0 12px">La cena chiude la giornata: l\'obiettivo è quello che ti resta.</p>';
   h+='<section class="card">'+macroHTML(t,tg)+'</section>';
   h+='<div class="mhead"><b>Il mio pasto</b><button type="button" class="padd" data-sh="add" aria-label="Aggiungi un alimento">+</button></div>';
-  if(!it.length)h+='<p class="note">Ancora niente: tocca + per aggiungere un alimento.</p>';
+  var ro=repOpts(pDay,m);
+  if(!it.length)h+='<p class="note">Ancora niente: tocca + per aggiungere un alimento'+(ro.length?' o ripeti un pasto qui sotto':'')+'.</p>';
   it.forEach(function(x,i){
     h+='<div class="irow"><button type="button" class="it" data-edit="'+i+'"><b>'+esc(x.n)+(x.b&&x.b!=="stima"?', <span class="br">'+esc(x.b)+'</span>':'')+'</b><small>'+portion(x)+' ✎</small></button><span class="ik">'+Math.round(x.k)+' kcal</span><button type="button" class="x" data-del="'+i+'" aria-label="Rimuovi '+esc(x.n)+'">×</button></div>';
   });
+  if(sh.rep)h+='<div class="repdone" role="status"><span>✓ '+(sh.rep.n===1?'Aggiunto 1 cibo':'Aggiunti '+sh.rep.n+' cibi')+' '+dayOf(sh.rep.d)+'.</span><button type="button" class="lnk" data-unrep="1">Annulla</button></div>';
+  if(ro.length){
+    h+='<div class="mhead"><b>Ripeti un pasto</b></div>';
+    ro.forEach(function(o){
+      var on=hasItems(it,o.items),lab=dayLabel(o.d),t=mealTot(o.items);
+      h+='<div class="srow"><button type="button" class="sopen" data-rep="'+o.d+'"><b>'+lab+' · '+Math.round(t.k)+' kcal</b><small>'+o.items.map(function(x){return esc(x.n)}).join(", ")+'</small></button>'+
+        '<button type="button" class="splus'+(on?' on':'')+'" data-rep="'+o.d+'" aria-label="'+(on?'Già nel pasto: ':'Ripeti ')+esc(c.n.toLowerCase())+' '+dayOf(o.d)+'">'+(on?'✓':'+')+'</button></div>';
+    });
+  }
   h+='<div class="actions">'+(it.length?'':'<button type="button" class="btn ghost" data-skip="1">'+(M.skip?"Non l'ho saltato":"Salta pasto")+'</button>')+'<button type="button" class="btn" data-sh="close">Fatto</button></div>';
   return h;
 }
@@ -2946,6 +2994,44 @@ function delItem(i){
   var M=dayMeal(pDay,sh.m);if(!M||!M.items)return;
   M.items.splice(i,1);saveP();syncDayKcal(pDay);sh={v:"meal",m:sh.m};render();
 }
+// "Ripeti pasto": le ultime versioni diverse dello stesso pasto negli altri giorni (da 2 settimane prima del giorno scelto fino a oggi,
+// la piu' recente prima, al massimo 3). Il tocco copia tutti i cibi (si aggiungono a quelli che ci sono), poi si ritoccano con ✎ e ×.
+function itemSig(x){return JSON.stringify([x.f,x.n,x.q,x.un,x.k,x.p,x.c,x.g])}
+function repOpts(d,m){
+  var out=[],seen={},from=iso(toT(d)-14*DAY);
+  for(var dd=todayIso();dd>=from;dd=iso(toT(dd)-DAY)){
+    var M=dayMeal(dd,m);
+    if(dd===d||!M||!M.items||!M.items.length)continue;
+    var sig=M.items.map(itemSig).sort().join(";");
+    if(seen[sig])continue;
+    seen[sig]=1;out.push({d:dd,items:M.items});
+    if(out.length===3)break;
+  }
+  return out;
+}
+// Il pasto ha gia' tutti i cibi di quella versione (per esempio l'hai appena ripetuto): niente doppioni per sbaglio.
+function hasItems(cur,items){
+  var c={};cur.forEach(function(x){var k=itemSig(x);c[k]=(c[k]||0)+1});
+  return items.every(function(x){var k=itemSig(x);if(!c[k])return false;c[k]--;return true});
+}
+function dayOf(d){var l=dayLabel(d);return l==="Oggi"||l==="Ieri"?"di "+l.toLowerCase():"del "+dIt(d)}
+function repeatMeal(from){
+  var src=dayMeal(from,sh.m),d=pDay,m=sh.m;
+  if(!src||!src.items||!src.items.length)return;
+  var M0=dayMeal(d,m),cur=M0&&M0.items||[];
+  if(hasItems(cur,src.items)){toast("È già nel pasto: ritocca i cibi con ✎");return}
+  meals[d]=meals[d]||{};var M=meals[d][m]=M0||{items:[]};
+  var add=JSON.parse(JSON.stringify(src.items)),skip=!!M.skip;
+  M.items=cur.concat(add);M.skip=false;saveP();syncDayKcal(d);
+  sh={v:"meal",m:m,rep:{d:from,n:add.length,len:M.items.length,skip:skip}};render();
+}
+// Annulla la ripetizione appena fatta (solo se il pasto non e' cambiato nel frattempo).
+function unrepeat(){
+  var r=sh.rep,M=dayMeal(pDay,sh.m);
+  if(!r||!M||!M.items||M.items.length!==r.len)return;
+  M.items.splice(r.len-r.n,r.n);if(r.skip&&!M.items.length)M.skip=true;
+  saveP();syncDayKcal(pDay);sh={v:"meal",m:sh.m};render();
+}
 
 // eventi del tab Pasti
 document.getElementById("t-pasti").addEventListener("click",function(ev){
@@ -2969,6 +3055,7 @@ var sheetEl=document.getElementById("sheet");
 sheetEl.addEventListener("click",function(ev){
   if(!sh)return;
   var b;
+  if(ev.target.closest("[data-bk]")){doBackupT();return}
   if((b=ev.target.closest("[data-sh]"))){
     var to=b.getAttribute("data-sh");
     if(to==="close"){closeSheet();return}
@@ -2989,6 +3076,8 @@ sheetEl.addEventListener("click",function(ev){
   if(ev.target.closest("[data-nfsave]")){saveFood();return}
   if(ev.target.closest("[data-essave]")){saveEst();return}
   if((b=ev.target.closest("[data-del]"))){delItem(+b.getAttribute("data-del"));return}
+  if((b=ev.target.closest("[data-rep]"))){repeatMeal(b.getAttribute("data-rep"));return}
+  if(ev.target.closest("[data-unrep]")){unrepeat();return}
   if((b=ev.target.closest("[data-edit]"))){
     var i=+b.getAttribute("data-edit"),x=dayMeal(pDay,sh.m).items[i];
     if(!x.per){sh={v:"est",m:sh.m,idx:i};renderSheet();return}

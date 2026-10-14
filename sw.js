@@ -1,5 +1,5 @@
 // Incrementa CACHE a ogni modifica di index.html o degli asset, cosi' l'app si aggiorna.
-const CACHE = "diario-peso-v1.28";
+const CACHE = "diario-peso-v1.29";
 // Il database dei prodotti (prodotti-it-*.txt) e' grande e cambia di rado: sta in una cache sua, che non si svuota a ogni versione.
 const DBCACHE = "diario-peso-prodotti";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
@@ -37,9 +37,11 @@ self.addEventListener("fetch", (e) => {
     );
     return;
   }
+  // In cache solo le risposte buone: con un errore (es. 404 se il sito sparisse) si usa la copia salvata, cosi' l'app si apre lo stesso.
   e.respondWith(
     fetch(req)
       .then((res) => {
+        if (!res.ok) return caches.match(req).then((r) => r || (req.mode === "navigate" ? caches.match("./index.html") : null)).then((r) => r || res);
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
         return res;
