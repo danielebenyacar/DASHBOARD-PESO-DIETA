@@ -28,14 +28,18 @@ Nel JS: `PLAN` (punti di traiettoria peso), `PH0`/`PH` (fasi con kcal e macro: o
 | Fase | Periodo | Kcal | P / C / G (g) |
 |---|---|---|---|
 | Cut finale | 5 ott – 16 ott 2026 | 1900 | 162 / 212 / 42 |
-| Ricarica pre-partita (giorno prima e giorno della prima partita, dom 18 ott; non un carb load vero, solo arrivare carico dopo il cut) | 17 – 18 ott | 2400 | 160 / 340 / 45 |
+| Ricarica pre-partita, sab 17 ott (vigilia della prima partita; non un carb load vero, solo arrivare carico dopo il cut) | 17 ott | 2650 | 160 / 400 / 45 |
+| Ricarica pre-partita, dom 18 ott (prima partita) | 18 ott | 2400 | 160 / 340 / 45 |
 | Transizione | 19 – 25 ott | 2300 | 160 / 290 / 55 |
-| Lean bulk | 26 ott – 4 apr 2027 | 2500 | 160 / 340 / 55 |
-| Cut soft | 5 – 25 apr | 2250 | 170 / 270 / 55 |
-| Cut pieno | 26 apr – 14 giu | 2100 | 170 / 245 / 50 |
-| Uscita | 15 – 28 giu | 2300 poi 2500 | 160 / 290 / 55 |
+| Lean bulk (tutto il campionato, fino all'ultima partita) | 26 ott – 25 apr 2027 | 2500 | 160 / 340 / 55 |
+| Cut soft (campionato finito) | 26 apr – 16 mag | 2250 | 170 / 270 / 55 |
+| Cut pieno | 17 mag – 4 lug | 2100 | 170 / 245 / 50 |
+| Uscita | 5 – 18 lug | 2300 | 160 / 290 / 55 |
+| Mantenimento (fase `out` anche lei) | 19 lug – 1 ago | 2500 | 160 / 340 / 55 |
 
-Traiettoria peso attesa (`PLAN`): 6 ott 77,4 (partenza reale) – 16 ott 76,7 (fine cut) – 5 nov 78,1 – 5 dic 78,8 – 5 gen 79,5 – 5 feb 80,2 – 5 mar 80,8 – 5 apr 81,4 – 25 apr 80,5 – 14 giu 77,4 (kg, media settimanale). Il piano iniziale partiva da 78,5: tutti i punti sono stati spostati di -1,1 kg mantenendo gli stessi ritmi. `GOALS` usa gli stessi valori (cut 77,4 -> 76,7; bulk 76,7 -> 81,4; cut di fine stagione 81,4 -> 77,4).
+Dalla v1.30 (revisione del piano del 14 ott 2026): il campionato finisce il 25 apr 2027, il bulk dura fino a li', poi cut soft fino a meta' maggio e cut pieno fino al 4 lug; la ricarica e' divisa in due voci di `PH0` con lo stesso `id:"carb"` (come il cut che puo' comparire due volte; nel Piano una fase di un giorno mostra una data sola, `dRange`); cut finale atteso -0,5 kg/sett; la transizione ha il suo punto nella traiettoria, cosi' le prime settimane di bulk chiedono +0,2 kg/sett e non +0,5; dopo l'uscita si risale davvero a 2500.
+
+Traiettoria peso attesa (`PLAN`, etichette in `PLANLAB`, stessa lunghezza; l'indice 1 e' la fine del cut, il 2 la fine della transizione): 6 ott 77,4 (partenza reale) – 16 ott 76,7 (fine cut) – 25 ott 77,6 (fine transizione: acqua e glicogeno) – 5 nov 77,9 – 5 dic 78,8 – 5 gen 79,5 – 5 feb 80,2 – 5 mar 80,8 – 5 apr 81,4 – 25 apr 81,8 (fine bulk e campionato) – 16 mag 80,9 (fine cut soft, -0,3/sett) – 4 lug 77,4 (fine cut pieno, -0,5/sett) (kg, media settimanale). Il piano iniziale partiva da 78,5: tutti i punti sono stati spostati di -1,1 kg mantenendo gli stessi ritmi. `GOALS` usa gli stessi valori (cut 77,4 -> 76,7, 6-16 ott; bulk 76,7 -> 81,8, 26 ott – 25 apr; cut di fine stagione 81,8 -> 77,4, 26 apr – 4 lug).
 
 Regole del verdetto (calcolate su media 7 giorni vs 7 giorni prima, servono almeno 3 pesate per finestra):
 - Bulk: ritmo <0,1 kg/sett -> +150 kcal; >0,4 -> -150; vita +1,5 cm in 10+ giorni con peso in salita -> -150; altrimenti ok (obiettivo +0,15/+0,25).
@@ -68,21 +72,21 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
 - `beta/` contiene la versione di prova: lo **stesso** `index.html` dell'app con le novita', piu' copie di `sw.js` (CACHE `diario-peso-beta-...`), `manifest.webmanifest` e icone. Indirizzo: `https://danielebenyacar.github.io/DASHBOARD-PESO-DIETA/beta/`, da aprire in **Safari** (storage separato dall'icona).
 - In `/beta/` il codice usa da solo il prefisso `beta_` per tutte le chiavi `localStorage` (`BETA`, `PFX`, `lsGet`/`lsPut`), mostra la fascia "Versione BETA" e aggiunge "· BETA" al footer: la beta non tocca mai i dati dell'app vera. Per provarla coi dati veri: backup dall'icona e "Ripristina da backup" nella beta.
 - Ogni novita' va prima in beta; quando l'utente approva: copia `beta/index.html` in `index.html` (fuori da `/beta/` il prefisso e' vuoto) e, se cambia, il database `prodotti-it-*.txt`; aumenta CACHE in `sw.js` e `beta/sw.js` e il footer, aggiorna questo file. Non copiare `beta/sw.js` sopra `sw.js`: le cache hanno nomi diversi (`diario-peso-...` / `diario-peso-beta-...`) e ognuno cancella solo le sue. I dati della beta (in Safari, prefisso `beta_`) non passano all'app vera.
-- Adesso la beta e' uguale all'app vera (v1.29).
+- Adesso la beta e' uguale all'app vera (v1.30).
 
 ## Goals
 **Piano adattato** (`planAt0` = piano originale di `PLAN`; `planRaw` = piano con le date di "Continua il cut"; `planAt` = `planRaw` + ripartenze; `planPrep()` all'inizio di ogni `render`):
-- a ogni cambio di tappa il piano riparte dal peso vero: dopo il cut dalla media degli ultimi 7 giorni del cut (`PA.off1`), dopo il bulk (4 apr) dalla media di fine bulk (`PA.off2`); forme e ritmi restano quelli del piano;
+- a ogni cambio di tappa il piano riparte dal peso vero: dopo il cut dalla media degli ultimi 7 giorni del cut (`PA.off1`), dopo il bulk dalla media dei 7 giorni fino al 25 apr (`BULK_END` = ultimo giorno del bulk, `PA.off2`); forme e ritmi restano quelli del piano;
 - `GOALS` si ricalcola da `GOALS0` (`goalsNow`): il bulk parte dal peso di fine cut e mette su gli stessi kg del piano, il cut di fine stagione parte dal peso di fine bulk;
 - grafico, "piano oggi", report (🧭) e traguardi usano `planAt`; i ritmi (obiettivo della settimana, "Arrivo previsto") usano `planRaw`.
 
 **Continua il cut** (Dati → Impostazioni, `#cutxSw`, `meta.cutx`, `cutxEnd`, `buildPH`):
 - si accende fino al 18 ott;
 - la ricarica del 17-18 ott resta; dal 19 ott c'e' una fase "Cut finale (continua)" (`id:"cut"`, stesse kcal e macro, `ext:true`) fino a `end`; finche' e' acceso, fino a oggi + 7;
-- spegnerlo il giorno X = X ultimo giorno di cut (`end`), poi 7 giorni di transizione e il bulk, che finisce sempre il 4 apr; si puo' riaccendere solo lo stesso giorno;
+- spegnerlo il giorno X = X ultimo giorno di cut (`end`), poi 7 giorni di transizione e il bulk, che finisce sempre il 25 apr; si puo' riaccendere solo lo stesso giorno;
 - spento entro il 18 ott = nessun effetto (`cutx` tolto);
 - `PH0` = fasi originali, `PH`/`PHASES` = fasi di adesso; nel Piano la fase scelta si riconosce da `from` (il cut puo' comparire due volte);
-- il piano dopo il cut slitta degli stessi giorni (`PA.sh`): il cut continua al ritmo del cut finale.
+- il piano dopo il cut slitta degli stessi giorni (`PA.sh`): il cut continua al ritmo del cut finale; il traguardo "fine transizione" segue la fine vera della transizione.
 
 **Tab Goals**, poche cose in vista:
 1. **Questa settimana** (`#wgCard`):
@@ -109,7 +113,7 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
 - **Lettura del referto BIA**: "📄 Carica referto BIA (PDF)" (`#ckPdf`, `biaRead`) legge sul telefono, senza rete, il PDF Akern Bodygram che il nutrizionista stampa con "Microsoft Print to PDF": li' il testo non c'e', ogni carattere e' un tracciato vettoriale. Passi: `biaPages` (oggetti del PDF, pagine, stream Flate con `DecompressionStream`), `biaGlyphs` (blocchi `q 1 0 0 1 x y cm ... rg ... f Q` piu' i segmenti scuri senza traslazione per l, I, /, -; i colorati come le stelline rosse si saltano), `biaBits` (bitmap 16x16: disegno 4 volte piu' grande con `Path2D` e media dei blocchi), `biaClassify` (campione piu' vicino in `BIA_TPL` con lo stesso numero di contorni e proporzioni simili, distanza che perdona 1 pixel; punto, trattino e ° per forma), `biaLines` (righe dalla linea di base, poi i caratteri con la coda e i segni piccoli), `biaParse` (righe trovate dalle sigle (PhA) (TBW) (ECW) (FFM) (FM) (BCM) (MM) (SMM) (ASMM) (BMR) (TDEE), tollerando E/F e I/l; prima cella = risultato, seconda = %; peso da "Peso:", idratazione da "% (TBW/FFM)", data da "Esame del"). I valori fuori scala si scartano; il modulo BIA si apre gia' compilato con la data del referto e si salva solo con "Salva check". I 97 campioni vengono da un referto vero (solo forme di lettere, nessun dato): se il formato cambiasse vanno rifatti.
 
 ## Domenica partita (Piano)
-- Nel Piano la card richiudibile **⚽ Domenica partita: cosa mangiare** (`#gpCard`, `renderGp`), chiusa di default. Campionato `SEASON` 18 ott 2026 – 13 giu 2027; chip per le fasi che hanno ancora domeniche (Ricarica, Transizione, Lean bulk, Cut soft, Cut pieno), di default quella della prossima domenica. Usa la domenica tipo dell'utente: colazione + pranzo al campo (2 frittatine uova/formaggio/cotto + pasta, ~850 kcal; in cut pieno 1 frittatina, ~670) + pasta al pomodoro dopo la partita (80 g, in cut pieno 60) + cena al pub (ciabattona bresaola e caprino, ~700); colazione e pasta si adattano a `target(domenica)` (correzioni comprese). In cut soft la partita e' a mantenimento (`gp:250` in `PH`, come dice la `spec`). Solo una guida: non cambia gli obiettivi del giorno.
+- Nel Piano la card richiudibile **⚽ Domenica partita: cosa mangiare** (`#gpCard`, `renderGp`), chiusa di default. Campionato `SEASON` 18 ott 2026 – 25 apr 2027 (ultima partita); chip per le fasi che hanno ancora domeniche (Ricarica, Transizione, Lean bulk: dalla v1.30 cut soft e cut pieno sono dopo il campionato), di default quella della prossima domenica; dopo il 25 apr la card sparisce. Usa la domenica tipo dell'utente: colazione + pranzo al campo (2 frittatine uova/formaggio/cotto + pasta, ~850 kcal) + pasta al pomodoro dopo la partita (80 g) + cena al pub (ciabattona bresaola e caprino, ~700); colazione e pasta si adattano a `target(domenica)` (correzioni comprese). Restano nel codice, senza domeniche in cui usarli, la variante cut pieno (1 frittatina ~670, pasta 60 g) e il campo `gp` di una fase (kcal in piu' la domenica). Solo una guida: non cambia gli obiettivi del giorno.
 
 ## Tab Dati
 - **Tab Dati** (quinta tab `#t-dati`) con, in ordine: "🍽️ Kcal di un giorno senza pasti" (`#kqCard`, `#fkq` con `novalidate`, `kqLoad`/`renderKq`: giorno di default ieri, obiettivo come placeholder; salva in `diario_kcal` `{date,kcal,adh}` senza `src`, vuoto + Salva lo toglie; nei giorni con pasti il campo e' spento perche' vale il totale dei pasti), Ultime pesate + Esporta CSV, Vita (facoltativa), Incolla piu' pesate, Backup, Impostazioni (`#setCard`: "Continua il cut", vedi "Goals"). Dal Diario sono spariti la card "Pasti di ieri" (`#kcalCard`, renderKcal, pallini) e queste card; nel Diario restano pesata, peso, grafico, verdetto e soglie. Nei Pasti, se un giorno ha solo il totale scritto a mano, compare la nota `#pManual`.
@@ -134,7 +138,7 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
   - `sw.js` metteva in cache e restituiva anche le risposte d'errore (404): se il sito sparisse, l'app sull'iPhone non si aprirebbe piu'. Ora salva solo `res.ok`; con un errore usa la copia in cache (per le pagine anche `./index.html`), se no la risposta d'errore. Provato con un server che risponde 404 a tutto: col vecchio si vede la pagina 404, col nuovo l'app;
   - `lsPut` falliva in silenzio se lo spazio finisce. Ora restituisce vero/falso e segna le chiavi non salvate in `lsBad`: fascia rossa `#stBar` in cima a tutte le tab (e ripetuta in cima alle schede dei Pasti, che la coprono), tocco = backup subito (`doBackupT`), sparisce quando ogni chiave si salva di nuovo; avviso in basso solo al primo errore. Spazio usato (`lsUsed`: tutte le chiavi del sito, app + beta, 2 byte per carattere come conta Safari, su `LS_MAX` = 5 MB) nella card Backup dei Dati (`#stUse`) e card `#stWarn` nel Diario oltre l'80%. Misurato con dati finti: circa 0,6 MB l'anno con i pasti di ogni giorno, la velocita' non cambia da 40 giorni a 5 anni.
 - Le skill di design (taste, apple-hig, web-design-guidelines, playwright-cli) non sono nel repo: la scrittura in `.claude/` e' stata bloccata dai permessi. `playwright-cli` si installa con `npm install -g @playwright/cli` e nel cloud va usato col Chromium in `/opt/pw-browsers/chromium` (`launchOptions.executablePath`).
-- I test di regressione (Playwright, `main-test-*.js` con `harness.js`, circa 960 controlli) stanno nella scratchpad della sessione, non nel repo.
+- I test di regressione (Playwright, `main-test-*.js` con `harness.js`, circa 1150 controlli) stanno nella scratchpad della sessione, non nel repo.
 
 ## Come lavorare
 1. Modifica solo cio' che serve, mantenendo il file unico e l'impostazione delle cinque tab.

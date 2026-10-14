@@ -196,7 +196,7 @@ details[open] > summary::after{transform:rotate(45deg)}
 .plist .pr{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;text-align:left;border:0;background:transparent;color:var(--ink);font:inherit;font-size:16px;padding:10px 8px;border-bottom:.5px solid var(--sep);cursor:pointer}
 .plist .pr:last-child{border-bottom:0}
 .plist .sw{width:12px;height:12px;border-radius:50%;flex:none}
-.plist .pr .m{margin-left:auto;text-align:right;color:var(--mute);font-size:13px;line-height:1.3}
+.plist .pr .m{margin-left:auto;text-align:right;white-space:nowrap;color:var(--mute);font-size:13px;line-height:1.3}
 .plist .pr[aria-pressed="true"]{background:var(--fill);border-radius:14px;border-bottom-color:transparent}
 .tag{display:inline-block;font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;margin-bottom:10px}
 .kc{font-family:var(--num);font-weight:700;font-size:48px;line-height:1;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
@@ -759,7 +759,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.29</p>
+  <p class="foot">Diario peso · v1.30</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -769,30 +769,34 @@ input.sw:disabled{opacity:.45;cursor:default}
 "use strict";
 var DAY=86400000;
 // Partenza reale: 6 ott 2026 a 77,4 kg (il piano iniziale partiva da 78,5: tutti i punti spostati di -1,1 kg, stessi ritmi).
-var PLAN=[["2026-10-06",77.4],["2026-10-16",76.7],["2026-11-05",78.1],["2026-12-05",78.8],["2027-01-05",79.5],["2027-02-05",80.2],["2027-03-05",80.8],["2027-04-05",81.4],["2027-04-25",80.5],["2027-06-14",77.4]];
+// Dalla v1.30: il bulk dura fino all'ultima partita (25 apr), poi cut soft fino a meta' maggio e cut pieno fino al 4 lug.
+var PLAN=[["2026-10-06",77.4],["2026-10-16",76.7],["2026-10-25",77.6],["2026-11-05",77.9],["2026-12-05",78.8],["2027-01-05",79.5],["2027-02-05",80.2],["2027-03-05",80.8],["2027-04-05",81.4],["2027-04-25",81.8],["2027-05-16",80.9],["2027-07-04",77.4]];
 var PH0=[
   {id:"cut",name:"Cut finale",from:"2026-10-05",to:"2026-10-16",kcal:1900,p:162,c:212,g:42,
-   rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,3 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."]},
-  {id:"carb",name:"Ricarica pre-partita",from:"2026-10-17",to:"2026-10-18",kcal:2400,p:160,c:340,g:45,
-   rules:["Sabato 17 e domenica 18 (prima partita): torni circa a mantenimento, ~2400 kcal, con più carboidrati (340 g invece di 212).","Non è un carb load vero: l'obiettivo è arrivare alla partita carico dopo il cut, non pieno o gonfio.","Il peso salirà di 0,5-1 kg per acqua e glicogeno: è normale, non è grasso.","Da lunedì 19 si passa alla transizione a 2300 kcal."]},
+   rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,5 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."]},
+  {id:"carb",name:"Ricarica pre-partita",from:"2026-10-17",to:"2026-10-17",kcal:2650,p:160,c:400,g:45,
+   rules:["Sabato 17, vigilia della prima partita: poco sopra il mantenimento, ~2650 kcal, con tanti carboidrati (400 g invece di 212, circa 5 g per kg).","Carboidrati facili: pasta, riso, pane, patate, frutta. La sera poche fibre e pochi grassi.","Non è un carb load vero: l'obiettivo è arrivare alla partita carico dopo il cut, non pieno o gonfio.","Il peso salirà di 0,5-1 kg per acqua e glicogeno: è normale, non è grasso."]},
+  {id:"carb",name:"Ricarica pre-partita",from:"2026-10-18",to:"2026-10-18",kcal:2400,p:160,c:340,g:45,
+   rules:["Domenica 18, prima partita: circa a mantenimento, ~2400 kcal con 340 g di carboidrati, soprattutto prima e dopo la partita.","Per i pasti guarda \"⚽ Domenica partita\" qui sotto.","Da lunedì 19 si passa alla transizione a 2300 kcal."]},
   {id:"trans",name:"Transizione",from:"2026-10-19",to:"2026-10-25",kcal:2300,p:160,c:290,g:55,
    rules:["2300 kcal fisse: serve a non passare di colpo da 1900 a 2500.","Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non grasso."]},
-  {id:"bulk",name:"Lean bulk",from:"2026-10-26",to:"2027-04-04",kcal:2500,p:160,c:340,g:55,
-   rules:["Obiettivo: +0,15 / +0,25 kg a settimana (media settimanale).","Niente cheat day: 1 pasto libero a settimana dentro le kcal.","Carboidrati concentrati prima e dopo partita e allenamenti pesanti.","Verso gennaio il mantenimento sale: probabile ritocco a ~2600 kcal (+25 g di carbo)."]},
-  {id:"cutsoft",name:"Cut soft",from:"2027-04-05",to:"2027-04-25",kcal:2250,p:170,c:270,g:55,
-   rules:["Stagione ancora in corso: deficit moderato, circa -0,3 kg a settimana.","Proteine alte e carboidrati attorno a partite e allenamenti pesanti."],
-   spec:"Giorno partita: mantenimento, ~2500 kcal con più carboidrati.",gp:250},
-  {id:"cutfull",name:"Cut pieno",from:"2027-04-26",to:"2027-06-14",kcal:2100,p:170,c:245,g:50,
-   rules:["Circa -0,4 / -0,5 kg a settimana per 6-8 settimane.","Dalla settimana 5-6 puoi fare 1 settimana a mantenimento (diet break) se sei scarico."]},
-  {id:"out",name:"Uscita",from:"2027-06-15",to:"2027-06-28",kcal:2300,p:160,c:290,g:55,
-   rules:["2 settimane a 2300 kcal, poi risali a 2500 (160 P / 340 C / 55 G).","Peso stabile."]}
+  {id:"bulk",name:"Lean bulk",from:"2026-10-26",to:"2027-04-25",kcal:2500,p:160,c:340,g:55,
+   rules:["Obiettivo: +0,15 / +0,25 kg a settimana (media settimanale).","Dura tutto il campionato, fino all'ultima partita di domenica 25 apr.","Niente cheat day: 1 pasto libero a settimana dentro le kcal.","Carboidrati concentrati prima e dopo partita e allenamenti pesanti.","Verso gennaio il mantenimento sale: probabile ritocco a ~2600 kcal (+25 g di carbo)."]},
+  {id:"cutsoft",name:"Cut soft",from:"2027-04-26",to:"2027-05-16",kcal:2250,p:170,c:270,g:55,
+   rules:["Campionato finito: deficit moderato, circa -0,3 kg a settimana per 3 settimane.","Proteine alte per tenere la massa magra; carboidrati attorno agli allenamenti."]},
+  {id:"cutfull",name:"Cut pieno",from:"2027-05-17",to:"2027-07-04",kcal:2100,p:170,c:245,g:50,
+   rules:["Circa -0,5 kg a settimana per 7 settimane.","Dalla settimana 5-6 puoi fare 1 settimana a mantenimento (diet break) se sei scarico."]},
+  {id:"out",name:"Uscita",from:"2027-07-05",to:"2027-07-18",kcal:2300,p:160,c:290,g:55,
+   rules:["2 settimane a 2300 kcal: si risale piano dopo il cut.","Nei primi giorni il peso sale di 0,5-1 kg per acqua e glicogeno: è normale.","Poi si passa a 2500 kcal (160 P / 340 C / 55 G)."]},
+  {id:"out",name:"Mantenimento",from:"2027-07-19",to:"2027-08-01",kcal:2500,p:160,c:340,g:55,
+   rules:["2500 kcal: peso stabile.","Da qui si prepara il piano della stagione dopo."]}
 ];
 var PH=PH0.slice(),PHASES=PH; // fasi di adesso: con "Continua il cut" cambiano (buildPH)
-var PLANLAB=["6 ott · partenza","16 ott · fine cut finale","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr · fine bulk","25 apr · fine cut soft","14 giu · fine cut pieno"];
+var PLANLAB=["6 ott · partenza","16 ott · fine cut finale","25 ott · fine transizione","5 nov","5 dic","5 gen","5 feb","5 mar","5 apr","25 apr · fine bulk e campionato","16 mag · fine cut soft","4 lug · fine cut pieno"];
 var GOALS0=[
   {id:"cut",short:"Cut finale",emo:"🎯",title:"Chiudere il cut finale",from:"2026-10-06",to:"2026-10-16",start:77.4,target:76.7,col:"cut"},
-  {id:"bulk",short:"Lean bulk",emo:"💪",title:"Lean bulk",from:"2026-10-26",to:"2027-04-05",start:76.7,target:81.4,col:"bulk"},
-  {id:"cutf",short:"Fine stagione",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-05",to:"2027-06-14",start:81.4,target:77.4,col:"cutfull"}
+  {id:"bulk",short:"Lean bulk",emo:"💪",title:"Lean bulk",from:"2026-10-26",to:"2027-04-25",start:76.7,target:81.8,col:"bulk"},
+  {id:"cutf",short:"Fine stagione",emo:"🔥",title:"Cut di fine stagione",from:"2027-04-26",to:"2027-07-04",start:81.8,target:77.4,col:"cutfull"}
 ];
 var GOALS=GOALS0; // tappe con partenza e arrivo ricalcolati (goalsNow)
 var selPh=null;
@@ -834,13 +838,14 @@ function phaseAt(s){for(var i=0;i<PHASES.length;i++){if(s<=PHASES[i].to)return P
 // 7 giorni del cut), dopo il bulk dal peso di fine bulk; le forme e i ritmi restano quelli del piano.
 // "Continua il cut" (impostazioni nella tab Dati, meta.cutx={on, end?}): la ricarica del 17-18 ott resta, poi resti
 // in cut fino a end (finche' e' acceso: fino a oggi + 7), poi 7 giorni di transizione e il bulk, che finisce sempre
-// il 4 apr. Il piano dopo il cut slitta degli stessi giorni (e il bulk mette su un po' meno).
-var CUT_END="2026-10-16",RIC_END="2026-10-18",BULK_END="2027-04-05";
+// il 25 apr. Il piano dopo il cut slitta degli stessi giorni (e il bulk mette su un po' meno).
+// BULK_END = ultimo giorno del bulk (ultima partita del campionato).
+var CUT_END="2026-10-16",RIC_END="2026-10-18",BULK_END="2027-04-25";
 var CUT_RATE=(PLAN[1][1]-PLAN[0][1])/daysBetween(PLAN[0][0],PLAN[1][0]); // kg al giorno nel cut finale
 var PA={ce:CUT_END,sh:0,cw:PLAN[1][1],bw:0,off1:0,off2:0};
 function cutxEnd(){
   var x=meta.cutx;if(!x||!x.on)return null;
-  var e=x.end||iso(toT(todayIso())+7*DAY),max=iso(toT(BULK_END)-9*DAY);
+  var e=x.end||iso(toT(todayIso())+7*DAY),max=iso(toT(BULK_END)-8*DAY);
   if(e<=RIC_END)return null;
   return e>max?max:e;
 }
@@ -850,7 +855,7 @@ function buildPH(){
   PH0.forEach(function(p){
     if(p.id==="trans"){
       out.push({id:"cut",name:"Cut finale (continua)",from:"2026-10-19",to:e,kcal:c.kcal,p:c.p,c:c.c,g:c.g,ext:true,
-        rules:[meta.cutx.end?"Hai continuato il cut fino al "+dIt(e)+".":"Hai acceso \"Continua il cut\" nella tab Dati: resti a "+c.kcal+" kcal finché non lo spegni.","Quando lo spegni: 7 giorni di transizione e poi il bulk, che finisce comunque il 4 apr.","Dopo la ricarica il peso riscende: acqua e glicogeno se ne vanno in pochi giorni."]});
+        rules:[meta.cutx.end?"Hai continuato il cut fino al "+dIt(e)+".":"Hai acceso \"Continua il cut\" nella tab Dati: resti a "+c.kcal+" kcal finché non lo spegni.","Quando lo spegni: 7 giorni di transizione e poi il bulk, che finisce comunque il 25 apr.","Dopo la ricarica il peso riscende: acqua e glicogeno se ne vanno in pochi giorni."]});
       out.push(Object.assign({},p,{from:t1,to:iso(toT(b0)-DAY)}));
     }else if(p.id==="bulk")out.push(Object.assign({},p,{from:b0}));
     else out.push(p);
@@ -867,7 +872,7 @@ function planRaw(t){
 function planAt(t){return planRaw(t)+(t>toT(PA.ce)?PA.off1:0)+(t>toT(BULK_END)?PA.off2:0)}
 function planPrep(){
   PH=PHASES=buildPH();
-  var e=cutxEnd(),list=sorted(),today=todayIso(),be=iso(toT(BULK_END)-DAY);
+  var e=cutxEnd(),list=sorted(),today=todayIso(),be=BULK_END;
   PA.ce=e||CUT_END;PA.sh=e?daysBetween(CUT_END,e):0;
   PA.cw=planAt0(toT(CUT_END))+(e?CUT_RATE*daysBetween(RIC_END,e):0);
   PA.bw=PA.cw+planAt0(toT(BULK_END)-PA.sh*DAY)-planAt0(toT(CUT_END));
@@ -1614,6 +1619,8 @@ function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
 function dIt(s){var m=s.split("-");var mo=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"][+m[1]-1];return (+m[2])+" "+mo}
 function daysBetween(a,b){return Math.round((toT(b)-toT(a))/DAY)}
 
+// date di una fase: "17 ott" se dura un giorno, se no "5 ott – 16 ott"
+function dRange(a,b){return a===b?dIt(a):dIt(a)+" – "+dIt(b)}
 function renderPiano(list){
   var today=todayIso();
   var cur=phaseAt(today);
@@ -1628,7 +1635,7 @@ function renderPiano(list){
     var b=document.createElement("button");
     b.type="button";b.style.width=(days/total*100)+"%";b.style.background="var(--c-"+p.id+")";b.style.color="var(--on-"+p.id+")";
     b.setAttribute("aria-pressed",p===sel?"true":"false");
-    b.setAttribute("aria-label",p.name+", "+dIt(p.from)+" - "+dIt(p.to));
+    b.setAttribute("aria-label",p.name+", "+dRange(p.from,p.to));
     if(days/total>0.14)b.textContent=p.name;
     b.onclick=function(){selPh=p.from;renderPiano(sorted())};
     tl.appendChild(b);
@@ -1640,7 +1647,7 @@ function renderPiano(list){
   PH.forEach(function(p){
     var b=document.createElement("button");b.type="button";b.className="pr";
     b.setAttribute("aria-pressed",p===sel?"true":"false");
-    b.innerHTML='<span class="sw" style="background:var(--c-'+p.id+')"></span><span><b>'+p.name+'</b>'+(p===cur?' <span class="pill" style="margin-left:6px">ora</span>':'')+'</span><span class="m">'+dIt(p.from)+' – '+dIt(p.to)+'<br>'+target(p===cur?today:p.to).kcal+' kcal</span>';
+    b.innerHTML='<span class="sw" style="background:var(--c-'+p.id+')"></span><span><b>'+p.name+'</b>'+(p===cur?' <span class="pill" style="margin-left:6px">ora</span>':'')+'</span><span class="m">'+dRange(p.from,p.to)+'<br>'+target(p===cur?today:p.to).kcal+' kcal</span>';
     b.onclick=function(){selPh=p.from;renderPiano(sorted());document.getElementById("pdetail").scrollIntoView({behavior:"smooth",block:"start"})};
     pl.appendChild(b);
   });
@@ -1650,7 +1657,7 @@ function renderPiano(list){
   function pc(x){return Math.round(x/kT*100)}
   var endKg=planAt(toT(sel.to));
   var h='';
-  h+='<span class="tag" style="background:var(--c-'+sel.id+');color:var(--on-'+sel.id+')">'+(sel===cur?"Fase attuale":"Fase")+' · '+dIt(sel.from)+' – '+dIt(sel.to)+'</span>';
+  h+='<span class="tag" style="background:var(--c-'+sel.id+');color:var(--on-'+sel.id+')">'+(sel===cur?"Fase attuale":"Fase")+' · '+dRange(sel.from,sel.to)+'</span>';
   h+='<h2 style="font-size:20px;margin:0 0 8px">'+sel.name+'</h2>';
   h+='<div class="kc">'+T.kcal+'<small>kcal al giorno</small></div>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Piano: '+sel.kcal+' kcal · correzioni: '+sgn(T.dk,0)+' kcal sui carboidrati.</p>';
@@ -2177,10 +2184,10 @@ document.getElementById("ckCard").addEventListener("click",function(ev){
 });
 
 /* ---------- domenica partita ---------- */
-// Guida per le domeniche di campionato (dal 18 ott a meta' giugno): la domenica tipo dell'utente
+// Guida per le domeniche di campionato (dal 18 ott al 25 apr): la domenica tipo dell'utente
 // (colazione, pranzo al campo, pasta dopo la partita, cena al pub) adattata alle kcal della fase.
-// Colazione e pasta si adattano, pranzo al campo e pub restano quelli. In cut soft la partita e' a mantenimento (gp).
-var SEASON={from:"2026-10-18",to:"2027-06-13"},gpSel=null;
+// Colazione e pasta si adattano, pranzo al campo e pub restano quelli (una fase puo' aggiungere kcal la domenica con gp).
+var SEASON={from:"2026-10-18",to:"2027-04-25"},gpSel=null;
 var GP_PUB={n:"Cena al pub",d:"ciabattona con bresaola (~80 g) e caprino: meglio più bresaola e meno caprino",k:700,p:45,c:75,g:25};
 function gpLunch(one){return one?{n:"Pranzo al campo",d:"1 frittatina (uova, formaggio, cotto) e un piatto di pasta",k:670,p:31,c:79,g:22}:{n:"Pranzo al campo",d:"2 frittatine (uova, formaggio, cotto) e un piatto di pasta",k:850,p:45,c:80,g:35}}
 function gpPasta(gr){return {n:"Dopo la partita",d:"pasta al pomodoro, "+gr+" g da cruda",k:Math.round((gr*3.55+66)/10)*10,p:Math.round(gr*0.125+1),c:Math.round(gr*0.71+5),g:Math.round(gr*0.015+5)}}
@@ -2236,8 +2243,8 @@ function renderSet(){
   sw.checked=!!(x&&!x.end);
   sw.disabled=!((!x&&today<=RIC_END)||(x&&!x.end)||(x&&x.end===today));
   if(x&&!x.end)inf.textContent=today<=RIC_END?"Acceso: dopo la ricarica del 17-18 ott resti in cut finché non lo spegni.":"Acceso: sei in cut ("+PH0[0].kcal+" kcal). Spegnilo quando vuoi passare alla transizione: da domani 7 giorni, poi il bulk.";
-  else if(x&&e)inf.textContent="Cut continuato fino al "+dIt(e)+": transizione dal "+dIt(iso(toT(e)+DAY))+", bulk dal "+dIt(iso(toT(e)+8*DAY))+" al 4 apr."+(x.end===today?" Puoi riaccenderlo fino a stasera.":"");
-  else if(today<=RIC_END)inf.textContent="Se lo accendi, dopo la ricarica del 17-18 ott resti in cut finché non lo spegni; poi 7 giorni di transizione e il bulk, che finisce comunque il 4 apr.";
+  else if(x&&e)inf.textContent="Cut continuato fino al "+dIt(e)+": transizione dal "+dIt(iso(toT(e)+DAY))+", bulk dal "+dIt(iso(toT(e)+8*DAY))+" al 25 apr."+(x.end===today?" Puoi riaccenderlo fino a stasera.":"");
+  else if(today<=RIC_END)inf.textContent="Se lo accendi, dopo la ricarica del 17-18 ott resti in cut finché non lo spegni; poi 7 giorni di transizione e il bulk, che finisce comunque il 25 apr.";
   else inf.textContent="Si poteva accendere fino al 18 ott: il cut è chiuso.";
 }
 document.getElementById("cutxSw").addEventListener("change",function(ev){
@@ -2398,6 +2405,7 @@ function milestones(){
   PLAN.forEach(function(p,i){
     var d=p[0];
     if(i===1)d=PA.ce;
+    else if(i===2)d=PH.filter(function(q){return q.id==="trans"})[0].to; // fine transizione (con "Continua il cut" slitta)
     else if(d>CUT_END&&d<BULK_END){d=iso(toT(d)+PA.sh*DAY);if(d>=BULK_END)return}
     out.push({d:d,lab:PLANLAB[i].replace(/^\d+ \w+/,dIt(d)),kg:planAt(toT(d)),first:i===0});
   });
