@@ -759,7 +759,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.32</p>
+  <p class="foot">Diario peso · v1.33</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -774,12 +774,12 @@ var PLAN=[["2026-10-06",77.4],["2026-10-16",76.7],["2026-10-25",77.6],["2026-11-
 var PH0=[
   {id:"cut",name:"Cut finale",from:"2026-10-05",to:"2026-10-16",kcal:1900,p:162,c:212,g:42,
    rules:["1900 kcal tutti i giorni, weekend compresi: niente cheat day da 2500-2800.","Se vuoi un pasto libero, tienilo dentro le 1900.","Attesa: circa -0,5 kg a settimana.","Se ti senti scarico, chiudi in anticipo e passa alla transizione."]},
-  {id:"carb",name:"Ricarica pre-partita",from:"2026-10-17",to:"2026-10-18",kcal:2650,p:160,c:400,g:45,
-   rules:["Sabato 17 e domenica 18 (prima partita): ~2650 kcal, circa il tuo mantenimento, con tanti carboidrati (400 g invece di 212, circa 5 g per kg).","Sabato carboidrati facili: pasta, riso, pane, patate, frutta. La sera poche fibre e pochi grassi.","Domenica: per i pasti guarda \"⚽ Domenica partita\" qui sotto.","Non è un carb load vero: l'obiettivo è arrivare alla partita carico dopo il cut, non pieno o gonfio.","Il peso salirà di 0,5-1 kg per acqua e glicogeno: è normale, non è grasso.","Da lunedì 19 si passa alla transizione a 2500 kcal."]},
-  {id:"trans",name:"Transizione",from:"2026-10-19",to:"2026-10-25",kcal:2500,p:160,c:340,g:55,
-   rules:["2500 kcal fisse, circa il tuo mantenimento di adesso: serve a non passare di colpo da 1900 a 2800.","Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non grasso."]},
-  {id:"bulk",name:"Lean bulk",from:"2026-10-26",to:"2027-04-25",kcal:2800,p:160,c:405,g:60,
-   rules:["Obiettivo: +0,15 / +0,25 kg a settimana (media settimanale).","Circa 150-200 kcal sopra il tuo mantenimento stimato (~2600-2700, dal calo di peso del cut e dai tuoi allenamenti): abbastanza per mettere muscolo, poco per mettere grasso.","Dura tutto il campionato, fino all'ultima partita di domenica 25 apr.","Niente cheat day: 1 pasto libero a settimana dentro le kcal.","Carboidrati concentrati prima e dopo partita e allenamenti pesanti.","Se il peso si ferma per 2 settimane il report del lunedì ti propone +150 kcal; se sale oltre 0,4 kg a settimana, -150."]},
+  {id:"carb",name:"Ricarica pre-partita",from:"2026-10-17",to:"2026-10-18",kcal:2900,p:160,c:450,g:50,
+   rules:["Sabato 17 e domenica 18 (prima partita): ~2900 kcal, circa il tuo mantenimento, con tanti carboidrati (450 g invece di 212, circa 6 g per kg).","Sabato carboidrati facili: pasta, riso, pane, patate, frutta. La sera poche fibre e pochi grassi.","Domenica: per i pasti guarda \"⚽ Domenica partita\" qui sotto.","Non è un carb load vero: l'obiettivo è arrivare alla partita carico dopo il cut, non pieno o gonfio.","Il peso salirà di circa 1 kg (anche di più) per acqua e glicogeno: è normale, non è grasso.","Da lunedì 19 si passa alla transizione a 2800 kcal."]},
+  {id:"trans",name:"Transizione",from:"2026-10-19",to:"2026-10-25",kcal:2800,p:170,c:395,g:60,
+   rules:["2800 kcal fisse, circa il tuo mantenimento: una settimana per stabilizzarti dopo il cut, prima del bulk a 3000.","Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non grasso."]},
+  {id:"bulk",name:"Lean bulk",from:"2026-10-26",to:"2027-04-25",kcal:3000,p:170,c:435,g:65,
+   rules:["Obiettivo: +0,15 / +0,25 kg a settimana (media settimanale).","Circa 150-200 kcal sopra il tuo mantenimento stimato (~2850-3000, dal calo di peso del cut e dai tuoi allenamenti): abbastanza per mettere muscolo, poco per mettere grasso.","Dura tutto il campionato, fino all'ultima partita di domenica 25 apr.","Niente cheat day: 1 pasto libero a settimana dentro le kcal.","Carboidrati concentrati prima e dopo partita e allenamenti pesanti.","Se il peso si ferma per 2 settimane il report del lunedì ti propone +150 kcal; se sale oltre 0,4 kg a settimana, -150."]},
   {id:"cutsoft",name:"Cut soft",from:"2027-04-26",to:"2027-05-16",kcal:2250,p:170,c:270,g:55,
    rules:["Campionato finito: deficit moderato, circa -0,3 kg a settimana per 3 settimane.","Proteine alte per tenere la massa magra; carboidrati attorno agli allenamenti."]},
   {id:"cutfull",name:"Cut pieno",from:"2027-05-17",to:"2027-07-04",kcal:2100,p:170,c:245,g:50,
