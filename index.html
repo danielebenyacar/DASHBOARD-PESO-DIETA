@@ -759,7 +759,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.33</p>
+  <p class="foot">Diario peso · v1.34</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -830,6 +830,19 @@ function planAt0(t){
   return PLAN[PLAN.length-1][1];
 }
 function phaseAt(s){for(var i=0;i<PHASES.length;i++){if(s<=PHASES[i].to)return PHASES[i]}return PHASES[PHASES.length-1]}
+// Ripartenza a ogni cambio di fase: trend, verdetto, "Perche'?", serie e report contano solo pesate e kcal della fase
+// in corso, dal giorno in cui e' cominciata (le abitudini della fase prima non pesano). Fasi vicine con lo stesso id
+// contano come una sola, e il cut che continua dopo la ricarica resta lo stesso cut.
+function runStart(d){
+  var i=0;while(i<PHASES.length-1&&d>PHASES[i].to)i++;
+  var id=PHASES[i].id;
+  while(i>0){
+    if(PHASES[i-1].id===id)i--;
+    else if(i>1&&PHASES[i-1].id==="carb"&&PHASES[i-2].id===id)i-=2;
+    else break;
+  }
+  return PHASES[i].from;
+}
 
 /* ---------- piano adattato ---------- */
 // Il piano si ricalcola a ogni cambio di tappa: dopo il cut riparte dal peso a cui sei arrivato (media degli ultimi
@@ -933,11 +946,13 @@ function removeW(date){delete waists[date];lsSet();return Promise.resolve()}
 function sortedW(){return Object.keys(waists).sort().map(function(k){return waists[k]})}
 function yesterdayIso(){return iso(toT(todayIso())-DAY)}
 // Aderenza dei "days" giorni che finiscono in endIso (incluso). score: si=1, circa=0,5, no=0.
-function adhStats(endIso,days){
-  var o={n:0,si:0,circa:0,no:0,noUp:0,noDown:0,noUnk:0,kn:0,kSum:0,tSum:0,dSum:0,over:0,under:0};
+// from (facoltativo) = primo giorno che conta: i giorni prima (fase precedente) si saltano e finiscono in skip.
+function adhStats(endIso,days,from){
+  var o={n:0,si:0,circa:0,no:0,noUp:0,noDown:0,noUnk:0,kn:0,kSum:0,tSum:0,dSum:0,over:0,under:0,skip:0};
   for(var i=0;i<days;i++){
     var d=iso(toT(endIso)-i*DAY),e=kcalLog[d];
     if(!e)continue;
+    if(from&&d<from){o.skip++;continue}
     var a=adhOf(e),df=kdiff(e);
     o.n++;o[a]++;
     if(a==="no")o[df==null?"noUnk":df>0?"noUp":"noDown"]++;
@@ -959,14 +974,14 @@ function cause(t,as,min){
   if(t.lv!=="warn"&&t.lv!=="bad")return null;
   if(as.kn>=min)return {k:(t.dir>0?as.avgDiff>KTOL:as.avgDiff<-KTOL)?"you":"plan",d:as.avgDiff,dir:t.dir};
   if(as.n>=min)return {k:as.score<0.7?"you":"plan",d:null,dir:t.dir,sc:as.score};
-  return {k:"unk",dir:t.dir};
+  return {k:"unk",dir:t.dir,fresh:as.skip>0,n:as.n,min:min};
 }
 // Se la colpa e' di quanto mangi, il verdetto non deve dire di cambiare le kcal.
 function keepPlan(v,kcal){return {c:v.c,t:"Rispetta le kcal",x:"Il piano non va cambiato: torna a mangiare le "+kcal+" kcal previste e il peso rientrerà nella fascia."}}
 function whyText(c,when){
   if(!c)return "";
   var up=c.dir>0;
-  if(c.k==="unk")return "❓ Perché? Non posso saperlo: segna ogni giorno le kcal mangiate.";
+  if(c.k==="unk")return c.fresh?"❓ Perché? Conto solo le kcal di questa fase (quelle della fase prima non valgono): ne servono almeno "+c.min+" giorni, ora "+c.n+".":"❓ Perché? Non posso saperlo: segna ogni giorno le kcal mangiate.";
   if(c.k==="you"){
     if(c.d==null)return (up?"🍕":"🍽️")+" Perché? Non è il piano: "+when+(c.sc===0?" non hai mai rispettato le kcal":" hai rispettato le kcal solo nel "+Math.round(c.sc*100)+"% dei giorni")+". Prima di cambiarle, rispettale per una settimana.";
     return up?"🍕 Perché? Sono gli sgarri, non il piano: "+when+" hai mangiato in media "+sgn(c.d,0)+" kcal sopra l'obiettivo. Prima di cambiare le kcal, rispettale per una settimana."
@@ -1042,15 +1057,18 @@ function render(){
   var hc=document.getElementById("heroCard");hc.style.background="var(--c-"+ph.id+")";hc.style.color="var(--on-"+ph.id+")";
   var pc0=document.getElementById("phaseLine");pc0.style.background="var(--c-"+ph.id+")";pc0.style.color="var(--on-"+ph.id+")";
 
-  var a=null,b=null,rate=null,rate2=null;
+  var a=null,b=null,rate=null,rate2=null,rs=runStart(today);
   if(last){
     var lt=toT(last.date);
     a=avgWin(list,lt,7);b=avgWin(list,lt-7*DAY,7);
     if(a.n>=3&&b.n>=3)rate=a.avg-b.avg;
     var c2=avgWin(list,lt-14*DAY,7);
-    if(b.n>=3&&c2.n>=3)rate2=b.avg-c2.avg;
+    if(b.n>=3&&c2.n>=3&&iso(lt-13*DAY)>=rs)rate2=b.avg-c2.avg; // la settimana prima conta solo se e' gia' di questa fase
   }
-  var tr=trend(ph,rate,rate2),tl=trendLabel(tr);
+  var tr=trend(ph,rate,rate2);
+  // fase appena cominciata: niente giudizio finche' non c'e' una settimana intera di pesate della fase nuova
+  if(last&&BAND[ph.id]&&iso(toT(last.date)-6*DAY)<rs)tr={lv:"none",dir:0,fresh:iso(toT(rs)+6*DAY)};
+  var tl=tr.fresh?"🆕 Fase nuova · primo giudizio dal "+dIt(tr.fresh):trendLabel(tr);
   if(tr.lv!=="none")pc0.textContent=tl.slice(0,2)+" "+pc0.textContent;
   hc.style.boxShadow=STC[tr.lv]?"0 0 0 3px var(--bg), 0 0 0 6px var(--"+STC[tr.lv]+")":"";
   document.getElementById("avg").innerHTML=(a&&a.avg!=null?fmt(a.avg,1):"–")+"<small>kg</small>";
@@ -1070,7 +1088,8 @@ function render(){
   }else{pill("nessuna pesata")}
 
   var v=verdict(ph,rate,list);
-  var as=adhStats(yesterdayIso(),14);
+  if(tr.fresh)v={c:"",t:"Si riparte da zero",x:"Fase nuova ("+ph.name+" dal "+dIt(rs)+"): il verdetto conta solo pesate e kcal di questa fase, le abitudini di prima non pesano. Il primo giudizio arriva dal "+dIt(tr.fresh)+", con una settimana intera di pesate."};
+  var as=adhStats(yesterdayIso(),14,rs);
   var cz=cause(tr,as,5),why=whyText(cz,"negli ultimi 14 giorni");
   if(cz&&cz.k==="you")v=keepPlan(v,T.kcal);
   var vc=document.getElementById("verdictCard");
@@ -1186,8 +1205,9 @@ var BADGE={
 };
 var RTITLE=["","Settimana da dimenticare","Settimana storta","Settimana ok","Ottima settimana","Settimana da campione"];
 function weekTrend(mon){
-  var w=weekInfo(mon);
-  return trend(phaseAt(iso(toT(mon)+3*DAY)),w.rate,weekInfo(iso(toT(mon)-7*DAY)).rate);
+  var th=iso(toT(mon)+3*DAY),rs=runStart(th),prev=iso(toT(mon)-7*DAY);
+  if(mon<rs)return {lv:"none",dir:0,fresh:true}; // settimana cominciata nella fase prima
+  return trend(phaseAt(th),weekInfo(mon).rate,prev>=rs?weekInfo(prev).rate:null);
 }
 // Proposta di correzione per la settimana appena chiusa (solo per il report "vivo").
 function proposal(mon,t,as,cz){
@@ -1205,19 +1225,22 @@ function proposal(mon,t,as,cz){
 }
 function buildReport(mon,live){
   var w=weekInfo(mon),phw=phaseAt(iso(toT(mon)+3*DAY)),phn=phaseAt(iso(toT(mon)+7*DAY));
-  var t=weekTrend(mon),as=adhStats(w.cur.sun,7);
+  var rs=runStart(iso(toT(mon)+3*DAY)),next=iso(toT(mon)+7*DAY);
+  var t=weekTrend(mon),as=adhStats(w.cur.sun,7,rs);
   var notes=[];
   if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
   if(phaseAt(mon).id!==phn.id)notes.push("Nuova fase: "+phn.name+" · "+phn.kcal+" kcal");
-  if(as.n)notes.push(kcalNote(as));
+  if(as.n||as.skip)notes.push(kcalNote(as));
   var v=verdict(phn,w.rate),cz=cause(t,as,4);
-  if(cz&&cz.k==="you")v=keepPlan(v,target(iso(toT(mon)+7*DAY)).kcal);
+  if(cz&&cz.k==="you")v=keepPlan(v,target(next).kcal);
+  // la settimana dopo e' di un'altra fase: niente consigli presi dalla fase che si chiude
+  if(phn.id!==phw.id&&BAND[phn.id])v={c:"",t:"Si riparte da zero",x:"Da lunedì "+phn.name+" a "+target(next).kcal+" kcal: quello che è successo in "+phw.name+" non conta per la fase nuova. Il primo giudizio arriva col report di lunedì "+dIt(iso(toT(next)+7*DAY))+"."};
   var b=[],streak=0;
   if(w.cur.n===7)b.push("perfetta");
   if(as.n>=5&&as.score>=0.9)b.push("cecchino");
   if(t.lv==="ok")b.push("ritmo");
   if(w.dv!=null&&Math.abs(w.dv)<=0.3)b.push("piano");
-  if(t.lv==="ok"){for(var m=mon;streak<52&&weekTrend(m).lv==="ok";m=iso(toT(m)-7*DAY))streak++}
+  if(t.lv==="ok"){for(var m=mon;streak<52&&m>=rs&&weekTrend(m).lv==="ok";m=iso(toT(m)-7*DAY))streak++} // serie solo dentro la fase
   if(streak>=3)b.push("serie");
   if(w.cur.n<=3)b.push("saltate");
   if(as.n>=4&&as.score<0.6)b.push(as.noDown+as.under>as.noUp+as.over?"sotto":"sgarri");
@@ -1239,6 +1262,7 @@ function kcalNote(as){
   if(as.noUp)parts.push(as.noUp+" sopra");
   if(as.noDown)parts.push(as.noDown+" sotto");
   if(as.noUnk)parts.push(as.noUnk+" fuori");
+  if(as.skip)parts.push(as.skip+(as.skip===1?" giorno della fase prima non conta":" giorni della fase prima non contano"));
   return "Kcal: "+as.n+(as.n===1?" giorno segnato":" giorni segnati")+(as.kAvg!=null?", media "+Math.round(as.kAvg)+" su "+Math.round(as.tAvg):"")+" · "+parts.join(", ");
 }
 // Crea i report delle settimane concluse che mancano. L'ultima resta "viva" (si ricalcola) finche' non premi Ok, visto.
