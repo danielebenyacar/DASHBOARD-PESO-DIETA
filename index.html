@@ -260,8 +260,6 @@ details[open] > summary::after{transform:rotate(45deg)}
 .mnlist li b{flex:none;white-space:nowrap;font-family:var(--num)}
 .mnlog{width:100%;margin-top:12px}
 .mnver{margin:12px 0 0}
-.mnidea{margin:10px 0 0;padding-left:20px;font-size:15px;line-height:1.45}
-.mnidea li{margin:3px 0}
 .mnfree{margin:12px 0 0;padding:10px 12px;border-radius:14px;background:var(--upbg);font-size:14px}
 .mntot{display:flex;justify-content:space-between;gap:10px;font-size:15px;margin:2px 4px 6px}
 .gtpct{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;color:var(--mute)}
@@ -800,10 +798,11 @@ input.sw:disabled{opacity:.45;cursor:default}
   <section class="card" id="setCard">
     <h2><i class="hd" data-i="slider" style="background:var(--mute)"></i>Impostazioni</h2>
     <div class="setrow"><label for="cutxSw"><b>Continua il cut</b><small id="cutxInfo"></small></label><input type="checkbox" role="switch" class="sw" id="cutxSw"></div>
+    <div class="setrow"><label for="wkSw"><b>Più kcal nel weekend</b><small id="wkInfo"></small></label><input type="checkbox" role="switch" class="sw" id="wkSw"></div>
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.36</p>
+  <p class="foot">Diario peso · v1.37</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -977,12 +976,21 @@ function saveK(){lsPut("diario_kcal",kcalLog)}
 function saveR(){lsPut("diario_report",reports)}
 function saveA(){lsPut("diario_adj",adj)}
 // Obiettivo del giorno: fase del piano + correzioni accettate in quella fase (la differenza va tutta sui carboidrati).
-function target(d){
+// "Piu' kcal nel weekend" (Impostazioni, meta.wk={from: lunedi' in cui l'hai acceso}): stesso totale della settimana,
+// lun-ven -100, sabato uguale, domenica +500 (bulk: 2900 / 3000 / 3500), sui carboidrati; solo nelle fasi di ADJ_OK.
+// kcal/c = obiettivo di quel giorno; base/bc = media della settimana (fase + correzioni), per piano, proposte e mantenimento.
+// dow (facoltativo, 0 = domenica) = calcola come se d fosse quel giorno della settimana (Menu: giorno tipo, sabato, domenica).
+var WK_DK=[500,-100,-100,-100,-100,-100,0];
+function wkDk(d,ph,dow){var w=meta.wk;if(!w||!w.from||d<w.from||!ADJ_OK[ph.id])return 0;return WK_DK[dow==null?new Date(toT(d)).getUTCDay():dow]}
+function kc4(k){return (k<0?-1:1)*Math.round(Math.abs(k)/4)}
+function target(d,dow){
   var ph=phaseAt(d),dk=0;
   adj.forEach(function(a){if(a.ph===ph.id&&a.date<=d)dk+=a.dk});
-  var dc=(dk<0?-1:1)*Math.round(Math.abs(dk)/4);
-  return {ph:ph,kcal:ph.kcal+dk,p:ph.p,c:Math.max(0,ph.c+dc),g:ph.g,dk:dk};
+  var wk=wkDk(d,ph,dow);
+  return {ph:ph,kcal:ph.kcal+dk+wk,p:ph.p,c:Math.max(0,ph.c+kc4(dk+wk)),g:ph.g,dk:dk,wk:wk,base:ph.kcal+dk,bc:Math.max(0,ph.c+kc4(dk))};
 }
+// "lun-ven 2900 · sab 3000 · dom 3500" per la fase di d, o "" se l'interruttore e' spento o la fase non lo prevede
+function wkSplit(d){var t1=target(d,1);if(!t1.wk)return "";return "lun-ven "+t1.kcal+" · sab "+target(d,6).kcal+" · dom "+target(d,0).kcal}
 function save(e){entries[e.date]=e;lsSet();return Promise.resolve()}
 function remove(date){delete entries[date];lsSet();return Promise.resolve()}
 function saveW(e){waists[e.date]=e;lsSet();return Promise.resolve()}
@@ -1276,9 +1284,9 @@ function buildReport(mon,live){
   if(phaseAt(mon).id!==phn.id)notes.push("Nuova fase: "+phn.name+" · "+phn.kcal+" kcal");
   if(as.n||as.skip)notes.push(kcalNote(as));
   var v=verdict(phn,w.rate),cz=cause(t,as,4);
-  if(cz&&cz.k==="you")v=keepPlan(v,target(next).kcal);
+  if(cz&&cz.k==="you")v=keepPlan(v,target(next).base);
   // la settimana dopo e' di un'altra fase: niente consigli presi dalla fase che si chiude
-  if(phn.id!==phw.id&&BAND[phn.id])v={c:"",t:"Si riparte da zero",x:"Da lunedì "+phn.name+" a "+target(next).kcal+" kcal: quello che è successo in "+phw.name+" non conta per la fase nuova. Il primo giudizio arriva col report di lunedì "+dIt(iso(toT(next)+7*DAY))+"."};
+  if(phn.id!==phw.id&&BAND[phn.id])v={c:"",t:"Si riparte da zero",x:"Da lunedì "+phn.name+" a "+target(next).base+" kcal: quello che è successo in "+phw.name+" non conta per la fase nuova. Il primo giudizio arriva col report di lunedì "+dIt(iso(toT(next)+7*DAY))+"."};
   var b=[],streak=0;
   if(w.cur.n===7)b.push("perfetta");
   if(as.n>=5&&as.score>=0.9)b.push("cecchino");
@@ -1360,7 +1368,7 @@ function reportHTML(r,pre){
 function propHTML(r,canAct){
   var P=r.prop,dc=Math.round(Math.abs(P.dk)/4),ch=(P.dk>0?"+":"−")+Math.abs(P.dk)+" kcal ("+(P.dk>0?"+":"−")+dc+" g di carboidrati)";
   if(P.state==="ask"){
-    var t=target(todayIso()),nk=t.kcal+P.dk,nc=Math.max(0,t.c+(P.dk>0?dc:-dc));
+    var t=target(todayIso()),nk=t.base+P.dk,nc=Math.max(0,t.bc+(P.dk>0?dc:-dc));
     var h='💡 <b>Proposta: '+ch+'</b> → '+nk+' kcal · '+t.p+'/'+nc+'/'+t.g+'. Proteine e grassi restano uguali.';
     if(canAct)h+='<div class="actions"><button class="btn" type="button" data-adj="apply">Applica</button><button class="btn ghost" type="button" data-adj="no">No, lascia così</button></div>';
     else h+=' <span style="color:var(--mute)">(non applicata)</span>';
@@ -1577,7 +1585,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){var o={v:6,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals,checks:checks};if(meta.cutx)o.cutx=meta.cutx;return JSON.stringify(o)}
+function backupText(){var o={v:6,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals,checks:checks};if(meta.cutx)o.cutx=meta.cutx;if(meta.wk)o.wk=meta.wk;return JSON.stringify(o)}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -1619,6 +1627,7 @@ document.getElementById("bkGo").addEventListener("click",function(){
     Object.keys(oc).forEach(function(d){var e=validCheck(d,oc[d]);if(e){checks[d]=e;nc5++}});
     // "Continua il cut" (dalla v1.28, facoltativo)
     var cx=o.cutx;if(cx&&D.test(cx.on)&&(cx.end==null||D.test(cx.end))){meta.cutx={on:cx.on};if(cx.end)meta.cutx.end=cx.end;saveMeta()}
+    var wx=o.wk;if(wx&&D.test(wx.from)){meta.wk={from:wx.from};saveMeta()}
     lsSet();saveK();saveR();saveA();saveF();saveP();saveC();render();loadKDay();
     msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+(nc5?", "+nc5+" check":"")+".");
     document.getElementById("bk").value="";
@@ -1636,7 +1645,7 @@ function applyProp(m){
   var r=reports[m];if(!r||!r.prop||r.prop.state!=="ask")return;
   var P=r.prop,today=todayIso();
   adj.push({date:today,ph:P.ph,dk:P.dk,mon:m});saveA();
-  var t=target(today);P.state="applied";P.date=today;P.kcal=t.kcal;P.c=t.c;saveR();
+  var t=target(today);P.state="applied";P.date=today;P.kcal=t.base;P.c=t.bc;saveR();
 }
 document.getElementById("wkBody").addEventListener("click",function(ev){
   var b=ev.target.closest("[data-adj]");if(!b)return;
@@ -1713,19 +1722,20 @@ function renderPiano(list){
   PH.forEach(function(p){
     var b=document.createElement("button");b.type="button";b.className="pr";
     b.setAttribute("aria-pressed",p===sel?"true":"false");
-    b.innerHTML='<span class="sw" style="background:var(--c-'+p.id+')"></span><span><b>'+p.name+'</b>'+(p===cur?' <span class="pill" style="margin-left:6px">ora</span>':'')+'</span><span class="m">'+dRange(p.from,p.to)+'<br>'+target(p===cur?today:p.to).kcal+' kcal</span>';
+    b.innerHTML='<span class="sw" style="background:var(--c-'+p.id+')"></span><span><b>'+p.name+'</b>'+(p===cur?' <span class="pill" style="margin-left:6px">ora</span>':'')+'</span><span class="m">'+dRange(p.from,p.to)+'<br>'+target(p===cur?today:p.to).base+' kcal</span>';
     b.onclick=function(){selPh=p.from;renderPiano(sorted());document.getElementById("pdetail").scrollIntoView({behavior:"smooth",block:"start"})};
     pl.appendChild(b);
   });
 
-  var w=curAvg(list)||PLAN[0][1],T=target(sel===cur?today:sel.to);
+  var w=curAvg(list)||PLAN[0][1],sd=sel===cur?today:sel.to,T0=target(sd),T=Object.assign({},T0,{kcal:T0.base,c:T0.bc}),wks=wkSplit(sd);
   var kP=T.p*4,kC=T.c*4,kG=T.g*9,kT=kP+kC+kG;
   function pc(x){return Math.round(x/kT*100)}
   var endKg=planAt(toT(sel.to));
   var h='';
   h+='<span class="tag" style="background:var(--c-'+sel.id+');color:var(--on-'+sel.id+')">'+(sel===cur?"Fase attuale":"Fase")+' · '+dRange(sel.from,sel.to)+'</span>';
   h+='<h2 style="font-size:20px;margin:0 0 8px">'+sel.name+'</h2>';
-  h+='<div class="kc">'+T.kcal+'<small>kcal al giorno</small></div>';
+  h+='<div class="kc">'+T.kcal+'<small>kcal al giorno'+(wks?' (media della settimana)':'')+'</small></div>';
+  if(wks)h+='<p class="note" id="pdWk" style="margin:6px 0 0">Più kcal nel weekend: <b>'+wks+'</b>. La differenza è sui carboidrati.</p>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Piano: '+sel.kcal+' kcal · correzioni: '+sgn(T.dk,0)+' kcal sui carboidrati.</p>';
   h+='<div class="mac">';
   h+='<div class="mt" style="background:var(--mpb);border-bottom-color:var(--mp)"><b>'+T.p+' g</b><span>Proteine · '+fmt(T.p/w,1)+' g/kg</span></div>';
@@ -1759,7 +1769,7 @@ function tdee(){
   return o;
 }
 function renderTdee(){
-  var o=tdee(),T=target(todayIso()),ph={name:T.ph.name,kcal:T.kcal};
+  var o=tdee(),T=target(todayIso()),ph={name:T.ph.name,kcal:T.base};
   var h='<h2><i class="hd" data-i="flame" style="background:var(--c-cut)"></i>Mantenimento reale</h2>';
   if(!o.ok){
     h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Servono, nelle ultime 4 settimane, almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal le scrivi nel Diario, nella card delle kcal mangiate.</p>';
@@ -2253,37 +2263,41 @@ document.getElementById("ckCard").addEventListener("click",function(ev){
 // (colazione, pranzo al campo, pasta dopo la partita, cena al pub) adattata alle kcal della fase.
 // Colazione e pasta si adattano, pranzo al campo e pub restano quelli (una fase puo' aggiungere kcal la domenica con gp).
 var SEASON={from:"2026-10-18",to:"2027-04-25"};
-var GP_PUB={n:"Cena al pub",d:"ciabattona con bresaola (~80 g) e caprino: meglio più bresaola e meno caprino",k:700,p:45,c:75,g:25};
 function gpLunch(one){return one?{n:"Pranzo al campo",d:"1 frittatina (uova, formaggio, cotto) e un piatto di pasta",k:670,p:31,c:79,g:22}:{n:"Pranzo al campo",d:"2 frittatine (uova, formaggio, cotto) e un piatto di pasta",k:850,p:45,c:80,g:35}}
 function gpPasta(gr){return {n:"Dopo la partita",d:"pasta al pomodoro, "+gr+" g da cruda",k:Math.round((gr*3.55+66)/10)*10,p:Math.round(gr*0.125+1),c:Math.round(gr*0.71+5),g:Math.round(gr*0.015+5)}}
-function gpBreak(k){return {n:"Colazione",d:"carboidrati e un po' di proteine: es. yogurt greco 0%, avena o cereali, banana, miele, fette biscottate",k:k,p:Math.round(k*35/600),c:Math.round(k*105/600),g:Math.round(k*6/600)}}
-function gpPlan(ph,kcal){
-  var lunch=gpLunch(ph.id==="cutfull"),gr=ph.id==="cutfull"?60:80;
-  function rest(){return kcal-lunch.k-GP_PUB.k-(gr?gpPasta(gr).k:0)}
-  while(rest()<300&&gr>0)gr-=10;
-  while(rest()>750&&gr<120)gr+=10;
-  var rows=[gpBreak(Math.max(0,Math.round(rest()/10)*10)),lunch];
-  if(gr)rows.push(gpPasta(gr));
-  rows.push(GP_PUB);
-  return rows;
+// Colazione leggera pre-partita (MN_DCOL, ~900 kcal, poche fibre e niente grassi) e cena al pub (MN_PUB) si scelgono;
+// pranzo al campo fisso; la pasta dopo la partita riempie quello che resta (da 40 a 150 g; niente se restano meno di 150 kcal).
+function gpPlan(ph,kcal,brkK,pubK){
+  var lunch=gpLunch(ph.id==="cutfull"),av=kcal-lunch.k-brkK-pubK,gr=Math.min(150,Math.round((av-66)/3.55/10)*10);
+  if(gr<40)gr=av>=150?40:0;
+  return {lunch:lunch,pasta:gr?gpPasta(gr):null};
 }
 function sundayFrom(d){var t=toT(d);return iso(t+((7-new Date(t).getUTCDay())%7)*DAY)}
 // Domenica partita per la fase ph: prima domenica di campionato da d0 in poi (null se nella fase non ce ne sono).
 function gpSunday(ph,d0){var d=sundayFrom(d0<SEASON.from?SEASON.from:d0);return d<=ph.to&&d<=SEASON.to?d:null}
+function gpRow(r){return '<div class="gprow"><div><b>'+r.n+'</b><small>'+r.d+'</small></div><span class="gk">~'+r.k+' kcal<small>P '+r.p+' · C '+r.c+' · G '+r.g+'</small></span></div>'}
 function gpHTML(ph,sun){
-  var T=target(sun),extra=ph.gp||0,kcal=T.kcal+extra,rows=gpPlan(ph,kcal);
-  var tot={k:0,p:0,c:0,g:0};rows.forEach(function(r){tot.k+=r.k;tot.p+=r.p;tot.c+=r.c;tot.g+=r.g});
+  var T=target(sun),extra=ph.gp||0,kcal=T.kcal+extra,pub=mnFreeSel("dcena",MN_PUB),pk=mnSum(pub.it).k,bk=mnSum(mnFreeSel("dcolazione",MN_DCOL).it).k,pl=gpPlan(ph,kcal,bk,pk);
   var h='<section class="card mncard" id="gpCard"><div class="mnh"><span class="memo sm" style="background:var(--okbg)">⚽</span><div class="mnt"><b>Domenica partita</b><small>'+(sun===todayIso()?'Oggi':'Prossima: domenica '+dIt(sun))+' · '+ph.name+'</small></div><span class="mnk gpk">'+kcal+'<small>kcal</small></span></div>';
   if(extra)h+='<p class="note" style="margin:6px 0 0">Il piano prevede la partita a mantenimento: '+sgn(extra,0)+' kcal sui carboidrati rispetto ai '+T.kcal+' degli altri giorni.</p>';
+  if(T.wk>0)h+='<p class="note" style="margin:6px 0 0">Con "Più kcal nel weekend" la domenica hai '+sgn(T.wk,0)+' kcal: c\'è posto per il pub e una birra.</p>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Comprese le tue correzioni ('+sgn(T.dk,0)+' kcal).</p>';
-  h+=rows.map(function(r){return '<div class="gprow"><div><b>'+r.n+'</b><small>'+r.d+'</small></div><span class="gk">~'+r.k+' kcal<small>P '+r.p+' · C '+r.c+' · G '+r.g+'</small></span></div>'}).join("");
-  h+='<div class="gptot"><b>Totale ~'+tot.k+' kcal</b><span>P '+tot.p+' · C '+tot.c+' · G '+tot.g+'</span></div>';
-  h+='<ul class="gptips"><li>Proteine un po\' sotto e grassi un po\' sopra il piano: per un giorno va bene, conta la settimana.</li>'+
-    '<li>Pranzo almeno 3 ore prima della partita. Bevi bene tutto il giorno.</li>'+
-    '<li>Birra al pub: una media sono ~200 kcal, toglile dalla pasta dopo la partita.</li>'+
-    '<li>Il sabato sera: meglio pizza o pasta, poco fritto e poco alcol.</li>'+
-    '<li>Segna tutto in Pasti con ✏️ Pasto veloce: dalla seconda domenica basta un tocco.</li></ul>';
-  return h+'</section>';
+  h+='<p class="note" style="margin:6px 0 0">Colazione leggera, poi scegli cosa prendi al pub: la pasta dopo la partita si adatta.</p></section>';
+  h+=mnFreeCard("dcolazione","Colazione","🥞",MN_DCOL,null,null,null,"colazione");
+  var fix=[pl.lunch].concat(pl.pasta?[pl.pasta]:[]);
+  h+='<section class="card mncard"><div class="mnh"><span class="memo sm" style="background:var(--mcb)" aria-hidden="true">🏉</span><div class="mnt"><b>Al campo</b><small>pranzo e dopo la partita</small></div></div>'+fix.map(gpRow).join("")+'</section>';
+  h+=mnFreeCard("dcena","Cena al pub","🍺",MN_PUB,Math.max(0,kcal-bk-fix.reduce(function(a,r){return a+r.k},0)),null,
+    'La pasta dopo la partita si adatta a quello che prendi.');
+  var tot={k:0,p:0,c:0,g:0},cs=mnSum(mnCur.dcolazione.it);
+  [cs,mnSum(pub.it)].concat(fix).forEach(function(r){tot.k+=r.k;tot.p+=r.p;tot.c+=r.c;tot.g+=r.g});
+  var ov=tot.k-kcal;
+  h+='<div class="mntot" id="mnTot"><b>Totale ~'+Math.round(tot.k/10)*10+' kcal'+(ov>100?' · <span style="color:var(--bad)">'+Math.round(ov/10)*10+' sopra</span>':'')+'</b><span>P '+Math.round(tot.p)+' · C '+Math.round(tot.c)+' · G '+Math.round(tot.g)+'</span></div>';
+  h+='<section class="card"><ul class="gptips" style="margin:0"><li>Proteine un po\' sotto e grassi un po\' sopra il piano: per un giorno va bene, conta la settimana.</li>'+
+    '<li>Pranzo almeno 3 ore prima della partita. Bevi bene tutto il giorno, acqua prima della birra.</li>'+
+    '<li>Colazione leggera: niente grassi e poche fibre, così a pranzo e in partita non pesa.</li>'+
+    '<li>Il fritto del pub (nuggets, birbe, patatine) pesa soprattutto in grassi: uno basta, meglio se in due.</li>'+
+    '<li>Il pranzo al campo segnalo con ✏️ Pasto veloce: dalla seconda domenica basta un tocco.</li></ul></section>';
+  return h;
 }
 
 /* ---------- menu: giorno tipo, sabato, domenica partita (tab Pasti) ---------- */
@@ -2317,6 +2331,68 @@ var MN_M={colazione:MN_COL,
     {id:"bowl",n:"Yogurt bowl",prot:["yogurt","skyr"],carb:["cereali","avena"],fix:[["miele",15],["banana",120]]}],
   cena:[{id:"std",prot:["pollo","hamb","macinato","uova","pesce","tacchino","tonno"],carb:["patate","riso","pasta","pane","crackers","gallette","piadina"],tog:["philly"]}]};
 var MN_P={colazione:0.12,pranzo:0.28,merenda:0.11,cena:0.32};
+// Pasti fuori (cena libera del sabato, pub della domenica): gruppi di scelte coi cibi base (BASE, id "b:...") e i grammi.
+// one = scegline una (meta.gt.s["pasto:gruppo"] = id), se no ognuna si accende e spegne (meta.gt.x["pasto:id"], def = accesa di base).
+var MN_SATC=[
+  {id:"main",n:"Piatto · scegline uno",one:true,o:[
+    {id:"marg",n:"Pizza margherita",it:[["pizza-marg",330]]},{id:"diav",n:"Pizza diavola",it:[["pizza-diav",360]]},
+    {id:"cotto",n:"Pizza cotto",it:[["pizza-cotto",370]]},{id:"4f",n:"Pizza 4 formaggi",it:[["pizza-4f",350]]},
+    {id:"capr",n:"Capricciosa",it:[["pizza-capr",400]]},{id:"calz",n:"Calzone",it:[["calzone",400]]},
+    {id:"keb",n:"Kebab",it:[["kebab",350]]},{id:"dkeb",n:"Doppio kebab",it:[["kebab",560]]},{id:"kebp",n:"Kebab al piatto",it:[["kebab-piatto",550]]},
+    {id:"bigmac",n:"Menu Big Mac",it:[["mc-bigmac",214],["mc-patatine",114]]},{id:"mcbacon",n:"Menu McBacon",it:[["mc-mcbacon",225],["mc-patatine",114]]},
+    {id:"whop",n:"Menu Whopper",it:[["bk-whopper",270],["mc-patatine",114]]},{id:"pub",n:"Hamburger da pub",it:[["panino-pub",350]]},
+    {id:"poke",n:"Poke",it:[["poke",450]]},{id:"sushi",n:"Sushi 12 pezzi",it:[["sushi",360]]},
+    {id:"piad",n:"Piadina farcita",it:[["piadina-farc",250]]},{id:"carb",n:"Carbonara",it:[["carbonara",350]]}]},
+  {id:"extra",n:"Extra",o:[
+    {id:"pat",n:"Patatine",it:[["patatine",150]]},{id:"nug",n:"6 McNuggets",it:[["mc-nuggets",96]]},
+    {id:"tira",n:"Tiramisù",it:[["tiramisu",120]]},{id:"gel",n:"Gelato",it:[["gelato",150]]},
+    {id:"coca",n:"Coca-Cola",it:[["coca",330]]},{id:"birra",n:"Birra media",it:[["birra",400]]},{id:"spritz",n:"Spritz",it:[["spritz",200]]}]}];
+var MN_DCOL=[
+  {id:"base",n:"Base",o:[{id:"yog",n:"Yogurt greco 0% 200 g",def:true,it:[["greco-0",200]]},{id:"cer",n:"Cereali 60 g",def:true,it:[["cornflakes",60]]},{id:"ban",n:"Banana",def:true,it:[["banana",110]]}]},
+  {id:"pane",n:"Pane · scegline uno",one:true,o:[{id:"cass",n:"Pane in cassetta 100 g",it:[["pancarre",100]]},{id:"fette",n:"Fette biscottate 65 g",it:[["fette-classiche",65]]}]},
+  {id:"dolce",n:"Miele o marmellata · scegline uno",one:true,o:[{id:"miele",n:"Miele 50 g",it:[["miele",50]]},{id:"marm",n:"Marmellata 50 g",it:[["marmellata",50]]}]},
+  {id:"frutta",n:"Per chiudere · scegline uno",one:true,o:[{id:"succo",n:"Succo di mela",it:[["succo-mela",150]]},{id:"mela",n:"Mela",it:[["mela",180]]},{id:"arancia",n:"Arancia",it:[["arancia",200]]},{id:"kiwi",n:"2 kiwi",it:[["kiwi",150]]},{id:"no",n:"Niente",it:[]}]}];
+var MN_PUB=[
+  {id:"cibo",n:"Cosa prendi",o:[
+    {id:"ciab",n:"Ciabattona bresaola e caprino",def:true,it:[["ciabatta-bres",280]]},
+    {id:"birbe",n:"Birbe di pollo (7)",it:[["birbe",245]]},
+    {id:"pork",n:"Nuggets di pulled pork (6)",it:[["nugg-pork",180]]},
+    {id:"cam",n:"Nuggets di camembert (6)",it:[["nugg-camembert",150]]},
+    {id:"pat",n:"Patatine",it:[["patatine",150]]}]},
+  {id:"birra",n:"Birra · scegline una",one:true,o:[
+    {id:"no",n:"Niente",it:[]},{id:"m1",n:"1 media",it:[["birra",400]]},{id:"m2",n:"2 medie",it:[["birra",800]]},
+    {id:"p1",n:"1 pinta",it:[["birra",500]]},{id:"r1",n:"1 rossa",it:[["birra-rossa",400]]}]}];
+function mnOn(mk,o){var v=mnGet().x[mk+":"+o.id];return v==null?!!o.def:v!==false}
+function mnPick(mk,gr){var id=mnGet().s[mk+":"+gr.id];return gr.o.filter(function(o){return o.id===id})[0]||gr.o[0]}
+// le voci scelte di un pasto fuori
+function mnFreeSel(mk,groups){
+  var it=[],on={};
+  groups.forEach(function(gr){
+    if(gr.one){var o=mnPick(mk,gr);on[o.id+"@"+gr.id]=1;it=it.concat(o.it)}
+    else gr.o.forEach(function(o){if(mnOn(mk,o)){on[o.id+"@"+gr.id]=1;it=it.concat(o.it)}});
+  });
+  return {it:it.map(function(x){return ["b:"+x[0],x[1]]}),on:on};
+}
+// card di un pasto fuori: K = kcal che restano per quel pasto (o null), P = proteine che mancano prima del pasto (o null),
+// note = cosa dire quando non sfori (la domenica: colazione e pasta si adattano)
+// m = pasto in cui si segna (di base la cena)
+function mnFreeCard(mk,title,emo,groups,K,P,note,m){
+  m=m||"cena";
+  var sel=mnFreeSel(mk,groups),t=mnSum(sel.it),c=mealCfg(m);
+  mnCur[mk]={m:m,it:sel.it,k:t.k};
+  var h='<section class="card mncard" data-mnm="'+mk+'"><div class="mnh"><span class="memo sm" style="background:'+c.bg+'" aria-hidden="true">'+emo+'</span><div class="mnt"><b>'+title+'</b><small>'+(mk==="dcolazione"?'leggera, almeno 3 ore prima del pranzo':note?'stasera, dopo la partita':K!=null?'restano ~'+Math.round(K/10)*10+' kcal':'')+'</small></div><span class="mnk" id="'+mk+'K">'+Math.round(t.k/10)*10+'<small>kcal</small></span></div>';
+  h+=mnBar(t);
+  if(K!=null){var d=t.k-K;h+='<p class="mnfree" id="'+mk+'Left" style="background:var(--'+(d>100?'downbg':d<-150?'upbg':'okbg')+')">'+(d>100?'Sopra di ~'+Math.round(d/10)*10+' kcal: togli un extra o la birra.':d<-150?'Ti restano ~'+Math.round(-d/10)*10+' kcal: puoi aggiungere qualcosa.':note||'Giusto così: sei nelle kcal del giorno.')+(P!=null&&P-t.p>15?' Proteine che mancano ancora: ~'+Math.round((P-t.p)/5)*5+' g.':'')+'</p>'}
+  groups.forEach(function(gr){
+    h+='<div class="mnlab">'+gr.n+'</div><div class="mnch'+(gr.one?'':' mntog')+'">'+gr.o.map(function(o){
+      var on=!!sel.on[o.id+"@"+gr.id],k=Math.round(mnSum(o.it.map(function(x){return ["b:"+x[0],x[1]]})).k/10)*10;
+      return gr.one?'<button type="button" data-mnf="'+mk+':'+gr.id+'" data-mnk="'+o.id+'" aria-pressed="'+on+'"><b>'+o.n+'</b><small>'+(k?'~'+k+' kcal':'0 kcal')+'</small></button>'
+        :'<button type="button" data-mnt="'+mk+':'+o.id+'" data-mndef="'+(o.def?1:0)+'" aria-pressed="'+on+'">'+(on?'✓ ':'＋ ')+o.n+' <small>~'+k+'</small></button>';
+    }).join("")+'</div>';
+  });
+  h+='<ul class="mnlist">'+sel.it.map(function(x){var f=mnFood(x[0]);return '<li><span>'+esc(f.n)+'</span><b>'+mnQty(x[0],x[1])+'</b></li>'}).join("")+'</ul>';
+  return h+(sel.it.length?'<button type="button" class="btn mnlog" data-mnlog="'+mk+'">＋ Segna a '+c.n.toLowerCase()+' di oggi</button>':'')+'</section>';
+}
 var MN_SAT={pct:{colazione:20,pranzo:25},p:{colazione:0.15,pranzo:0.37},
   pranzo:[{id:"std",prot:["coscia","fusi","alette","pollo","tonno","macinato"],carb:["patate","riso","pasta","piadina"],tog:["philly","frutto"]}]};
 var MN_PCT={colazione:25,pranzo:30,merenda:20},mnPh=null,mnCur={};
@@ -2327,6 +2403,7 @@ function mnGet(){var g=meta.gt||{};return {d:g.d||"norm",v:g.v||{},s:g.s||{},x:g
 function mnSet(f){var g=meta.gt=meta.gt||{};g.v=g.v||{};g.s=g.s||{};g.x=g.x||{};f(g);saveMeta()}
 // il cibo da usare: uno dei tuoi (il piu' recente che corrisponde), se no quello base, se no i valori di riserva
 function mnFood(key){
+  if(key.indexOf("b:")===0)return FOODB[key];
   var s=MN_F[key],f=null;
   if(s.re){var ids=(meta.recent||[]).concat(Object.keys(foods));for(var i=0;i<ids.length&&!f;i++){var x=foods[ids[i]];if(x&&s.re.test(norm(x.n+" "+(x.b||""))))f=x}}
   if(!f&&s.b)f=FOODB["b:"+s.b];
@@ -2349,6 +2426,7 @@ function mnBuild(m,mk,ver,K,P,pk,ck){
   return it.concat(cs,tail);
 }
 function mnQty(key,g){
+  if(key.indexOf("b:")===0){var u=FOODB[key].u,n=u?g/u.g:0;return u&&Math.abs(n-Math.round(n))<0.01?Math.round(n)+" "+plural(Math.round(n),u.n):g+(/birra|coca|spritz|vino|succo/.test(key)?" ml":" g")}
   if(key==="uova"){var n=Math.round(g/50);return n+(n===1?" uovo":" uova")}
   var pz=mnPz(key);if(pz){var k=Math.round(g/pz);return key==="piadina"?k+" (~"+g+" g)":String(k)}
   return g+" g";
@@ -2383,11 +2461,12 @@ function renderMenu(){
   if(!list.length){box.innerHTML='<section class="card"><p style="margin:0">Il piano è finito: il menu riparte col piano della stagione dopo.</p></section>';return}
   // la domenica, senza una fase scelta, si apre sulla fase della prossima partita
   var ph=list.filter(function(p){return p.from===mnPh})[0]||(G.d==="dom"&&list.filter(function(p){return gpSunday(p,p.from>today?p.from:today)})[0])||list[0];
-  var d0=ph.from>today?ph.from:today,T=target(d0),sun=gpSunday(ph,d0);
+  var d0=ph.from>today?ph.from:today,T=target(d0,G.d==="sab"?6:G.d==="dom"?0:1),sun=gpSunday(ph,d0),wks=wkSplit(d0);
   box.style.setProperty("--hc","var(--c-"+ph.id+")");box.style.setProperty("--hon","var(--on-"+ph.id+")");
   var h='<section class="card mnhero"><div class="gpseg" role="group" aria-label="Fase">'+list.map(function(p){var on=p===ph;return '<button type="button" data-mnph="'+p.from+'" aria-pressed="'+on+'"'+(on?' style="background:var(--c-'+p.id+');color:var(--on-'+p.id+')"':'')+'>'+p.name.replace(" pre-partita","")+'</button>'}).join("")+'</div>';
   h+='<p class="gphd" id="mnPhase">'+(ph===list[0]?'Oggi':'Dal '+dIt(ph.from))+' · '+ph.name+'</p>';
-  h+='<div class="mntgt"><b id="mnKcal">'+T.kcal+'</b><span>kcal al giorno</span></div>'+mnBar(T);
+  h+='<div class="mntgt"><b id="mnKcal">'+T.kcal+'</b><span>'+(wks?(G.d==="sab"?"kcal il sabato":G.d==="dom"?"kcal la domenica":"kcal da lunedì a venerdì"):"kcal al giorno")+'</span></div>'+mnBar(T);
+  if(wks)h+='<p class="note" id="mnWk" style="margin:6px 0 0">Più kcal nel weekend: '+wks+'.</p>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Comprese le tue correzioni ('+sgn(T.dk,0)+' kcal).</p>';
   h+='<div class="seg mnday" role="group" aria-label="Giorno">'+[["norm","Giorno tipo"],["sab","Sabato"],["dom","Domenica"]].map(function(x){return '<button type="button" data-mnd="'+x[0]+'" aria-pressed="'+(G.d===x[0])+'">'+x[1]+'</button>'}).join("")+'</div></section>';
   mnCur={};
@@ -2400,13 +2479,11 @@ function renderMenu(){
     h+=mnCard("pranzo","spranzo",MN_SAT.pranzo,T.kcal*MN_SAT.pct.pranzo/100,T.p*MN_SAT.p.pranzo);add("spranzo");
     var mc=mealCfg("merenda"),cc=mealCfg("cena"),free=Math.max(0,T.kcal-tot.k),fp=Math.max(0,T.p-tot.p),fc=Math.max(0,T.c-tot.c);
     h+='<section class="card mncard" data-mnm="smerenda"><div class="mnh"><span class="memo sm" style="background:'+mc.bg+'" aria-hidden="true">'+mc.e+'</span><div class="mnt"><b>Merenda</b><small>il sabato si salta: le sue kcal vanno sulla cena</small></div></div><button type="button" class="btn ghost mnlog" data-mnskip="1">Segna merenda saltata</button></section>';
-    h+='<section class="card mncard" data-mnm="scena"><div class="mnh"><span class="memo sm" style="background:'+cc.bg+'" aria-hidden="true">🍕</span><div class="mnt"><b>Cena libera</b><small>quello che resta della giornata</small></div><span class="mnk" id="mnFree">'+Math.round(free/10)*10+'<small>kcal</small></span></div>';
-    h+='<p class="note" style="margin:8px 0 0">Per stare nel piano: ~'+Math.round(fp/5)*5+' g di proteine e ~'+Math.round(fc/10)*10+' g di carboidrati.</p><ul class="mnidea">'+
-      '<li><b>Pizza</b> margherita o al prosciutto (~900) e un dolce o un gelato (~300)</li><li><b>Poke</b> grande con riso (~900) e 6-8 pezzi di sushi (~350)</li>'+
-      '<li><b>Pasta</b> (~800) e un secondo magro con patate (~500)</li><li><b>Hamburger</b> con pane e patate al forno (~1000)</li></ul>';
-    if(sundayFrom(today)<=SEASON.to&&today<=SEASON.to)h+='<p class="mnfree">Il sabato prima della partita: niente alcol e poco fritto.</p>';
-    h+='<p class="note" style="margin:8px 0 0">Segna la cena nei Pasti con ✏️ Pasto veloce: una stima va benissimo.</p></section>';
-    tot={k:T.kcal,p:Math.max(tot.p,T.p),c:Math.max(tot.c,T.c),g:T.g};
+    h+=mnFreeCard("scena","Cena libera","🍕",MN_SATC,free,fp);add("scena");
+    if(sundayFrom(today)<=SEASON.to&&today<=SEASON.to)h+='<p class="mnfree" style="margin:0 4px 10px">Il sabato prima della partita: niente alcol e poco fritto.</p>';
+    var ov=tot.k-T.kcal;
+    h+='<div class="mntot" id="mnTot"><b>Totale ~'+Math.round(tot.k/10)*10+' kcal'+(ov>100?' · <span style="color:var(--bad)">'+Math.round(ov/10)*10+' sopra</span>':'')+'</b><span>P '+Math.round(tot.p)+' · C '+Math.round(tot.c)+' · G '+Math.round(tot.g)+'</span></div>';
+    h+='<p class="note" style="margin:0 4px 10px">Valori medi da pizzeria e fast food: le porzioni cambiano da posto a posto. "Segna" mette la cena nei Pasti, poi la ritocchi con ✎.</p>';
   }else{
     var pct={},sum=0;["colazione","pranzo","merenda"].forEach(function(m){pct[m]=mealCfg(m).pct;sum+=pct[m]});pct.cena=Math.max(0,100-sum);
     ["colazione","pranzo","merenda","cena"].forEach(function(m){h+=mnCard(m,m,MN_M[m],T.kcal*pct[m]/100,T.p*MN_P[m]);add(m)});
@@ -2426,7 +2503,7 @@ function renderMenu(){
 function mnLog(mk){
   var b=mnCur[mk];if(!b)return;
   var d=todayIso(),m=b.m;meals[d]=meals[d]||{};var M=meals[d][m]=meals[d][m]||{items:[]};M.items=M.items||[];
-  b.it.forEach(function(x){var f=mnFood(x[0]);if(f.id&&f.src!=="base")keepFood(f);M.items.push(itemFrom(f,"g",x[1]));if(f.id)addRecent(f.id)});
+  b.it.forEach(function(x){var f=mnFood(x[0]),n=f.u&&x[0].indexOf("b:")===0?x[1]/f.u.g:0;if(f.id&&f.src!=="base")keepFood(f);M.items.push(n&&Math.abs(n-Math.round(n))<0.01?itemFrom(f,"u0",Math.round(n)):itemFrom(f,"g",x[1]));if(f.id)addRecent(f.id)});
   M.skip=false;saveP();syncDayKcal(d);render();
   toast("Segnato a "+mealCfg(m).n.toLowerCase()+": "+b.it.length+" cibi · "+Math.round(b.k)+" kcal");
 }
@@ -2437,6 +2514,8 @@ document.getElementById("pMenu").addEventListener("click",function(ev){
   if((b=ev.target.closest("[data-mnv]"))){var mk=b.getAttribute("data-mnv"),v=b.getAttribute("data-mnvv");mnSet(function(g){g.v[mk]=v});renderMenu();return}
   if((b=ev.target.closest("[data-mns]"))){var k=b.getAttribute("data-mns"),f=b.getAttribute("data-mnk");mnSet(function(g){g.s[k]=f});renderMenu();return}
   if((b=ev.target.closest("[data-mnx]"))){var x=b.getAttribute("data-mnx");mnSet(function(g){g.x[x]=!mnTog(x.split(":")[0],x.split(":")[1])});renderMenu();return}
+  if((b=ev.target.closest("[data-mnf]"))){var fk=b.getAttribute("data-mnf"),fo=b.getAttribute("data-mnk");mnSet(function(g){g.s[fk]=fo});renderMenu();return}
+  if((b=ev.target.closest("[data-mnt]"))){var tk=b.getAttribute("data-mnt"),on=b.getAttribute("aria-pressed")==="true",df=b.getAttribute("data-mndef")==="1";mnSet(function(g){if(!on===df)delete g.x[tk];else g.x[tk]=!on});renderMenu();return}
   if((b=ev.target.closest("[data-mnlog]"))){mnLog(b.getAttribute("data-mnlog"));return}
   if(ev.target.closest("[data-mnskip]")){var t=todayIso();meals[t]=meals[t]||{};var M=meals[t].merenda=meals[t].merenda||{items:[]};if(!(M.items&&M.items.length)){M.skip=true;saveP();syncDayKcal(t);render();toast("Merenda di oggi segnata come saltata")}else toast("La merenda di oggi ha già dei cibi");return}
   if(ev.target.closest("[data-mnpct]")){meta.meals=meta.meals||{};Object.keys(MN_PCT).forEach(function(m){meta.meals[m]=Object.assign({},meta.meals[m],{pct:MN_PCT[m]})});saveMeta();render();toast("Pasti divisi 25 / 30 / 20 / 25 %");return}
@@ -2458,7 +2537,15 @@ function renderSet(){
   else if(x&&e)inf.textContent="Cut continuato fino al "+dIt(e)+": transizione dal "+dIt(iso(toT(e)+DAY))+", bulk dal "+dIt(iso(toT(e)+8*DAY))+" al 25 apr."+(x.end===today?" Puoi riaccenderlo fino a stasera.":"");
   else if(today<=RIC_END)inf.textContent="Se lo accendi, dopo la ricarica del 17-18 ott resti in cut finché non lo spegni; poi 7 giorni di transizione e il bulk, che finisce comunque il 25 apr.";
   else inf.textContent="Si poteva accendere fino al 18 ott: il cut è chiuso.";
+  var w=meta.wk,ws=document.getElementById("wkSw"),wi=document.getElementById("wkInfo"),sp=wkSplit(today);
+  ws.checked=!!(w&&w.from);
+  if(w&&w.from)wi.textContent=sp?"Acceso dal "+dIt(w.from)+": "+sp+" kcal, stessa media della settimana. La differenza è sui carboidrati.":"Acceso: vale nel bulk e nei cut, non in questa fase.";
+  else wi.textContent="Stesso totale della settimana, ma da lunedì a venerdì 100 kcal in meno, il sabato uguale e la domenica 500 in più (bulk: 2900 / 3000 / 3500).";
 }
+document.getElementById("wkSw").addEventListener("change",function(ev){
+  if(ev.target.checked)meta.wk={from:mondayOf(todayIso())};else delete meta.wk;
+  saveMeta();render();
+});
 document.getElementById("cutxSw").addEventListener("change",function(ev){
   var today=todayIso(),x=meta.cutx;
   if(ev.target.checked){if(x&&x.end===today)delete x.end;else meta.cutx={on:today}}
@@ -2662,7 +2749,7 @@ var BASE=[
  ["pasta","Pasta di semola (cruda)",357,13,72,1.5],["pasta-int","Pasta integrale (cruda)",340,13.5,64,2.5],["pasta-uovo","Pasta all'uovo secca (cruda)",370,14,68,4.5],
  ["gnocchi","Gnocchi di patate",150,3.5,32,0.5],["couscous","Couscous (crudo)",360,12.8,72,0.6],["farro","Farro (crudo)",340,15,67,2.5],["quinoa","Quinoa (cruda)",368,14,64,6],
  ["avena","Fiocchi d'avena",372,13.5,60,7],["pane","Pane comune",270,9,52,2,"fetta",30],["pane-int","Pane integrale",250,9,44,3.5,"fetta",30],
- ["fette-bisc","Fette biscottate integrali",400,12,68,6.5,"fetta",9],["gallette","Gallette di riso",380,8,81,3,"galletta",8],["piadina","Piadina",310,8,50,8,"piadina",110],
+ ["fette-bisc","Fette biscottate integrali",400,12,68,6.5,"fetta",9],["fette-classiche","Fette biscottate classiche",410,11,74,6,"fetta",9],["pancarre","Pane in cassetta bianco",270,8,55,1.5,"fetta",25],["gallette","Gallette di riso",380,8,81,3,"galletta",8],["piadina","Piadina",310,8,50,8,"piadina",110],
  ["cornflakes","Corn flakes",375,7,84,0.9],["muesli","Muesli",370,9,66,6],["biscotti","Biscotti secchi",430,7,72,12,"biscotto",8],["cracker","Cracker",430,10,70,11,"pacchetto",25],
  ["patate","Patate (crude)",77,2,17,0.1],["patate-dolci","Patate dolci (crude)",86,1.6,20,0.1],
  ["pollo","Petto di pollo (crudo)",110,23,0,1.5],["tacchino","Petto di tacchino (crudo)",107,24,0,1.2],["coscia-pollo","Coscia di pollo senza pelle (cruda)",120,20,0,4.5],
@@ -2681,13 +2768,30 @@ var BASE=[
  ["mandorle","Mandorle",600,22,6,52,"manciata",30],["noci","Noci",690,15,3.5,68,"manciata",30],["nocciole","Nocciole",650,14,6,61,"manciata",30],["avocado","Avocado",165,2,2,15],
  ["fondente","Cioccolato fondente 70%",580,8,35,42,"quadretto",6],
  ["banana","Banana",90,1.1,20,0.3,"banana",120],["mela","Mela",52,0.3,12,0.2,"mela",180],["pera","Pera",57,0.4,13,0.1,"pera",170],["arancia","Arancia",45,0.9,9,0.2,"arancia",200],
- ["kiwi","Kiwi",60,1.1,12,0.5,"kiwi",75],["fragole","Fragole",32,0.7,6,0.3],["frutti-bosco","Frutti di bosco",45,1,8,0.4],["uva","Uva",70,0.6,16,0.2],["ananas","Ananas",50,0.5,11,0.1],
+ ["kiwi","Kiwi",60,1.1,12,0.5,"kiwi",75],["fragole","Fragole",32,0.7,6,0.3],["frutti-bosco","Frutti di bosco",45,1,8,0.4],["uva","Uva",70,0.6,16,0.2],["succo-mela","Succo di mela",46,0.1,11,0,"bicchiere",150],["ananas","Ananas",50,0.5,11,0.1],
  ["clementine","Clementine",50,0.8,11,0.2,"clementina",80],["datteri","Datteri secchi",280,2.5,63,0.4,"dattero",8],["uvetta","Uvetta",300,2.5,70,0.5],
  ["insalata","Insalata, lattuga",15,1.3,2,0.2],["pomodori","Pomodori",18,0.9,3,0.2],["zucchine","Zucchine",17,1.2,2.5,0.3],["broccoli","Broccoli",34,2.8,4,0.4],["spinaci","Spinaci",23,2.9,1.5,0.4],
  ["carote","Carote",41,0.9,8,0.2],["peperoni","Peperoni",26,1,5,0.3],["melanzane","Melanzane",25,1,4,0.2],["fagiolini","Fagiolini",31,1.8,5,0.1],["funghi","Funghi champignon",22,3,1,0.3],["cipolla","Cipolla",40,1.1,9,0.1],
  ["miele","Miele",304,0.3,82,0,"cucchiaino",7],["marmellata","Marmellata",250,0.4,60,0.1,"cucchiaino",10],["zucchero","Zucchero",400,0,100,0,"cucchiaino",5],
  ["crema-nocc","Crema spalmabile alle nocciole",540,6,57,31,"cucchiaino",10],["gelato","Gelato fior di latte",210,4,26,10],["sugo","Sugo di pomodoro pronto",40,1.5,6,1],
- ["pesto","Pesto alla genovese",450,5,6,45,"cucchiaio",15],["maionese","Maionese",700,1,1,77,"cucchiaio",15],["ketchup","Ketchup",110,1.5,25,0.2,"cucchiaio",15]
+ ["pesto","Pesto alla genovese",450,5,6,45,"cucchiaio",15],["maionese","Maionese",700,1,1,77,"cucchiaio",15],["ketchup","Ketchup",110,1.5,25,0.2,"cucchiaio",15],
+ // pizzeria, fast food, pub e bar: valori medi indicativi (le porzioni cambiano da posto a posto); bevande per 100 ml, kcal con l'alcol
+ ["pizza-marg","Pizza margherita",250,10,33,8.5,"pizza",330],["pizza-cotto","Pizza prosciutto cotto",245,11.5,30,8.5,"pizza",370],["pizza-diav","Pizza diavola (salame piccante)",270,11.5,30,11.5,"pizza",360],
+ ["pizza-4f","Pizza quattro formaggi",290,13,29,13.5,"pizza",350],["pizza-capr","Pizza capricciosa",235,10.5,27,9,"pizza",400],["pizza-wurst","Pizza wurstel e patatine",275,9.5,32,12,"pizza",380],
+ ["pizza-bufala","Pizza con bufala",255,11,31,9.5,"pizza",350],["pizza-taglio","Pizza al taglio margherita",260,8,36,9,"trancio",150],["calzone","Calzone (cotto e mozzarella)",255,11,30,10,"calzone",400],
+ ["kebab","Kebab nel pane (döner)",215,12,20,9.5,"kebab",350],["kebab-piadina","Kebab nella piadina (dürüm)",230,12,22,10.5,"kebab",380],["kebab-piatto","Kebab al piatto con patatine",190,10,16,9.5,"piatto",550],
+ ["hot-dog","Hot dog",260,10,24,14,"hot dog",150],["piadina-farc","Piadina farcita (crudo e squacquerone)",290,12,30,13.5,"piadina",250],["toast","Toast prosciutto e formaggio",270,14,27,11.5,"toast",130],
+ ["panino-pub","Hamburger da pub (panino con carne e formaggio)",250,13,20,13,"panino",350],["ciabatta-bres","Ciabatta bresaola e caprino (pub)",250,16,27,9,"ciabatta",280],
+ ["mc-bigmac","Big Mac (McDonald's)",235,12,19,12,"panino",214],["mc-mcbacon","Crispy McBacon (McDonald's)",245,14,17,13,"panino",225],["mc-cheese","Cheeseburger (McDonald's)",255,13,27,10.5,"panino",116],
+ ["mc-hamb","Hamburger (McDonald's)",243,12.5,29,7.8,"panino",103],["mc-chicken","McChicken (McDonald's)",235,10.5,25,10,"panino",175],["mc-nuggets","Chicken McNuggets (McDonald's)",255,15,16,15,"pezzo",16],
+ ["mc-patatine","Patatine fritte medie (McDonald's)",295,3.3,37,14,"porzione",114],["bk-whopper","Whopper (Burger King)",237,10.5,19,13,"panino",270],
+ ["patatine","Patatine fritte",300,3.5,38,15,"porzione",150],["onion-rings","Anelli di cipolla fritti",330,4,38,18,"porzione",120],["alette-fritte","Alette di pollo fritte",280,20,6,19.5,"aletta",35],
+ ["birbe","Birbe di pollo (bocconcini impanati e fritti)",260,18,15,14,"pezzo",35],["nugg-pork","Nuggets di pulled pork",280,14,20,16,"pezzo",30],["nugg-camembert","Nuggets di camembert fritti",330,13,20,22,"pezzo",25],
+ ["sushi","Sushi misto (nigiri e uramaki)",165,6,26,4,"pezzo",30],["poke","Poke bowl (riso e salmone)",150,7.5,20,4.5,"bowl",450],["arancino","Arancino al ragù",230,7,30,9,"arancino",200],
+ ["lasagna","Lasagne alla bolognese",160,8.5,13,8.5,"porzione",300],["carbonara","Pasta alla carbonara (piatto pronto)",230,10,25,10,"piatto",350],
+ ["tiramisu","Tiramisù",300,6,30,17,"porzione",120],["cornetto","Cornetto al bar",410,7,45,22,"cornetto",60],
+ ["birra","Birra chiara (5%)",43,0.5,3.5,0,"media",400],["birra-rossa","Birra rossa o doppio malto",60,0.6,5,0,"media",400],["coca","Coca-Cola",42,0,10.6,0,"lattina",330],
+ ["spritz","Spritz",80,0,7,0,"bicchiere",200],["vino","Vino rosso",85,0.1,0.6,0,"bicchiere",125]
 ];
 var FOODB={};
 BASE.forEach(function(r){FOODB["b:"+r[0]]={id:"b:"+r[0],n:r[1],b:"",k:r[2],p:r[3],c:r[4],g:r[5],u:r[6]?{n:r[6],g:r[7]}:null,src:"base"}});
@@ -2888,7 +2992,7 @@ function renderPasti(){
 }
 function renderPPlan(){
   var today=todayIso(),T=target(today),h='<section class="card"><h2><i class="hd" data-i="target" style="background:var(--c-'+T.ph.id+')"></i>Obiettivo di oggi · '+T.ph.name+'</h2>'+
-    '<div class="kc">'+T.kcal+'<small>kcal</small></div><p class="note" style="margin-top:6px">P '+T.p+' g · C '+T.c+' g · G '+T.g+' g'+(T.dk?' (con le correzioni)':'')+'</p></section>';
+    '<div class="kc">'+T.kcal+'<small>kcal</small></div><p class="note" style="margin-top:6px">P '+T.p+' g · C '+T.c+' g · G '+T.g+' g'+(T.dk?' (con le correzioni)':'')+'</p>'+(T.wk||wkSplit(today)?'<p class="note" id="ppWk" style="margin-top:4px">Più kcal nel weekend: '+wkSplit(today)+'.</p>':'')+'</section>';
   h+='<section class="card"><h2><i class="hd" data-i="pie" style="background:var(--c-out)"></i>Come dividi la giornata</h2>';
   var sum=0;
   MEALS.forEach(function(m){
