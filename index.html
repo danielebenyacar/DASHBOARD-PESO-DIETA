@@ -261,6 +261,11 @@ details[open] > summary::after{transform:rotate(45deg)}
 .mnlog{width:100%;margin-top:12px}
 .mnver{margin:12px 0 0}
 .mnfree{margin:12px 0 0;padding:10px 12px;border-radius:14px;background:var(--upbg);font-size:14px}
+.wkrows{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 0}
+.wkrows div{background:var(--fill);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column}
+.wkrows b{font-size:13px;color:var(--mute);font-weight:600}
+.wkrows span{font-family:var(--num);font-size:18px;font-weight:700}
+.wkrows small{font-size:11.5px;color:var(--mute)}
 .mntot{display:flex;justify-content:space-between;gap:10px;font-size:15px;margin:2px 4px 6px}
 .gtpct{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;color:var(--mute)}
 .gtpct .btn{flex:none;white-space:nowrap}
@@ -798,11 +803,10 @@ input.sw:disabled{opacity:.45;cursor:default}
   <section class="card" id="setCard">
     <h2><i class="hd" data-i="slider" style="background:var(--mute)"></i>Impostazioni</h2>
     <div class="setrow"><label for="cutxSw"><b>Continua il cut</b><small id="cutxInfo"></small></label><input type="checkbox" role="switch" class="sw" id="cutxSw"></div>
-    <div class="setrow"><label for="wkSw"><b>Più kcal nel weekend</b><small id="wkInfo"></small></label><input type="checkbox" role="switch" class="sw" id="wkSw"></div>
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.38</p>
+  <p class="foot">Diario peso · v1.39</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -976,21 +980,27 @@ function saveK(){lsPut("diario_kcal",kcalLog)}
 function saveR(){lsPut("diario_report",reports)}
 function saveA(){lsPut("diario_adj",adj)}
 // Obiettivo del giorno: fase del piano + correzioni accettate in quella fase (la differenza va tutta sui carboidrati).
-// "Piu' kcal nel weekend" (Impostazioni, meta.wk={from: lunedi' in cui l'hai acceso}): stesso totale della settimana,
-// lun-ven -100, sabato uguale, domenica +500 (bulk: 2900 / 3000 / 3500), sui carboidrati; solo nelle fasi di ADJ_OK.
-// kcal/c = obiettivo di quel giorno; base/bc = media della settimana (fase + correzioni), per piano, proposte e mantenimento.
+// Settimana divisa (dal 2 nov 2026, WK_FROM, nelle fasi di ADJ_OK): stesso totale della settimana, lun-ven -100 kcal
+// (-25 g di carboidrati), sabato uguale, domenica +500 (+80 g di carboidrati e +20 g di grassi: partita e pub).
+// Bulk: 2900 / 3000 / 3500. Nato dai dati di ottobre: in settimana in linea, la domenica sempre sopra.
+// kcal/c/g = obiettivo di quel giorno; base/bc = media della settimana (fase + correzioni), per piano, proposte e mantenimento.
 // dow (facoltativo, 0 = domenica) = calcola come se d fosse quel giorno della settimana (Menu: giorno tipo, sabato, domenica).
-var WK_DK=[500,-100,-100,-100,-100,-100,0];
-function wkDk(d,ph,dow){var w=meta.wk;if(!w||!w.from||d<w.from||!ADJ_OK[ph.id])return 0;return WK_DK[dow==null?new Date(toT(d)).getUTCDay():dow]}
+var WK_FROM="2026-11-02",WK_DK=[500,-100,-100,-100,-100,-100,0],WK_DC=[80,-25,-25,-25,-25,-25,0],WK_DG=[20,0,0,0,0,0,0];
+function dowOf(d){return new Date(toT(d)).getUTCDay()}
 function kc4(k){return (k<0?-1:1)*Math.round(Math.abs(k)/4)}
 function target(d,dow){
   var ph=phaseAt(d),dk=0;
   adj.forEach(function(a){if(a.ph===ph.id&&a.date<=d)dk+=a.dk});
-  var wk=wkDk(d,ph,dow);
-  return {ph:ph,kcal:ph.kcal+dk+wk,p:ph.p,c:Math.max(0,ph.c+kc4(dk+wk)),g:ph.g,dk:dk,wk:wk,base:ph.kcal+dk,bc:Math.max(0,ph.c+kc4(dk))};
+  var w=d>=WK_FROM&&ADJ_OK[ph.id]?(dow==null?dowOf(d):dow):-1,wk=w<0?0:WK_DK[w],bc=Math.max(0,ph.c+kc4(dk));
+  return {ph:ph,kcal:ph.kcal+dk+wk,p:ph.p,c:w<0?bc:Math.max(0,bc+WK_DC[w]),g:ph.g+(w<0?0:WK_DG[w]),dk:dk,wk:wk,base:ph.kcal+dk,bc:bc};
 }
-// "lun-ven 2900 · sab 3000 · dom 3500" per la fase di d, o "" se l'interruttore e' spento o la fase non lo prevede
+// "lun-ven 2900 · sab 3000 · dom 3500" per la fase di d, o "" se la fase non ha la settimana divisa
 function wkSplit(d){var t1=target(d,1);if(!t1.wk)return "";return "lun-ven "+t1.kcal+" · sab "+target(d,6).kcal+" · dom "+target(d,0).kcal}
+// righe kcal e macro dei tre giorni tipo (Piano)
+function wkRows(d){
+  if(!target(d,1).wk)return "";
+  return '<div class="wkrows" id="pdWk">'+[[1,"Lun-ven"],[6,"Sabato"],[0,"Domenica"]].map(function(x){var t=target(d,x[0]);return '<div><b>'+x[1]+'</b><span>'+t.kcal+'</span><small>C '+t.c+' · G '+t.g+'</small></div>'}).join("")+'</div>';
+}
 function save(e){entries[e.date]=e;lsSet();return Promise.resolve()}
 function remove(date){delete entries[date];lsSet();return Promise.resolve()}
 function saveW(e){waists[e.date]=e;lsSet();return Promise.resolve()}
@@ -1585,7 +1595,7 @@ function csvText(){
   var list=sorted();
   return "data,peso_kg,vita_cm\n"+list.map(function(e){return e.date+","+e.kg+","+(waists[e.date]?waists[e.date].cm:"")}).join("\n")+"\n";
 }
-function backupText(){var o={v:6,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals,checks:checks};if(meta.cutx)o.cutx=meta.cutx;if(meta.wk)o.wk=meta.wk;return JSON.stringify(o)}
+function backupText(){var o={v:6,exported:todayIso(),weights:entries,waists:waists,kcal:kcalLog,reports:reports,adj:adj,foods:foods,meals:meals,checks:checks};if(meta.cutx)o.cutx=meta.cutx;return JSON.stringify(o)}
 document.getElementById("exp").addEventListener("click",function(){shareOrDownload("diario_peso.csv",csvText(),"text/csv")});
 document.getElementById("bkShare").addEventListener("click",doBackup);
 document.getElementById("bkWarnGo").addEventListener("click",doBackup);
@@ -1627,7 +1637,6 @@ document.getElementById("bkGo").addEventListener("click",function(){
     Object.keys(oc).forEach(function(d){var e=validCheck(d,oc[d]);if(e){checks[d]=e;nc5++}});
     // "Continua il cut" (dalla v1.28, facoltativo)
     var cx=o.cutx;if(cx&&D.test(cx.on)&&(cx.end==null||D.test(cx.end))){meta.cutx={on:cx.on};if(cx.end)meta.cutx.end=cx.end;saveMeta()}
-    var wx=o.wk;if(wx&&D.test(wx.from)){meta.wk={from:wx.from};saveMeta()}
     lsSet();saveK();saveR();saveA();saveF();saveP();saveC();render();loadKDay();
     msg("bkMsg","Ripristinate "+nw+" pesate, "+nc+" misure"+(nk?", "+nk+" giorni di kcal":"")+(nr?", "+nr+" report":"")+(na?", "+na+" correzioni":"")+(nf?", "+nf+" cibi":"")+(nm?", "+nm+" giorni di pasti":"")+(nc5?", "+nc5+" check":"")+".");
     document.getElementById("bk").value="";
@@ -1728,14 +1737,16 @@ function renderPiano(list){
   });
 
   var w=curAvg(list)||PLAN[0][1],sd=sel===cur?today:sel.to,T0=target(sd),T=Object.assign({},T0,{kcal:T0.base,c:T0.bc}),wks=wkSplit(sd);
+  // con la settimana divisa i macro grandi sono la media dei 7 giorni (le kcal restano quelle della fase)
+  if(wks){var sc=0,sg=0;for(var i=0;i<7;i++){var ti=target(sd,i);sc+=ti.c;sg+=ti.g}T.c=Math.round(sc/7);T.g=Math.round(sg/7)}
   var kP=T.p*4,kC=T.c*4,kG=T.g*9,kT=kP+kC+kG;
   function pc(x){return Math.round(x/kT*100)}
   var endKg=planAt(toT(sel.to));
   var h='';
   h+='<span class="tag" style="background:var(--c-'+sel.id+');color:var(--on-'+sel.id+')">'+(sel===cur?"Fase attuale":"Fase")+' · '+dRange(sel.from,sel.to)+'</span>';
   h+='<h2 style="font-size:20px;margin:0 0 8px">'+sel.name+'</h2>';
-  h+='<div class="kc">'+T.kcal+'<small>kcal al giorno'+(wks?' (media della settimana)':'')+'</small></div>';
-  if(wks)h+='<p class="note" id="pdWk" style="margin:6px 0 0">Più kcal nel weekend: <b>'+wks+'</b>. La differenza è sui carboidrati.</p>';
+  h+='<div class="kc">'+T.kcal+'<small>'+(wks?'kcal di media':'kcal al giorno')+'</small></div>';
+  if(wks)h+=wkRows(sd)+'<p class="note" style="margin:6px 0 0">kcal al giorno, proteine sempre '+T.p+' g. Stesso totale della settimana: in settimana un po\' meno carboidrati, la domenica (partita e pub) di più.</p>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Piano: '+sel.kcal+' kcal · correzioni: '+sgn(T.dk,0)+' kcal sui carboidrati.</p>';
   h+='<div class="mac">';
   h+='<div class="mt" style="background:var(--mpb);border-bottom-color:var(--mp)"><b>'+T.p+' g</b><span>Proteine · '+fmt(T.p/w,1)+' g/kg</span></div>';
@@ -1751,12 +1762,15 @@ function renderPiano(list){
 }
 
 /* ---------- mantenimento reale (ultime 4 settimane) ---------- */
+// Solo dentro la fase in corso: a cavallo di un cambio di fase (dopo un cut) acqua e glicogeno falsano tutto
+// (a fine ottobre dava ~2200 kcal, con il peso che risaliva per la ricarica e non per il grasso).
 function tdee(){
-  var today=todayIso(),end=yesterdayIso(),from=iso(toT(end)-27*DAY),ks=[],ws=[];
+  var today=todayIso(),end=yesterdayIso(),from=iso(toT(end)-27*DAY),rs=runStart(today),ks=[],ws=[];
+  if(rs>from)from=rs;
   Object.keys(kcalLog).forEach(function(d){var e=kcalLog[d];if(d>=from&&d<=end&&typeof e.kcal==="number")ks.push(e.kcal)});
   sorted().forEach(function(e){if(e.date>=from&&e.date<=today)ws.push(e)});
   var span=ws.length?daysBetween(ws[0].date,ws[ws.length-1].date):0;
-  var o={nk:ks.length,nw:ws.length,ok:ks.length>=14&&ws.length>=10&&span>=14};
+  var o={nk:ks.length,nw:ws.length,from:from,ok:ks.length>=14&&ws.length>=10&&span>=14};
   if(!o.ok)return o;
   // retta dei minimi quadrati sul peso: pendenza in kg al giorno
   var x0=toT(ws[0].date),mx=0,my=0,sxy=0,sxx=0;
@@ -1772,11 +1786,11 @@ function renderTdee(){
   var o=tdee(),T=target(todayIso()),ph={name:T.ph.name,kcal:T.base};
   var h='<h2><i class="hd" data-i="flame" style="background:var(--c-cut)"></i>Mantenimento reale</h2>';
   if(!o.ok){
-    h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Servono, nelle ultime 4 settimane, almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal le scrivi nel Diario, nella card delle kcal mangiate.</p>';
+    h+='<p style="margin:0;color:var(--mute);font-size:14.5px">Lo calcolo da quello che mangi e da come si muove il peso. Conta solo la fase in corso (dal '+dIt(o.from)+'), al massimo le ultime 4 settimane: servono almeno 14 giorni con le kcal (ora '+o.nk+') e 10 pesate su almeno 2 settimane (ora '+o.nw+'). Le kcal arrivano dai Pasti, o da Dati per i giorni senza pasti.</p>';
   }else{
     var diff=ph.kcal-o.est,kgw=diff*7/7700;
     h+='<div class="kc">~'+o.est+'<small>kcal al giorno</small></div>';
-    h+='<p style="margin:10px 0 0;font-size:14.5px">Ultime 4 settimane: hai mangiato in media <b>'+Math.round(o.kAvg)+' kcal</b> e il peso è cambiato di <b>'+sgn(o.week,2)+' kg a settimana</b> ('+o.nk+' giorni con kcal, '+o.nw+' pesate).</p>';
+    h+='<p style="margin:10px 0 0;font-size:14.5px">'+(daysBetween(o.from,yesterdayIso())<27?'Dal '+dIt(o.from)+' (inizio della fase)':'Ultime 4 settimane')+': hai mangiato in media <b>'+Math.round(o.kAvg)+' kcal</b> e il peso è cambiato di <b>'+sgn(o.week,2)+' kg a settimana</b> ('+o.nk+' giorni con kcal, '+o.nw+' pesate).</p>';
     h+='<div class="spec">'+(Math.abs(diff)<25?'Con le '+ph.kcal+' kcal di '+ph.name+' sei in pari con il mantenimento: peso stabile.':'Con le '+ph.kcal+' kcal di '+ph.name+' sei a circa <b>'+sgn(diff,0)+' kcal al giorno</b> sul mantenimento: circa '+sgn(kgw,2)+' kg a settimana.')+'</div>';
     h+='<p class="note">È una stima: acqua, sale e glicogeno la fanno oscillare, soprattutto nei cambi di fase. Usala insieme al verdetto, non al suo posto.</p>';
   }
@@ -2263,12 +2277,12 @@ document.getElementById("ckCard").addEventListener("click",function(ev){
 // (colazione, pranzo al campo, pasta dopo la partita, cena al pub) adattata alle kcal della fase.
 // Colazione e pasta si adattano, pranzo al campo e pub restano quelli (una fase puo' aggiungere kcal la domenica con gp).
 var SEASON={from:"2026-10-18",to:"2027-04-25"};
-function gpLunch(one){return one?{n:"Pranzo al campo",d:"1 frittatina (uova, formaggio, cotto) e un piatto di pasta",k:670,p:31,c:79,g:22}:{n:"Pranzo al campo",d:"2 frittatine (uova, formaggio, cotto) e un piatto di pasta",k:850,p:45,c:80,g:35}}
+var GP_LUNCH={n:"Pranzo al campo",d:"2 frittatine (uova, formaggio, cotto) e un piatto di pasta",k:850,p:45,c:80,g:35};
 function gpPasta(gr){return {n:"Dopo la partita",d:"pasta al pomodoro, "+gr+" g da cruda",k:Math.round((gr*3.55+66)/10)*10,p:Math.round(gr*0.125+1),c:Math.round(gr*0.71+5),g:Math.round(gr*0.015+5)}}
 // Colazione leggera pre-partita (MN_DCOL, ~900 kcal, poche fibre e niente grassi) e cena al pub (MN_PUB) si scelgono;
 // pranzo al campo fisso; la pasta dopo la partita riempie quello che resta (da 40 a 150 g; niente se restano meno di 150 kcal).
-function gpPlan(ph,kcal,brkK,pubK){
-  var lunch=gpLunch(ph.id==="cutfull"),av=kcal-lunch.k-brkK-pubK,gr=Math.min(150,Math.round((av-66)/3.55/10)*10);
+function gpPlan(kcal,brkK,pubK){
+  var lunch=GP_LUNCH,av=kcal-lunch.k-brkK-pubK,gr=Math.min(150,Math.round((av-66)/3.55/10)*10);
   if(gr<40)gr=av>=150?40:0;
   return {lunch:lunch,pasta:gr?gpPasta(gr):null};
 }
@@ -2276,11 +2290,11 @@ function sundayFrom(d){var t=toT(d);return iso(t+((7-new Date(t).getUTCDay())%7)
 // Domenica partita per la fase ph: prima domenica di campionato da d0 in poi (null se nella fase non ce ne sono).
 function gpSunday(ph,d0){var d=sundayFrom(d0<SEASON.from?SEASON.from:d0);return d<=ph.to&&d<=SEASON.to?d:null}
 function gpRow(r){return '<div class="gprow"><div><b>'+r.n+'</b><small>'+r.d+'</small></div><span class="gk">~'+r.k+' kcal<small>P '+r.p+' · C '+r.c+' · G '+r.g+'</small></span></div>'}
+// la domenica partita d (o una domenica tipo col target di d0): kcal, colazione, pub e piano del campo, come scelti nel Menu
+function gpDay(d,dow){var T=target(d,dow),pub=mnFreeSel("dcena",MN_PUB),pk=mnSum(pub.it).k,bk=mnSum(mnFreeSel("dcolazione",MN_DCOL).it).k;return {T:T,kcal:T.kcal,pub:pub,pk:pk,bk:bk,pl:gpPlan(T.kcal,bk,pk)}}
 function gpHTML(ph,sun){
-  var T=target(sun),extra=ph.gp||0,kcal=T.kcal+extra,pub=mnFreeSel("dcena",MN_PUB),pk=mnSum(pub.it).k,bk=mnSum(mnFreeSel("dcolazione",MN_DCOL).it).k,pl=gpPlan(ph,kcal,bk,pk);
+  var G=gpDay(sun),T=G.T,kcal=G.kcal,pub=G.pub,bk=G.bk,pl=G.pl;
   var h='<section class="card mncard" id="gpCard"><div class="mnh"><span class="memo sm" style="background:var(--okbg)">⚽</span><div class="mnt"><b>Domenica partita</b><small>'+(sun===todayIso()?'Oggi':'Prossima: domenica '+dIt(sun))+' · '+ph.name+'</small></div><span class="mnk gpk">'+kcal+'<small>kcal</small></span></div>';
-  if(extra)h+='<p class="note" style="margin:6px 0 0">Il piano prevede la partita a mantenimento: '+sgn(extra,0)+' kcal sui carboidrati rispetto ai '+T.kcal+' degli altri giorni.</p>';
-  if(T.wk>0)h+='<p class="note" style="margin:6px 0 0">Con "Più kcal nel weekend" la domenica hai '+sgn(T.wk,0)+' kcal: c\'è posto per il pub e una birra.</p>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Comprese le tue correzioni ('+sgn(T.dk,0)+' kcal).</p>';
   h+='<p class="note" style="margin:6px 0 0">Colazione leggera, poi scegli cosa prendi al pub: la pasta dopo la partita si adatta.</p></section>';
   h+=mnFreeCard("dcolazione","Colazione","🥞",MN_DCOL,null,null,null,"colazione");
@@ -2295,7 +2309,7 @@ function gpHTML(ph,sun){
     '<li>Pranzo almeno 3 ore prima della partita. Bevi bene tutto il giorno, acqua prima della birra.</li>'+
     '<li>Colazione leggera: niente grassi e poche fibre, così a pranzo e in partita non pesa.</li>'+
     '<li>Il fritto del pub (nuggets, birbe, patatine) pesa soprattutto in grassi: uno basta, meglio se in due.</li>'+
-    '<li>Il pranzo al campo segnalo con ✏️ Pasto veloce: dalla seconda domenica basta un tocco.</li></ul></section>';
+    '<li>Nei Pasti: pranzo al campo nel pranzo, pasta dopo la partita nella merenda, pub nella cena. Segna il pranzo al campo con ✏️ Pasto veloce: dalla seconda domenica lo ritrovi nella ricerca.</li></ul></section>';
   return h;
 }
 
@@ -2398,6 +2412,7 @@ var MN_PCT={colazione:25,pranzo:30,merenda:20},mnPh=null,mnCur={};
 var MN_TIP={cut:"Verdure a volontà a pranzo e cena: riempiono e quasi non contano.",cutsoft:"Verdure a volontà a pranzo e cena: riempiono e quasi non contano.",cutfull:"Verdure a volontà a pranzo e cena: riempiono e quasi non contano.",
   carb:"Carboidrati facili e poche fibre: la sera poca verdura.",trans:"Settimana a mantenimento: le porzioni preparano quelle del bulk.",
   bulk:"Se fai fatica a finire, bevi una parte dei carboidrati: succo di frutta o latte.",out:"Peso stabile: tieni queste porzioni e guarda la media della settimana."};
+function mnUsePct(){meta.meals=meta.meals||{};Object.keys(MN_PCT).forEach(function(m){meta.meals[m]=Object.assign({},meta.meals[m],{pct:MN_PCT[m]})});saveMeta();toast("Pasti divisi 25 / 30 / 20 / 25 %")}
 function mnGet(){var g=meta.gt||{};return {d:g.d||"norm",v:g.v||{},s:g.s||{},x:g.x||{}}}
 function mnSet(f){var g=meta.gt=meta.gt||{};g.v=g.v||{};g.s=g.s||{};g.x=g.x||{};f(g);saveMeta()}
 // il cibo da usare: uno dei tuoi (il piu' recente che corrisponde), se no quello base, se no i valori di riserva
@@ -2471,7 +2486,7 @@ function renderMenu(){
   var h='<section class="card mnhero"><div class="gpseg" role="group" aria-label="Fase">'+list.map(function(p){var on=p===ph;return '<button type="button" data-mnph="'+p.from+'" aria-pressed="'+on+'"'+(on?' style="background:var(--c-'+p.id+');color:var(--on-'+p.id+')"':'')+'>'+p.name.replace(" pre-partita","")+'</button>'}).join("")+'</div>';
   h+='<p class="gphd" id="mnPhase">'+(ph===list[0]?'Oggi':'Dal '+dIt(ph.from))+' · '+ph.name+'</p>';
   h+='<div class="mntgt"><b id="mnKcal">'+T.kcal+'</b><span>'+(wks?(G.d==="sab"?"kcal il sabato":G.d==="dom"?"kcal la domenica":"kcal da lunedì a venerdì"):"kcal al giorno")+'</span></div>'+mnBar(T);
-  if(wks)h+='<p class="note" id="mnWk" style="margin:6px 0 0">Più kcal nel weekend: '+wks+'.</p>';
+  if(wks)h+='<p class="note" id="mnWk" style="margin:6px 0 0">La settimana: '+wks+' kcal.</p>';
   if(T.dk)h+='<p class="note" style="margin:6px 0 0">Comprese le tue correzioni ('+sgn(T.dk,0)+' kcal).</p>';
   h+='<div class="seg mnday" role="group" aria-label="Giorno">'+[["norm","Giorno tipo"],["sab","Sabato"],["dom","Domenica"]].map(function(x){return '<button type="button" data-mnd="'+x[0]+'" aria-pressed="'+(G.d===x[0])+'">'+x[1]+'</button>'}).join("")+'</div></section>';
   mnCur={};
@@ -2522,7 +2537,7 @@ document.getElementById("pMenu").addEventListener("click",function(ev){
   if((b=ev.target.closest("[data-mnt]"))){var tk=b.getAttribute("data-mnt"),on=b.getAttribute("aria-pressed")==="true",df=b.getAttribute("data-mndef")==="1";mnSet(function(g){if(!on===df)delete g.x[tk];else g.x[tk]=!on});renderMenu();return}
   if((b=ev.target.closest("[data-mnlog]"))){mnLog(b.getAttribute("data-mnlog"));return}
   if(ev.target.closest("[data-mnskip]")){var t=todayIso();meals[t]=meals[t]||{};var M=meals[t].merenda=meals[t].merenda||{items:[]};if(!(M.items&&M.items.length)){M.skip=true;saveP();syncDayKcal(t);render();toast("Merenda di oggi segnata come saltata")}else toast("La merenda di oggi ha già dei cibi");return}
-  if(ev.target.closest("[data-mnpct]")){meta.meals=meta.meals||{};Object.keys(MN_PCT).forEach(function(m){meta.meals[m]=Object.assign({},meta.meals[m],{pct:MN_PCT[m]})});saveMeta();render();toast("Pasti divisi 25 / 30 / 20 / 25 %");return}
+  if(ev.target.closest("[data-mnpct]")){mnUsePct();render();return}
 });
 // dal Piano: apre il menu sul giorno scelto e sulla fase guardata nel Piano
 document.getElementById("mnLink").addEventListener("click",function(ev){
@@ -2541,15 +2556,7 @@ function renderSet(){
   else if(x&&e)inf.textContent="Cut continuato fino al "+dIt(e)+": transizione dal "+dIt(iso(toT(e)+DAY))+", bulk dal "+dIt(iso(toT(e)+8*DAY))+" al 25 apr."+(x.end===today?" Puoi riaccenderlo fino a stasera.":"");
   else if(today<=RIC_END)inf.textContent="Se lo accendi, dopo la ricarica del 17-18 ott resti in cut finché non lo spegni; poi 7 giorni di transizione e il bulk, che finisce comunque il 25 apr.";
   else inf.textContent="Si poteva accendere fino al 18 ott: il cut è chiuso.";
-  var w=meta.wk,ws=document.getElementById("wkSw"),wi=document.getElementById("wkInfo"),sp=wkSplit(today);
-  ws.checked=!!(w&&w.from);
-  if(w&&w.from)wi.textContent=sp?"Acceso dal "+dIt(w.from)+": "+sp+" kcal, stessa media della settimana. La differenza è sui carboidrati.":"Acceso: vale nel bulk e nei cut, non in questa fase.";
-  else wi.textContent="Stesso totale della settimana, ma da lunedì a venerdì 100 kcal in meno, il sabato uguale e la domenica 500 in più (bulk: 2900 / 3000 / 3500).";
 }
-document.getElementById("wkSw").addEventListener("change",function(ev){
-  if(ev.target.checked)meta.wk={from:mondayOf(todayIso())};else delete meta.wk;
-  saveMeta();render();
-});
 document.getElementById("cutxSw").addEventListener("change",function(ev){
   var today=todayIso(),x=meta.cutx;
   if(ev.target.checked){if(x&&x.end===today)delete x.end;else meta.cutx={on:today}}
@@ -2631,7 +2638,9 @@ function weeksHTML(list,today){
 
 // 3. la tappa: barra del peso, tacca dove dovresti essere oggi, arrivo previsto
 function goalHTML(g,list,today,gw,mon){
-  var cur=curAvg(list),tpct=clamp(daysBetween(g.from,today)/Math.max(1,daysBetween(g.from,g.to)),0,1);
+  // la tacca e "in linea" seguono il piano (planAt, lo stesso del Diario e del grafico): subito dopo il cut il piano
+// risale di acqua e glicogeno, una retta da inizio a fine tappa no
+var cur=curAvg(list),tpct=today>=g.from&&today<=g.to?clamp((planAt(toT(today))-g.start)/((g.target-g.start)||1),0,1):0;
   var started=today>=g.from,ended=today>g.to,wpct=0,st="",stc="var(--mute)";
   // tappa chiusa: conta la media degli ultimi 7 giorni della tappa, non il peso di adesso
   var ga=ended?avgWin(list,toT(g.to),7):null,w=ended?(ga.n?ga.avg:null):cur;
@@ -2640,7 +2649,7 @@ function goalHTML(g,list,today,gw,mon){
   else if(w==null){st="Chiuso · senza pesate alla fine"}
   else{
     wpct=clamp((w-g.start)/(g.target-g.start),0,1);
-    var diff=w-(g.start+(g.target-g.start)*tpct);
+    var diff=w-planAt(toT(ended?g.to:today));
     if(Math.abs(diff)<=0.7){st=(ended?"Chiuso · ":"")+"In linea con il piano";stc="var(--ok)"}
     else{st=(ended?"Chiuso · ":"")+"Fuori traiettoria ("+(diff>0?"+":"")+fmt(diff,1)+" kg)";stc="var(--warn)"}
   }
@@ -2837,15 +2846,25 @@ function dayTot(d){
 }
 // Obiettivo di un pasto: una percentuale dell'obiettivo del giorno. La cena prende quello che resta dopo gli altri pasti
 // (quelli gia' segnati contano per quello che hai mangiato, quelli saltati zero, quelli ancora vuoti per il loro obiettivo).
+// Quota del giorno di un pasto (non la cena, che prende quello che resta): come nel Menu.
+// Giorno tipo = percentuali dei Pasti; sabato = colazione 20%, pranzo 25%, niente merenda (cena libera);
+// domenica partita = colazione pre-partita, pranzo al campo, pasta dopo la partita (merenda) come le hai scelte nel Menu.
+function dayKind(d){if(d<WK_FROM)return "norm";var w=dowOf(d);return w===6?"sab":w===0&&gpSunday(phaseAt(d),d)===d?"dom":"norm"}
+function mealShare(d,m){
+  var k=dayKind(d);
+  if(k==="sab")return m==="merenda"?0:(MN_SAT.pct[m]||0)/100;
+  if(k==="dom"){var g=gpDay(d);return (m==="colazione"?g.bk:m==="pranzo"?g.pl.lunch.k:g.pl.pasta?g.pl.pasta.k:0)/g.kcal}
+  return mealCfg(m).pct/100;
+}
 function mealTarget(d,m){
   var T=target(d),F=["kcal","p","c","g"],o={};
-  if(m!=="cena"){var pc=mealCfg(m).pct/100;F.forEach(function(k){o[k]=T[k]*pc});return o}
+  if(m!=="cena"){var pc=mealShare(d,m);F.forEach(function(k){o[k]=T[k]*pc});return o}
   F.forEach(function(k){o[k]=T[k]});
   MEALS.forEach(function(x){
     if(x.id==="cena")return;
     var M=dayMeal(d,x.id);
     if(M&&M.items&&M.items.length){var t=mealTot(M.items);o.kcal-=t.k;o.p-=t.p;o.c-=t.c;o.g-=t.g}
-    else if(!(M&&M.skip)){var pc=mealCfg(x.id).pct/100;F.forEach(function(k){o[k]-=T[k]*pc})}
+    else if(!(M&&M.skip)){var pc=mealShare(d,x.id);F.forEach(function(k){o[k]-=T[k]*pc})}
   });
   F.forEach(function(k){o[k]=Math.max(0,o[k])});
   return o;
@@ -2997,7 +3016,7 @@ function renderPasti(){
 }
 function renderPPlan(){
   var today=todayIso(),T=target(today),h='<section class="card"><h2><i class="hd" data-i="target" style="background:var(--c-'+T.ph.id+')"></i>Obiettivo di oggi · '+T.ph.name+'</h2>'+
-    '<div class="kc">'+T.kcal+'<small>kcal</small></div><p class="note" style="margin-top:6px">P '+T.p+' g · C '+T.c+' g · G '+T.g+' g'+(T.dk?' (con le correzioni)':'')+'</p>'+(T.wk||wkSplit(today)?'<p class="note" id="ppWk" style="margin-top:4px">Più kcal nel weekend: '+wkSplit(today)+'.</p>':'')+'</section>';
+    '<div class="kc">'+T.kcal+'<small>kcal</small></div><p class="note" style="margin-top:6px">P '+T.p+' g · C '+T.c+' g · G '+T.g+' g'+(T.dk?' (con le correzioni)':'')+'</p>'+(wkSplit(today)?'<p class="note" id="ppWk" style="margin-top:4px">La settimana: '+wkSplit(today)+' kcal.</p>':'')+'</section>';
   h+='<section class="card"><h2><i class="hd" data-i="pie" style="background:var(--c-out)"></i>Come dividi la giornata</h2>';
   var sum=0;
   MEALS.forEach(function(m){
@@ -3007,7 +3026,10 @@ function renderPPlan(){
       (m.id==="cena"?'<span class="pr">~'+Math.max(0,100-sum)+'%</span>':'<label class="sr" for="pct-'+m.id+'">Percentuale '+c.n+'</label><input class="pin" id="pct-'+m.id+'" data-pct="'+m.id+'" inputmode="numeric" value="'+Math.round(c.pct)+'"><span class="pu">%</span>')+'</div>';
   });
   h+='<p class="note">La cena chiude la giornata: nel diario il suo obiettivo è quello che ti resta dopo colazione, pranzo e merenda.</p><div class="msg" id="ppMsg" role="status"></div>';
-  h+='<div class="actions"><button class="btn ghost" type="button" id="ppReset">Ripristina 20 / 35 / 15</button></div></section>';
+  var std=mealCfg("colazione").pct===MN_PCT.colazione&&mealCfg("pranzo").pct===MN_PCT.pranzo&&mealCfg("merenda").pct===MN_PCT.merenda;
+  h+='<p class="note">Il sabato e la domenica partita i pasti seguono il Menu: sabato colazione 20%, pranzo 25%, niente merenda e cena libera; domenica colazione leggera, pranzo al campo, pasta dopo la partita (nella merenda) e pub.</p>';
+  h+=std?'':'<div class="actions"><button class="btn ghost" type="button" id="ppReset">Usa 25 / 30 / 20 / 25 (consigliato)</button></div>';
+  h+='</section>';
   document.getElementById("pPlan").innerHTML=h;
 }
 
@@ -3372,7 +3394,7 @@ document.getElementById("t-pasti").addEventListener("click",function(ev){
   if((b=ev.target.closest("[data-wk]"))){var nd=iso(toT(pDay)+(+b.getAttribute("data-wk"))*DAY),t=todayIso();pDay=nd>t?t:nd;renderPasti();return}
   if((b=ev.target.closest(".pwd"))){if(!b.disabled){pDay=b.getAttribute("data-day");renderPasti()}return}
   if((b=ev.target.closest(".mcard"))){openSheet({v:"meal",m:b.getAttribute("data-meal")});return}
-  if(ev.target.closest("#ppReset")){meta.meals={};saveMeta();renderPasti();return}
+  if(ev.target.closest("#ppReset")){mnUsePct();renderPasti();return}
 });
 document.getElementById("t-pasti").addEventListener("change",function(ev){
   var el=ev.target,m;
@@ -3466,6 +3488,7 @@ window.addEventListener("focus",syncDates);
 /* ---------- boot ---------- */
 if(BETA){document.getElementById("betaBar").hidden=false;document.title="Diario peso BETA";var ft=document.querySelector("main > p:last-of-type");ft.textContent+=" · BETA"}
 entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];checks=lsGet("diario_check");if(checks.pli||checks.bia){checks=ckMigrate(checks);saveC()}
+if(meta.wk){delete meta.wk;saveMeta()} // v1.37: l'interruttore "Piu' kcal nel weekend" e' diventato il piano (WK_FROM)
 // v1.37: il totale dei pasti e' la somma delle kcal arrotondate di ogni cibo; riallineo le voci scritte dai Pasti (±1 kcal)
 (function(){var ch=0;Object.keys(kcalLog).forEach(function(d){var e=kcalLog[d],t;if(e&&e.src==="pasti"&&(t=dayTot(d)).n&&Math.round(t.k)!==e.kcal){e.kcal=Math.round(t.k);e.adh=adhOf(e);ch++}});if(ch)saveK()})();
 render();
