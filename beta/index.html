@@ -321,6 +321,14 @@ details[open] > summary::after{transform:rotate(45deg)}
 .wkv.ok b{color:var(--ok)} .wkv.up b,.wkv.warn b{color:var(--warn)} .wkv.down b,.wkv.bad b{color:var(--bad)}
 .wkv p{margin:4px 0 0;font-size:15px;line-height:1.4}
 .warnCard{background:var(--upbg)}
+.ntItem+.ntItem{margin-top:12px;padding-top:12px;border-top:1px solid var(--sep)}
+.ntItem b{display:block;font-size:16px;font-weight:600}
+.ntItem small{display:block;color:var(--mute);font-size:12px;margin:2px 0 4px}
+.ntItem p{margin:0;font-size:15px;line-height:1.4;white-space:pre-line}
+.syst{display:flex;align-items:center;gap:8px;font-size:15px;margin:0 0 10px}
+.syst i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--mute)}
+.syst i[data-s="ok"]{background:#34C759}.syst i[data-s="err"]{background:#FF3B30}.syst i[data-s="busy"]{background:#FF9500}
+#syForm .fields{grid-template-columns:1fr}
 .warnCard .wr{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .warnCard p{margin:2px 0 0;font-size:13px;color:var(--mute)}
 .betabar{background:#FF9F0A;color:#000;font-weight:600;font-size:13px;text-align:center;border-radius:999px;padding:7px 12px;margin:6px 0 4px}
@@ -601,6 +609,11 @@ input.sw:disabled{opacity:.45;cursor:default}
   <div id="t-diario" role="tabpanel">
 
   <div id="todo">
+    <section class="card" id="ntCard" hidden>
+      <h2><i class="hd" data-i="doc" style="background:var(--c-out)"></i>Note da Claude</h2>
+      <div id="ntBody"></div>
+      <div class="actions"><button class="btn" id="ntOk" type="button">Ok, letto</button></div>
+    </section>
     <section class="card" id="weekCard" hidden>
       <h2><i class="hd" data-i="cal" style="background:var(--blue)"></i>La tua settimana</h2>
       <div id="wkBody"></div>
@@ -781,6 +794,31 @@ input.sw:disabled{opacity:.45;cursor:default}
     </details>
   </section>
 
+  <section class="card" id="syCard">
+    <h2><i class="hd" data-i="backup" style="background:var(--accent)"></i>Cloud e Claude</h2>
+    <p style="margin:0 0 10px;color:var(--mute);font-size:14px">Con l'accesso i dati vanno anche nel tuo database Supabase (in UE): sono al sicuro se cambi telefono e Claude li può leggere e correggere quando glielo chiedi in chat. Sul telefono resta tutto, anche senza rete.</p>
+    <div id="syIn" hidden>
+      <div class="syst"><i id="syDot"></i><span id="syStat"></span></div>
+      <div class="actions" style="margin-top:0">
+        <button class="btn" id="syNow" type="button">Sincronizza ora</button>
+        <button class="btn ghost" id="syOut" type="button">Esci</button>
+      </div>
+      <details style="margin-top:12px" id="ntAll" hidden><summary id="ntAllT">Note da Claude</summary><div id="ntAllBody" style="margin-top:10px"></div></details>
+    </div>
+    <form id="syForm" autocomplete="on" novalidate>
+      <div class="fields">
+        <div><label for="syEm">Email</label><input id="syEm" type="email" autocomplete="username" inputmode="email" autocapitalize="off"></div>
+        <div><label for="syPw">Password</label><input id="syPw" type="password" autocomplete="current-password" minlength="8"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit">Accedi</button>
+        <button class="btn ghost" id="syNew" type="button">Crea account</button>
+      </div>
+      <p class="note" style="margin:8px 0 0">La prima volta premi "Crea account" (password di almeno 8 caratteri). L'account è uno solo: dopo il tuo nessun altro può registrarsi.</p>
+    </form>
+    <div class="msg" id="syMsg" role="status"></div>
+  </section>
+
     <section class="card">
     <h2><i class="hd" data-i="backup" style="background:var(--c-out)"></i>Backup</h2>
     <p style="margin:0 0 10px;color:var(--mute);font-size:14px">I dati stanno solo su questo telefono. Se cambi telefono o cancelli i dati del sito li perdi: fai ogni tanto un backup.</p>
@@ -806,7 +844,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.39</p>
+  <p class="foot">Diario peso · v1.40</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -849,6 +887,7 @@ var selPh=null;
 var entries={};      // date -> {date,kg}
 var waists={};       // date -> {date,cm}
 var meta={};         // {lastBackup, chartWaist, weekSeen}
+var notes={};        // diario_note: id -> {id,date,t,x,read?} (note che Claude scrive nel database)
 var kcalLog={};      // date -> {date,adh:"si"|"circa"|"no",kcal?}
 var ADH={si:"sì",circa:"circa",no:"no"};
 var ADHL={si:function(){return "rispettate"},circa:function(){return "vicino"},no:function(d){return d==null?"non rispettate":d>0?"sopra":"sotto"}};
@@ -963,7 +1002,7 @@ function lsGet(k){try{var r=localStorage.getItem(PFX+k);return r?JSON.parse(r):{
 // lsBad = chiavi non salvate; la fascia rossa resta finche' ogni chiave non si salva di nuovo.
 var lsBad={};
 function lsPut(k,v){
-  try{localStorage.setItem(PFX+k,JSON.stringify(v));if(lsBad[k]){delete lsBad[k];stBarUpd()}return true}
+  try{localStorage.setItem(PFX+k,JSON.stringify(v));if(lsBad[k]){delete lsBad[k];stBarUpd()}syMark(k);return true}
   catch(e){var first=!Object.keys(lsBad).length;lsBad[k]=1;stBarUpd();if(first)toast("⚠️ Non salvato: lo spazio è pieno. Fai un backup.");return false}
 }
 function stBarUpd(){document.getElementById("stBar").hidden=!Object.keys(lsBad).length}
@@ -975,6 +1014,179 @@ function lsUsed(){
   return n*2;
 }
 function lsSet(){lsPut("diario_peso",entries);lsPut("diario_vita",waists)}
+/* ---------- cloud (Supabase) ---------- */
+// Dalla v1.40: con l'accesso ogni chiave si copia anche nella tabella "voci" di Supabase, una riga per voce
+// (chiave = chiave di localStorage, sub = giorno o id; diario_meta e diario_adj in una riga con sub ""). Il formato delle
+// voci e' lo stesso del telefono. localStorage resta la fonte per l'app (funziona offline); a ogni apertura e ritorno in
+// primo piano: prima si scarica cio' che e' cambiato sul server (es. una correzione di Claude), poi si manda cio' che e'
+// cambiato qui. sy.h = impronta di ogni voce all'ultima sincronizzazione: se la voce del telefono e' cambiata da allora
+// vince il telefono, se no vince il server. La beta usa amb "beta": non tocca i dati dell'app vera.
+var SB_URL="https://hesduzavzvyqeymmsapj.supabase.co",SB_KEY="sb_publishable_ovxI2gDktjlbaFpUfndhRA_ul5MbdS0",SB_AMB=BETA?"beta":"app";
+var SY_KEYS={diario_peso:1,diario_vita:1,diario_kcal:1,diario_report:1,diario_cibi:1,diario_check:1,diario_pasti:1,diario_note:1,diario_meta:0,diario_adj:0};
+var sy=(function(){try{return JSON.parse(localStorage.getItem(PFX+"diario_sync"))||{}}catch(e){return {}}})();
+if(!sy.h)sy.h={};
+var syState="",syErr="",syT=null,syRun=null,syAgain=false,syRef=null;
+function sySave(){try{localStorage.setItem(PFX+"diario_sync",JSON.stringify(sy))}catch(e){}}
+function syCanon(v){
+  if(v===undefined)return "null";
+  if(v===null||typeof v!=="object")return JSON.stringify(v);
+  if(Array.isArray(v))return "["+v.map(syCanon).join(",")+"]";
+  return "{"+Object.keys(v).sort().filter(function(k){return v[k]!==undefined}).map(function(k){return JSON.stringify(k)+":"+syCanon(v[k])}).join(",")+"}";
+}
+function syHash(v){var s=syCanon(v),h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+s.length.toString(36)}
+function syRaw(k){try{var r=localStorage.getItem(PFX+k);return r?JSON.parse(r):null}catch(e){return null}}
+function syRows(k,raw){
+  if(!SY_KEYS[k]){var o1={};if(raw!=null)o1[""]=raw;return o1}
+  var o={};if(raw&&typeof raw==="object"&&!Array.isArray(raw))Object.keys(raw).forEach(function(s){if(raw[s]!=null)o[s]=raw[s]});
+  return o;
+}
+function syMark(k){if(!(k in SY_KEYS)||!sy.s)return;clearTimeout(syT);syT=setTimeout(function(){syNow(false)},1500)}
+function syAuthReq(path,body){
+  return fetch(SB_URL+"/auth/v1/"+path,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)})
+    .then(function(r){return r.json().catch(function(){return {}}).then(function(j){return {ok:r.ok,status:r.status,j:j}})});
+}
+function sySess(j){
+  if(!j||!j.access_token)return false;
+  sy.s={at:j.access_token,rt:j.refresh_token,exp:j.expires_at||Math.floor(Date.now()/1000)+(j.expires_in||3600),uid:j.user&&j.user.id,email:j.user&&j.user.email};
+  sySave();return true;
+}
+function syLost(){sy.s=null;sySave();syState="";renderSync();toast("☁️ Accedi di nuovo nei Dati per sincronizzare.")}
+function syRefresh(){
+  if(syRef)return syRef;
+  syRef=syAuthReq("token?grant_type=refresh_token",{refresh_token:sy.s.rt}).then(function(r){
+    syRef=null;
+    if(r.ok&&sySess(r.j))return true;
+    if(r.status>=400&&r.status<500){syLost();throw new Error("auth")}
+    throw new Error("net");
+  },function(e){syRef=null;throw e});
+  return syRef;
+}
+function syReq(method,path,body,prefer,retry){
+  if(!sy.s)return Promise.reject(new Error("auth"));
+  var pre=sy.s.exp-60<Date.now()/1000?syRefresh():Promise.resolve();
+  return pre.then(function(){
+    var h={apikey:SB_KEY,Authorization:"Bearer "+sy.s.at};
+    if(body!==undefined)h["Content-Type"]="application/json";
+    if(prefer)h.Prefer=prefer;
+    return fetch(SB_URL+"/rest/v1/"+path,{method:method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
+  }).then(function(r){
+    if(r.status===401&&!retry)return syRefresh().then(function(){return syReq(method,path,body,prefer,true)});
+    if(!r.ok)return r.text().then(function(t){throw new Error("http "+r.status+" "+t.slice(0,120))});
+    return r.status===204?null:r.json().catch(function(){return null});
+  });
+}
+// scarica le voci cambiate sul server dall'ultima volta (10 s di margine) e le scrive qui se il telefono non le ha cambiate
+function syPull(){
+  var since=sy.last?new Date(Date.parse(sy.last)-10000).toISOString():null,rows=[],maxT=sy.last||null;
+  function page(off){
+    var q="voci?select=chiave,sub,valore,deleted,updated_at&amb=eq."+SB_AMB+(since?"&updated_at=gt."+encodeURIComponent(since):"")+"&order=updated_at.asc&limit=1000&offset="+off;
+    return syReq("GET",q).then(function(r){rows=rows.concat(r||[]);if(r&&r.length===1000)return page(off+1000)});
+  }
+  return page(0).then(function(){
+    var by={},changed=0;
+    rows.forEach(function(r){if(r.chiave in SY_KEYS){(by[r.chiave]=by[r.chiave]||[]).push(r)}if(!maxT||r.updated_at>maxT)maxT=r.updated_at});
+    Object.keys(by).forEach(function(k){
+      var raw=syRaw(k),loc=syRows(k,raw),h=sy.h[k]||(sy.h[k]={}),ch=0;
+      by[k].forEach(function(r){
+        var s=r.sub,lh=s in loc?syHash(loc[s]):undefined,sv=r.deleted||r.valore==null?undefined:syHash(r.valore);
+        if(lh===sv){if(sv===undefined)delete h[s];else h[s]=sv;return}
+        if(lh!==h[s])return; // cambiata sul telefono: la manda syPush
+        if(sv===undefined){delete loc[s];delete h[s]}else{loc[s]=r.valore;h[s]=sv}
+        ch++;
+      });
+      if(!ch)return;
+      var v=SY_KEYS[k]?loc:(""in loc?loc[""]:null);
+      try{if(v==null)localStorage.removeItem(PFX+k);else localStorage.setItem(PFX+k,JSON.stringify(v));changed+=ch}catch(e){lsBad[k]=1;stBarUpd()}
+    });
+    if(maxT)sy.last=maxT;sySave();
+    return changed;
+  });
+}
+// manda le voci cambiate sul telefono (e le cancellate) rispetto all'ultima sincronizzazione
+function syPush(){
+  var up=[],nh={},uid=sy.s.uid;
+  Object.keys(SY_KEYS).forEach(function(k){
+    if(lsBad[k])return; // non salvata qui: non la mando a meta'
+    var raw=syRaw(k),loc=syRows(k,raw),h=sy.h[k]||{},n={};
+    if(raw==null&&Object.keys(h).length>3)return; // chiave sparita o illeggibile: non cancello tutto nel cloud
+    Object.keys(loc).forEach(function(s){var x=syHash(loc[s]);n[s]=x;if(h[s]!==x)up.push({user_id:uid,amb:SB_AMB,chiave:k,sub:s,valore:loc[s],deleted:false})});
+    Object.keys(h).forEach(function(s){if(!(s in n))up.push({user_id:uid,amb:SB_AMB,chiave:k,sub:s,valore:null,deleted:true})});
+    nh[k]=n;
+  });
+  var p=Promise.resolve();
+  for(var i=0;i<up.length;i+=300)(function(part){p=p.then(function(){return syReq("POST","voci?on_conflict=user_id,amb,chiave,sub",part,"resolution=merge-duplicates,return=minimal")})})(up.slice(i,i+300));
+  return p.then(function(){Object.keys(nh).forEach(function(k){sy.h[k]=nh[k]});sySave();return up.length});
+}
+// una sincronizzazione alla volta; full = prima scarica (apertura, primo piano, "Sincronizza ora")
+function syNow(full){
+  if(!sy.s||!navigator.onLine&&navigator.onLine!==undefined)return Promise.resolve();
+  if(syRun){syAgain=syAgain||full||"push";return syRun}
+  syState="busy";renderSync();
+  syRun=(full?syPull():Promise.resolve(0)).then(function(n){
+    if(n){loadAll();toast("☁️ Dati aggiornati dal cloud")}
+    return syPush();
+  }).then(function(){
+    syState="ok";syErr="";sy.ok=new Date().toISOString();sySave();
+  },function(e){
+    syState=sy.s?"err":"";syErr=String(e&&e.message||e);
+  }).then(function(){
+    syRun=null;renderSync();
+    if(syAgain){var f=syAgain===true;syAgain=false;return syNow(f)}
+  });
+  return syRun;
+}
+function syFirst(){sy.h={};sy.last=null;sySave();return syNow(true).then(function(){render()})}
+function renderSync(){
+  var on=!!sy.s;
+  document.getElementById("syIn").hidden=!on;document.getElementById("syForm").hidden=on;
+  if(on){
+    var t=sy.ok?new Date(sy.ok):null,td=t?t.getFullYear()+"-"+pad(t.getMonth()+1)+"-"+pad(t.getDate()):"",st=syState==="busy"?"Sincronizzo…":syState==="err"?"Non sincronizzato: riprovo da solo quando torni nell'app":t?"Sincronizzato "+(td===todayIso()?"oggi":dIt(td))+" alle "+pad(t.getHours())+":"+pad(t.getMinutes()):"Non ancora sincronizzato";
+    document.getElementById("syDot").setAttribute("data-s",syState==="busy"?"busy":syState==="err"?"err":t?"ok":"");
+    setText("syStat",(sy.s.email?sy.s.email+" · ":"")+st);
+  }
+  renderNotes();
+}
+function syLogin(isNew){
+  var em=document.getElementById("syEm").value.trim(),pw=document.getElementById("syPw").value;
+  if(!/^\S+@\S+\.\S+$/.test(em)){msg("syMsg","Scrivi un indirizzo email valido.");return}
+  if(pw.length<8){msg("syMsg","La password deve avere almeno 8 caratteri.");return}
+  msg("syMsg",isNew?"Creo l'account…":"Accedo…");
+  var go=isNew?syAuthReq("signup",{email:em,password:pw}).then(function(r){
+    if(!r.ok)throw new Error(/closed|chius|Database error/i.test(JSON.stringify(r.j))?"Le registrazioni sono chiuse: c'è già un account. Usa Accedi.":/already|registered/i.test(JSON.stringify(r.j))?"Questa email ha già un account: usa Accedi.":"Account non creato ("+(r.j.msg||r.j.error_description||r.status)+").");
+    return r.j.access_token?r:null;
+  }):Promise.resolve(null);
+  go.then(function(r){return r||syAuthReq("token?grant_type=password",{email:em,password:pw})}).then(function(r){
+    if(!r.ok||!sySess(r.j))throw new Error(r.status===400?"Email o password sbagliate.":"Accesso non riuscito ("+r.status+").");
+    document.getElementById("syPw").value="";msg("syMsg","Collegato. Sincronizzo i dati…");
+    return syFirst().then(function(){msg("syMsg",syState==="err"?"Collegato, ma la sincronizzazione non è riuscita: riprovo da solo.":"Fatto: i dati sono anche nel cloud.")});
+  }).catch(function(e){msg("syMsg",e&&e.message&&!/^Failed|NetworkError|Load failed/.test(e.message)?e.message:"Niente rete: riprova tra poco.")});
+}
+document.getElementById("syForm").addEventListener("submit",function(ev){ev.preventDefault();syLogin(false)});
+document.getElementById("syNew").addEventListener("click",function(){syLogin(true)});
+document.getElementById("syNow").addEventListener("click",function(){syNow(true).then(function(){msg("syMsg",syState==="err"?"Non riuscito: "+syErr:"")})});
+document.getElementById("syOut").addEventListener("click",function(){
+  if(!confirm("Esci dal cloud? I dati restano sul telefono e nel cloud, ma non si sincronizzano più finché non accedi di nuovo."))return;
+  var at=sy.s&&sy.s.at;sy.s=null;sy.h={};sy.last=null;sy.ok=null;sySave();syState="";
+  if(at)fetch(SB_URL+"/auth/v1/logout",{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+at}}).catch(function(){});
+  renderSync();msg("syMsg","Uscito.");
+});
+// cloud recente (ultima sincronizzazione riuscita entro 7 giorni): niente avviso del backup
+function syFresh(){return !!(sy.s&&sy.ok&&Date.now()-Date.parse(sy.ok)<7*864e5)}
+
+/* ---------- note da Claude (diario_note) ---------- */
+// Le scrive Claude nel database (chiave diario_note, sub = id): {id, date, t: titolo, x: testo, read?: true}.
+function saveN(){lsPut("diario_note",notes)}
+function ntList(){return Object.keys(notes).map(function(k){return notes[k]}).filter(function(n){return n&&typeof n.x==="string"}).sort(function(a,b){return (b.date||"")<(a.date||"")?-1:(b.date||"")>(a.date||"")?1:0})}
+function ntHTML(n){return '<div class="ntItem">'+(n.t?"<b>"+esc(n.t)+"</b>":"")+(n.date?"<small>"+esc(dIt(n.date))+"</small>":"")+"<p>"+esc(n.x)+"</p></div>"}
+function renderNotes(){
+  var all=ntList(),un=all.filter(function(n){return !n.read});
+  document.getElementById("ntCard").hidden=!un.length;
+  document.getElementById("ntBody").innerHTML=un.map(ntHTML).join("");
+  var fa=document.getElementById("ntAll");fa.hidden=!all.length;
+  if(all.length){setText("ntAllT","Note da Claude ("+all.length+")");document.getElementById("ntAllBody").innerHTML=all.slice(0,30).map(ntHTML).join("")}
+}
+document.getElementById("ntOk").addEventListener("click",function(){ntList().forEach(function(n){if(!n.read)n.read=true});saveN();renderNotes()});
+
 function saveMeta(){lsPut("diario_meta",meta)}
 function saveK(){lsPut("diario_kcal",kcalLog)}
 function saveR(){lsPut("diario_report",reports)}
@@ -1108,7 +1320,7 @@ function trendLabel(t){
 /* ---------- render ---------- */
 function setText(id,t){document.getElementById(id).textContent=t}
 function render(){
-  planPrep();renderSet();
+  planPrep();renderSet();renderSync();
   var list=sorted(),today=todayIso();
   var last=list.length?list[list.length-1]:null;
   var refDate=last?last.date:today;
@@ -1189,10 +1401,10 @@ function renderTodo(list,last){
   renderKq();
 
   var lb=meta.lastBackup,ago=lb?Math.max(0,daysBetween(lb,today)):null;
-  var warn=list.length>=7&&(ago==null||ago>=30);
+  var warn=list.length>=7&&(ago==null||ago>=30)&&!syFresh();
   document.getElementById("bkWarn").hidden=!warn;
   if(warn)setText("bkWarnT",ago==null?"💾 Non hai ancora fatto un backup":"💾 Ultimo backup "+ago+" giorni fa");
-  setText("bkLast",lb?"Ultimo backup: "+dIt(lb)+(ago===0?" (oggi)":" ("+ago+(ago===1?" giorno fa)":" giorni fa)")):"Nessun backup fatto finora.");
+  setText("bkLast",(lb?"Ultimo backup: "+dIt(lb)+(ago===0?" (oggi)":" ("+ago+(ago===1?" giorno fa)":" giorni fa)")):"Nessun backup fatto finora.")+(syFresh()?" Copia nel cloud aggiornata.":""));
   // spazio: avviso nel Diario oltre l'80%, il dato sempre nel Backup (tab Dati)
   var used=lsUsed(),pc=used==null?null:used/LS_MAX*100;
   document.getElementById("stWarn").hidden=!(pc>=80);
@@ -3487,11 +3699,19 @@ window.addEventListener("focus",syncDates);
 
 /* ---------- boot ---------- */
 if(BETA){document.getElementById("betaBar").hidden=false;document.title="Diario peso BETA";var ft=document.querySelector("main > p:last-of-type");ft.textContent+=" · BETA"}
+// legge tutte le chiavi e ridisegna: all'avvio e quando il cloud porta dati nuovi
+function loadAll(){
 entries=lsGet("diario_peso");waists=lsGet("diario_vita");meta=lsGet("diario_meta");kcalLog=lsGet("diario_kcal");reports=lsGet("diario_report");foods=lsGet("diario_cibi");meals=lsGet("diario_pasti");adj=lsGet("diario_adj");if(!Array.isArray(adj))adj=[];checks=lsGet("diario_check");if(checks.pli||checks.bia){checks=ckMigrate(checks);saveC()}
+notes=lsGet("diario_note");
 if(meta.wk){delete meta.wk;saveMeta()} // v1.37: l'interruttore "Piu' kcal nel weekend" e' diventato il piano (WK_FROM)
 // v1.37: il totale dei pasti e' la somma delle kcal arrotondate di ogni cibo; riallineo le voci scritte dai Pasti (±1 kcal)
 (function(){var ch=0;Object.keys(kcalLog).forEach(function(d){var e=kcalLog[d],t;if(e&&e.src==="pasti"&&(t=dayTot(d)).n&&Math.round(t.k)!==e.kcal){e.kcal=Math.round(t.k);e.adh=adhOf(e);ch++}});if(ch)saveK()})();
 render();
+}
+loadAll();
+syNow(true);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)syNow(true)});
+window.addEventListener("online",function(){syNow(true)});
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 try{if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(function(){})}catch(e){}
 })();
