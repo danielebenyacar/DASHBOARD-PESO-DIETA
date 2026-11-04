@@ -5,7 +5,7 @@ Web app personale, mobile-first, per registrare il peso ogni mattina e seguire u
 
 ## Stack e regole
 - Un solo file `index.html` con HTML, CSS e JS vanilla. **Niente framework, niente build, niente dipendenze.** Unico altro file di dati: il database dei prodotti `prodotti-it-AAAA-MM-GG.txt` (vedi Pasti).
-- Nessuna chiamata di rete verso API, con due eccezioni: la ricerca online su Open Food Facts nei Pasti quando un prodotto non e' nel database (solo il testo cercato esce dal telefono) e, dalla v1.40 (per ora solo in beta), la sincronizzazione col database Supabase dell'utente dopo l'accesso (vedi "Cloud e Claude"). Nessun'altra risorsa esterna: dalla v1.28 font di sistema (SF Pro, SF Pro Rounded), niente Google Fonts.
+- Nessuna chiamata di rete verso API, con due eccezioni: la ricerca online su Open Food Facts nei Pasti quando un prodotto non e' nel database (solo il testo cercato esce dal telefono) e, dalla v1.40, la sincronizzazione col database Supabase dell'utente dopo l'accesso (vedi "Cloud e Claude"). Nessun'altra risorsa esterna: dalla v1.28 font di sistema (SF Pro, SF Pro Rounded), niente Google Fonts.
 - Dati salvati in `localStorage` (solo sul dispositivo):
   - `diario_peso` -> oggetto `{ "YYYY-MM-DD": { date, kg } }`
   - `diario_vita`  -> oggetto `{ "YYYY-MM-DD": { date, cm } }`
@@ -87,7 +87,7 @@ Stile Apple Salute (iOS 26), dalla v1.28. Token CSS su `:root` (chiaro) con over
 - `beta/` contiene la versione di prova: lo **stesso** `index.html` dell'app con le novita', piu' copie di `sw.js` (CACHE `diario-peso-beta-...`), `manifest.webmanifest` e icone. Indirizzo: `https://danielebenyacar.github.io/DASHBOARD-PESO-DIETA/beta/`, da aprire in **Safari** (storage separato dall'icona).
 - In `/beta/` il codice usa da solo il prefisso `beta_` per tutte le chiavi `localStorage` (`BETA`, `PFX`, `lsGet`/`lsPut`), mostra la fascia "Versione BETA" e aggiunge "· BETA" al footer: la beta non tocca mai i dati dell'app vera. Per provarla coi dati veri: backup dall'icona e "Ripristina da backup" nella beta.
 - Ogni novita' va prima in beta; quando l'utente approva: copia `beta/index.html` in `index.html` (fuori da `/beta/` il prefisso e' vuoto) e, se cambia, il database `prodotti-it-*.txt`; aumenta CACHE in `sw.js` e `beta/sw.js` e il footer, aggiorna questo file. Non copiare `beta/sw.js` sopra `sw.js`: le cache hanno nomi diversi (`diario-peso-...` / `diario-peso-beta-...`) e ognuno cancella solo le sue. I dati della beta (in Safari, prefisso `beta_`) non passano all'app vera.
-- Adesso la beta (v1.40) ha in piu' "Cloud e Claude" e le note da Claude; l'app vera e' alla v1.39.
+- Adesso la beta e' uguale all'app vera (v1.40, con "Cloud e Claude" e le note da Claude; pubblicata direttamente su richiesta dell'utente, senza passare i dati nella beta).
 
 ## Goals
 **Piano adattato** (`planAt0` = piano originale di `PLAN`; `planRaw` = piano con le date di "Continua il cut"; `planAt` = `planRaw` + ripartenze; `planPrep()` all'inizio di ogni `render`):
