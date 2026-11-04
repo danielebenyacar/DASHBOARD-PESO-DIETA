@@ -639,7 +639,7 @@ input.sw:disabled{opacity:.45;cursor:default}
         <div class="lab">Media ultimi 7 giorni</div>
         <div class="big" id="avg">–<small>kg</small></div>
       </div>
-      <div class="delta"><b id="rate">–</b><span>kg vs settimana prima</span></div>
+      <div class="delta"><b id="rate">–</b><span>kg a settimana (ultime 3)</span></div>
     </div>
     <div class="row" style="margin-top:12px" id="pills"></div>
   </section>
@@ -844,7 +844,7 @@ input.sw:disabled{opacity:.45;cursor:default}
   </section>
   </div>
 
-  <p class="foot">Diario peso · v1.40</p>
+  <p class="foot">Diario peso · v1.41</p>
 </main>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="in" id="sheetIn"></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -1273,41 +1273,84 @@ function waistFlag(ph,rate){
   for(var i=w.length-2;i>=0;i--){if(lt-toT(w[i].date)>=10*DAY){base=w[i];break}}
   return !!base && last.cm-base.cm>1.5 && ph.id==="bulk" && rate!=null && rate>0;
 }
-function verdict(ph,rate,list){
-  if(rate==null)return {c:"",t:"Servono più dati",x:"Registra il peso per qualche giorno: servono almeno 3 pesate nella settimana corrente e 3 in quella prima."};
-  var r=rate;
-  if(ph.id==="bulk"){
-    if(waistFlag(ph,r))return {c:"down",t:"-150 kcal",x:"La vita è salita di oltre 1,5 cm mentre il peso cresce: il surplus è troppo alto. Togli 150 kcal di carboidrati."};
-    if(r>0.4)return {c:"down",t:"-150 kcal",x:"Stai salendo troppo in fretta (oltre 0,4 kg a settimana). Togli 150 kcal di carboidrati."};
-    if(r<0.1)return {c:"up",t:"+150 kcal",x:"Peso fermo o quasi. Se è così da 2 settimane aggiungi 150 kcal di carboidrati."};
-    return {c:"ok",t:"Tutto ok",x:"Ritmo giusto: obiettivo +0,15 / +0,25 kg a settimana."};
-  }
+// Dalla v1.41 il verdetto segue lo stato del trend (trend): in linea = niente da fare, 🟡 = tieni d'occhio (ancora
+// niente da cambiare), 🔴 = fuori fascia due lunedi' di fila (o di molto): cambia le kcal (+/-150 col report del lunedi').
+function verdict(ph,rate,list,tr){
   if(ph.id==="carb")return {c:"ok",t:"Tutto ok",x:"Ricarica pre-partita: il peso sale per acqua e glicogeno, è normale. Non cambiare niente, il verdetto torna a lavorare con la transizione."};
-  if(ph.id==="trans"){
-    if(r<-0.3)return {c:"up",t:"+150 kcal",x:"Stai ancora scendendo: aggiungi 150 kcal. Il salto di ~1 kg nella prima settimana è acqua e glicogeno, non preoccuparti."};
-    return {c:"ok",t:"Tutto ok",x:"Peso stabile, come previsto. Un salto di ~1 kg all'inizio è acqua e glicogeno."};
+  if(!BAND[ph.id])return {c:"ok",t:"Tutto ok",x:"Fase di uscita: mantieni il peso stabile."};
+  if(rate==null)return {c:"",t:"Servono più dati",x:"Il ritmo si calcola sulle pesate delle ultime 3 settimane di questa fase: ne servono almeno "+FIT_N+" su "+FIT_MIN+" giorni."};
+  var lv=tr?tr.lv:"ok",r=sgn(rate,2)+" kg a settimana";
+  if(lv!=="warn"&&lv!=="bad"){
+    if(ph.id==="bulk")return {c:"ok",t:"Tutto ok",x:"Ritmo "+r+": va bene (fascia +0,1 / +0,4, obiettivo circa +0,2). Le pesate ballano di circa 1 kg al giorno: conta la tendenza delle ultime 3 settimane."};
+    if(ph.id==="trans")return {c:"ok",t:"Tutto ok",x:"Peso stabile, come previsto. Un salto di ~1 kg all'inizio è acqua e glicogeno."};
+    return {c:"ok",t:"Tutto ok",x:"Ritmo di calo nella norma ("+r+"). Se la forza cala, aggiungi 150 kcal."};
   }
-  if(ph.id==="cut"||ph.id==="cutsoft"||ph.id==="cutfull"){
-    if(r<-0.7)return {c:"up",t:"+150 kcal",x:"Stai scendendo troppo in fretta (oltre 0,7 kg a settimana). Aggiungi 150 kcal e controlla forza e recupero."};
-    if(r>-0.1)return {c:"down",t:"-100/150 kcal",x:"Peso fermo. Se è così da 2 settimane e hai registrato tutto, togli 100-150 kcal."};
-    return {c:"ok",t:"Tutto ok",x:"Ritmo di calo nella norma. Se la forza cala, aggiungi 150 kcal."};
+  var up=tr.dir>0,dk=up?"-150":"+150";
+  if(lv==="warn"){
+    var why=tr.gap!=null?"Sei "+fmt(Math.abs(tr.gap),1)+" kg "+(up?"sopra":"sotto")+" il piano e non stai "+(up?"rallentando":"recuperando")+" (ritmo "+r+")":ph.id==="bulk"&&up&&waistFlag(ph,rate)?"La vita è salita di oltre 1,5 cm mentre il peso cresce":"Il ritmo ("+r+") è "+(up?"sopra":"sotto")+" la fascia";
+    return {c:up?"down":"up",t:"Tieni d'occhio",x:why+", ma un solo controllo può essere ancora oscillazione. Non cambiare niente: se lunedì prossimo è ancora così, il report ti propone "+dk+" kcal."};
   }
-  return {c:"ok",t:"Tutto ok",x:"Fase di uscita: mantieni il peso stabile."};
+  if(ph.id==="bulk")return {c:up?"down":"up",t:dk+" kcal",x:up?(waistFlag(ph,rate)?"La vita sale insieme al peso: il surplus è troppo alto. ":"Sali troppo in fretta da 2 settimane ("+r+"). ")+"Togli 150 kcal di carboidrati.":(tr.gap!=null?"Sei "+fmt(Math.abs(tr.gap),1)+" kg sotto il piano e non recuperi da 2 settimane ("+r+")":"Il peso non sale abbastanza da 2 settimane ("+r+")")+": stai perdendo massa che potresti mettere su. Aggiungi 150 kcal di carboidrati."};
+  if(ph.id==="trans")return {c:"up",t:"+150 kcal",x:"Stai ancora scendendo ("+r+"): aggiungi 150 kcal."};
+  return {c:up?"down":"up",t:dk+" kcal",x:up?(tr.gap!=null?"Sei "+fmt(tr.gap,1)+" kg sopra il piano e non recuperi da 2 settimane ("+r+")":"Il peso non scende abbastanza da 2 settimane ("+r+")")+". Se hai registrato tutto, togli 150 kcal.":"Scendi troppo in fretta da 2 settimane ("+r+"): rischi di perdere muscolo. Aggiungi 150 kcal e controlla forza e recupero."};
 }
 
 /* ---------- trend: fascia giusta per fase (kg/settimana) e allarme ---------- */
 // Stesse soglie del verdetto. null = nessun limite da quel lato.
 var BAND={cut:[-0.7,-0.1],cutsoft:[-0.7,-0.1],cutfull:[-0.7,-0.1],bulk:[0.1,0.4],trans:[-0.3,null]};
-var FAR=0.25; // oltre la fascia di 0,25 kg/sett = fuori rotta anche con una sola settimana
+var FAR=0.25; // Goals, questa settimana: oltre la fascia (allargata dal rumore) di 0,25 kg = 🔴
 function bandOff(b,x){if(x==null)return 0;if(b[0]!=null&&x<b[0])return x-b[0];if(b[1]!=null&&x>b[1])return x-b[1];return 0}
-// r = ritmo ultima settimana, r2 = ritmo della settimana prima. dir>0: mangi troppo, dir<0: mangi troppo poco.
-function trend(ph,r,r2){
+// Ritmo (dalla v1.41): pendenza della retta dei minimi quadrati delle pesate degli ultimi `days` giorni (FIT_D) fino
+// a endIso, solo dal giorno from (inizio fase); servono FIT_N pesate su almeno FIT_MIN giorni. sd = scarto dalla retta,
+// se = errore del ritmo (con sd almeno 0,4 kg). Le pesate ballano di ~1 kg al giorno (il lunedi' dopo partita e pub
+// +0,8): la media di 7 giorni contro i 7 prima sbagliava di ~±0,5 kg/sett e, simulata coi dati di ott-nov, dava 🔴 in
+// circa 4 settimane su 10 anche col ritmo giusto. Retta di 3 settimane + 2 controlli di fila: correzione sbagliata ~2%.
+var FIT_D=21,FIT_MIN=14,FIT_N=8,FIT_Z=1,FIT_BIG=2.5;
+function rateFit(endIso,from,days){
+  var e=toT(endIso),s0=e-((days||FIT_D)-1)*DAY,pts=[];
+  if(from&&toT(from)>s0)s0=toT(from);
+  Object.keys(entries).forEach(function(k){var t=toT(k);if(t>=s0&&t<=e)pts.push([(t-e)/DAY,entries[k].kg])});
+  if(pts.length<FIT_N)return null;
+  var n=pts.length,mx=0,my=0,sxx=0,sxy=0,ss=0,lo=0;
+  pts.forEach(function(p){mx+=p[0];my+=p[1];if(p[0]<lo)lo=p[0]});mx/=n;my/=n;
+  if(-lo<FIT_MIN-1)return null;
+  pts.forEach(function(p){sxx+=(p[0]-mx)*(p[0]-mx);sxy+=(p[0]-mx)*(p[1]-my)});
+  var b=sxy/sxx;pts.forEach(function(p){var r=p[1]-(my+b*(p[0]-mx));ss+=r*r});
+  var sd=Math.sqrt(ss/(n-2));
+  return {r:b*7,se:Math.max(0.4,sd)/Math.sqrt(sxx)*7,sd:sd,n:n,d:1-lo,e:endIso};
+}
+// Rumore delle pesate (kg): scarto dalla retta degli ultimi 28 giorni, tra 0,4 e 1,5 (0,8 se mancano i dati).
+var WSD=0.8;
+function wNoise(){var l=sorted(),f=l.length?rateFit(l[l.length-1].date,null,28):null;return f?clamp(f.sd,0.4,1.5):0.8}
+// Distanza dal piano: media dei 7 giorni fino a e meno il piano (planAt) a meta' finestra, con almeno 4 pesate.
+// Serve per un ritmo dentro la fascia ma lontano dall'obiettivo (es. peso fermo nel bulk: +0 e' "quasi" in fascia,
+// ma in 6 settimane perdi 1,2 kg di massa prevista). GAP = 0,7 kg (2 volte l'errore di una media di 7 pesate).
+var GAP=0.7;
+function planGap(e,f){
+  var a=avgWin(sorted(),toT(e),7);if(a.n<4)return null;
+  var g=a.avg-planAt(toT(e)-3*DAY),pr=planRaw(toT(e))-planRaw(toT(e)-7*DAY);
+  if(Math.abs(g)<=GAP||(g<0?f.r>=pr:f.r<=pr))return null; // vicino al piano, o stai gia' recuperando
+  return g;
+}
+// Un controllo (adesso o 7 giorni prima): fuori fascia oltre l'errore del ritmo (o), o lontano dal piano senza
+// recuperare (g). 0 = niente. Restituisce +1 (mangi troppo) / -1 (troppo poco) / 0.
+function trendSide(ph,f){
+  if(!f)return {d:0};
+  var o=bandOff(BAND[ph.id],f.r),sig=Math.abs(o)>f.se*FIT_Z,g=ph.id!=="trans"?planGap(f.e,f):null;
+  if(sig)return {d:o>0?1:-1,big:Math.abs(o)>f.se*FIT_BIG};
+  if(g!=null)return {d:g>0?1:-1,gap:g};
+  return {d:0};
+}
+// f = ritmo adesso, f2 = ritmo di 7 giorni prima. Fuori fascia meno del suo errore = in linea (non si distingue
+// dall'oscillazione). 🟡 = un controllo fuori; 🔴 = fuori dallo stesso lato anche 7 giorni prima, o fuori fascia di
+// molto (oltre 2,5 errori). dir>0: mangi troppo, dir<0: mangi troppo poco.
+function trend(ph,f,f2){
   var b=BAND[ph.id];
-  if(!b||r==null)return {lv:"none",dir:0};
-  var o=bandOff(b,r),o2=bandOff(b,r2),wf=ph.id==="bulk"&&waistFlag(ph,r);
-  if(!o&&!wf)return {lv:"ok",dir:0};
-  var dir=o>0||(!o&&wf)?1:-1,two=!!o2&&(o2>0)===(dir>0);
-  return {lv:Math.abs(o)>=FAR||two?"bad":"warn",dir:dir,two:two};
+  if(!b||!f)return {lv:"none",dir:0};
+  var s1=trendSide(ph,f),wf=ph.id==="bulk"&&waistFlag(ph,f.r);
+  if(!s1.d&&!wf)return {lv:"ok",dir:0,f:f};
+  var dir=s1.d||1,s2=trendSide(ph,f2),two=s2.d===dir;
+  return {lv:two||s1.big?"bad":"warn",dir:dir,two:two,f:f,gap:s1.gap};
 }
 var STC={ok:"ok",warn:"warn",bad:"bad"};
 function trendLabel(t){
@@ -1331,17 +1374,17 @@ function render(){
   var hc=document.getElementById("heroCard");hc.style.background="var(--c-"+ph.id+")";hc.style.color="var(--on-"+ph.id+")";
   var pc0=document.getElementById("phaseLine");pc0.style.background="var(--c-"+ph.id+")";pc0.style.color="var(--on-"+ph.id+")";
 
-  var a=null,b=null,rate=null,rate2=null,rs=runStart(today);
+  WSD=wNoise();
+  var a=null,rate=null,fit=null,fit2=null,rs=runStart(today);
   if(last){
     var lt=toT(last.date);
-    a=avgWin(list,lt,7);b=avgWin(list,lt-7*DAY,7);
-    if(a.n>=3&&b.n>=3)rate=a.avg-b.avg;
-    var c2=avgWin(list,lt-14*DAY,7);
-    if(b.n>=3&&c2.n>=3&&iso(lt-13*DAY)>=rs)rate2=b.avg-c2.avg; // la settimana prima conta solo se e' gia' di questa fase
+    a=avgWin(list,lt,7);
+    fit=rateFit(last.date,rs);fit2=rateFit(iso(lt-7*DAY),rs);
+    if(fit)rate=fit.r;
   }
-  var tr=trend(ph,rate,rate2);
-  // fase appena cominciata: niente giudizio finche' non c'e' una settimana intera di pesate della fase nuova
-  if(last&&BAND[ph.id]&&iso(toT(last.date)-6*DAY)<rs)tr={lv:"none",dir:0,fresh:iso(toT(rs)+6*DAY)};
+  var tr=trend(ph,fit,fit2);
+  // fase appena cominciata: niente giudizio finche' non ci sono 2 settimane di pesate della fase nuova
+  if(last&&BAND[ph.id]&&!fit&&daysBetween(rs,last.date)<FIT_MIN-1)tr={lv:"none",dir:0,fresh:iso(toT(rs)+(FIT_MIN-1)*DAY)};
   var tl=tr.fresh?"🆕 Fase nuova · primo giudizio dal "+dIt(tr.fresh):trendLabel(tr);
   if(tr.lv!=="none")pc0.textContent=tl.slice(0,2)+" "+pc0.textContent;
   hc.style.boxShadow=STC[tr.lv]?"0 0 0 3px var(--bg), 0 0 0 6px var(--"+STC[tr.lv]+")":"";
@@ -1361,8 +1404,8 @@ function render(){
     if(wl)pill("vita: "+fmt(wl.cm,1)+" cm");
   }else{pill("nessuna pesata")}
 
-  var v=verdict(ph,rate,list);
-  if(tr.fresh)v={c:"",t:"Si riparte da zero",x:"Fase nuova ("+ph.name+" dal "+dIt(rs)+"): il verdetto conta solo pesate e kcal di questa fase, le abitudini di prima non pesano. Il primo giudizio arriva dal "+dIt(tr.fresh)+", con una settimana intera di pesate."};
+  var v=verdict(ph,rate,list,tr);
+  if(tr.fresh)v={c:"",t:"Si riparte da zero",x:"Fase nuova ("+ph.name+" dal "+dIt(rs)+"): il verdetto conta solo pesate e kcal di questa fase, le abitudini di prima non pesano. Il primo giudizio arriva dal "+dIt(tr.fresh)+", con 2 settimane di pesate."};
   var as=adhStats(yesterdayIso(),14,rs);
   var cz=cause(tr,as,5),why=whyText(cz,"negli ultimi 14 giorni");
   if(cz&&cz.k==="you")v=keepPlan(v,T.kcal);
@@ -1481,7 +1524,8 @@ var RTITLE=["","Settimana da dimenticare","Settimana storta","Settimana ok","Ott
 function weekTrend(mon){
   var th=iso(toT(mon)+3*DAY),rs=runStart(th),prev=iso(toT(mon)-7*DAY);
   if(mon<rs)return {lv:"none",dir:0,fresh:true}; // settimana cominciata nella fase prima
-  return trend(phaseAt(th),weekInfo(mon).rate,prev>=rs?weekInfo(prev).rate:null);
+  var sun=iso(toT(mon)+6*DAY);
+  return trend(phaseAt(th),rateFit(sun,rs),rateFit(iso(toT(sun)-7*DAY),rs));
 }
 // Proposta di correzione per la settimana appena chiusa (solo per il report "vivo").
 function proposal(mon,t,as,cz){
@@ -1505,10 +1549,10 @@ function buildReport(mon,live){
   if(w.dw!=null)notes.push("Vita: "+sgn(w.dw,1)+" cm");
   if(phaseAt(mon).id!==phn.id)notes.push("Nuova fase: "+phn.name+" · "+phn.kcal+" kcal");
   if(as.n||as.skip)notes.push(kcalNote(as));
-  var v=verdict(phn,w.rate),cz=cause(t,as,4);
+  var rate=t.f?t.f.r:t.fresh?w.rate:null,v=verdict(phn,rate,null,t),cz=cause(t,as,4);
   if(cz&&cz.k==="you")v=keepPlan(v,target(next).base);
   // la settimana dopo e' di un'altra fase: niente consigli presi dalla fase che si chiude
-  if(phn.id!==phw.id&&BAND[phn.id])v={c:"",t:"Si riparte da zero",x:"Da lunedì "+phn.name+" a "+target(next).base+" kcal: quello che è successo in "+phw.name+" non conta per la fase nuova. Il primo giudizio arriva col report di lunedì "+dIt(iso(toT(next)+7*DAY))+"."};
+  if(phn.id!==phw.id&&BAND[phn.id])v={c:"",t:"Si riparte da zero",x:"Da lunedì "+phn.name+" a "+target(next).base+" kcal: quello che è successo in "+phw.name+" non conta per la fase nuova. Il primo giudizio arriva col report di lunedì "+dIt(iso(toT(next)+14*DAY))+", con 2 settimane di pesate."};
   var b=[],streak=0;
   if(w.cur.n===7)b.push("perfetta");
   if(as.n>=5&&as.score>=0.9)b.push("cecchino");
@@ -1521,7 +1565,7 @@ function buildReport(mon,live){
   if(t.lv==="bad")b.push(t.dir>0?"giri":"secco");
   if(w.dw!=null&&w.dw>=1)b.push("vita");
   var pts=3;b.forEach(function(k){pts+=BADGE[k].k});
-  return {mon:mon,sun:w.cur.sun,n:w.cur.n,avg:w.cur.avg,rate:w.rate,dv:w.dv,dw:w.dw,
+  return {mon:mon,sun:w.cur.sun,n:w.cur.n,avg:w.cur.avg,rate:rate,dv:w.dv,dw:w.dw,
     adh:{n:as.n,si:as.si,circa:as.circa,no:as.no,kAvg:as.kAvg},
     ph:phw.id,st:t.lv,dir:t.dir,two:t.two,streak:streak,badges:b,stars:clamp(pts,1,5),
     notes:notes.join(" · "),vc:v.c,vt:v.t,vx:v.x,seen:false,made:todayIso(),
@@ -1579,7 +1623,7 @@ function reportHTML(r,pre){
   var h='<div class="rhead '+(STC[r.st]||"")+'"><div class="rstars" aria-label="'+r.stars+' stelle su 5">'+stars(r.stars)+'</div>';
   h+='<div class="rtitle">'+RTITLE[r.stars]+'</div><div class="rsub"><span id="'+pre+'Dates">'+dIt(r.mon)+' – '+dIt(r.sun)+'</span>'+(ph?' · '+ph.name:'')+'</div></div>';
   if(r.badges.length)h+='<div class="badges">'+r.badges.map(function(k){var x=BADGE[k];return '<span class="bdg '+(x.k>0?"pos":"neg")+'">'+x.e+' '+x.t+(k==="serie"?": "+r.streak+" settimane":"")+'</span>'}).join("")+'</div>';
-  h+='<div class="wgrid" id="'+pre+'Grid">'+tile("Media",fmt(r.avg,1)+" kg")+tile("vs settimana prima",r.rate==null?"–":sgn(r.rate,2)+" kg")+tile("vs piano",r.dv==null?"–":sgn(r.dv,1)+" kg")+tile("Pesate",r.n+" / 7")+'</div>';
+  h+='<div class="wgrid" id="'+pre+'Grid">'+tile("Media",fmt(r.avg,1)+" kg")+tile("Ritmo",r.rate==null?"–":sgn(r.rate,2)+" kg/sett")+tile("vs piano",r.dv==null?"–":sgn(r.dv,1)+" kg")+tile("Pesate",r.n+" / 7")+'</div>';
   h+='<p class="wkn" id="'+pre+'Notes"'+(r.notes?'':' hidden')+'>'+esc(r.notes)+'</p>';
   var tl=trendLabel({lv:r.st,dir:r.dir,two:r.two});
   h+='<div class="wkl">Cosa fare la settimana dopo</div>';
@@ -2796,7 +2840,9 @@ function weekGoal(list,mon,depth){
 }
 function weekEval(list,g){
   var a=wkAvg(list,g.mon);if(!a.n)return {n:0,lv:"none"};
-  var off=a.avg<g.lo?a.avg-g.lo:a.avg>g.hi?a.avg-g.hi:0;
+  // le medie di una settimana ballano anche loro: la fascia si allarga dell'errore delle due medie (WSD = rumore delle pesate)
+  var nz=WSD*Math.sqrt(1/a.n+(g.n0?1/g.n0:0));
+  var off=a.avg<g.lo-nz?a.avg-(g.lo-nz):a.avg>g.hi+nz?a.avg-(g.hi+nz):0;
   return {n:a.n,avg:a.avg,off:off,lv:a.n<3?"few":!off?"ok":Math.abs(off)>=FAR?"bad":"warn"};
 }
 function wkLv(e){return e.lv==="ok"||e.lv==="warn"||e.lv==="bad"?e.lv:"na"}
